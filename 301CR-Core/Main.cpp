@@ -1,16 +1,15 @@
 #include "Logger.h"
+#include "Engine.h"
+#include <SFML/Graphics.hpp>
 
 
-#ifdef BUILD_DEBUG
-int main(char** argv, int argc)
+int main(int argc, char** argv)
 {
-	LOG_ERROR("Dog %s", "HELOO");
+	EngineInfo info(argc, argv);
+
+	Engine* engine = new Engine(&info);
+	engine->Launch();
+
+	delete engine;
 	return 0;
 }
-#else
-int main(char** argv, int argc)
-{
-	LOG_ERROR("Dog %s", "HELOO");
-	return 0;
-}
-#endif
