@@ -25,6 +25,7 @@ private:
 	Engine* m_engine = nullptr;
 
 	std::vector<Level*> m_levels;
+	string defaultLevel = "Main";
 	Level* currentLevel = nullptr;
 
 public:
@@ -69,6 +70,11 @@ public:
 	* Getters & Setters
 	*/
 public:
+	inline Engine* GetEngine() { return m_engine; m_engine; }
+
 	inline string GetName() const  { return m_name; }
+
+	inline string GetDefaultLevelName() const { return defaultLevel; }
+	inline void SetDefaultLevelName(string levelName) { defaultLevel = levelName; }
 };
 

@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Level.h"
+#include "Entity.h"
 
 
 GameInfo::GameInfo(std::vector<string>& args)
@@ -33,16 +34,34 @@ Game::~Game()
 void Game::HookEngine(Engine* engine)
 {
 	m_engine = engine;
+	SwitchLevel(defaultLevel);
 }
 
 
 void Game::MainUpdate(const float& deltaTime) 
 {
+	if (currentLevel == nullptr)
+		return;
+
+	std::vector<Entity*> entities = currentLevel->GetEntities();
+	for (Entity* entity : entities)
+		entity->HandleMainUpdate(deltaTime);
 }
 
 #ifdef BUILD_CLIENT
 void Game::DisplayUpdate(const float& deltaTime) 
 {
+	std::vector<Entity*> entities = currentLevel->GetEntities();
+	sf::RenderWindow* window = m_engine->GetDisplayWindow();
+
+	for (uint8 i = 0; i < 20; ++i)
+	{
+		for (Entity* entity : entities)
+		{
+			if (entity->GetSortingLayer() == i)
+				entity->Draw(window, deltaTime);
+		}
+	}
 }
 #endif
 
@@ -55,18 +74,18 @@ void Game::RegisterLevel(Level* level)
 
 bool Game::SwitchLevel(string levelName)
 {
+	// Close current level
+	if (currentLevel != nullptr)
+	{
+		LOG("Closing level '%s'", currentLevel->GetName().c_str());
+		currentLevel->DestroyLevel();
+		currentLevel = nullptr;
+	}
+
 	// Attempt to load level with given name
 	for(Level* level : m_levels)
 		if (level->GetName() == levelName)
 		{
-			// Close current level
-			if (currentLevel != nullptr)
-			{
-				LOG("Closing level '%s'", currentLevel->GetName().c_str());
-				currentLevel->DestroyLevel();
-				currentLevel = nullptr;
-			}
-
 			// Load new level
 			LOG("Loading level '%s'", levelName.c_str());
 			currentLevel = level;
@@ -74,7 +93,17 @@ bool Game::SwitchLevel(string levelName)
 			return true;
 		}
 
+	
+	// Attempt to load into default level
+	if (levelName == defaultLevel)
+	{
+		LOG_ERROR("Unable to load level default level '%s'", defaultLevel.c_str());
+	}
+	else
+	{
+		LOG_ERROR("Unable to load level '%s' (Attempting to load default)", levelName.c_str());
+		SwitchLevel(defaultLevel);
+	}
 
-	LOG_ERROR("Unable to load level '%s'", levelName.c_str());
 	return false;
 }

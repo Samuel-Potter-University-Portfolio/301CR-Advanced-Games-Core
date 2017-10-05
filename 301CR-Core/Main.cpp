@@ -15,27 +15,21 @@ inline int entry(std::vector<string>& args)
 		LOG("\t-'%s'", str.c_str());
 	}
 
-
+	// Setup engine
 	EngineInfo engineInfo(args);
-	Engine* engine = new Engine(&engineInfo);
+	Engine engine(&engineInfo);
 	
+	// Setup game
 	GameInfo gameInfo(args);
 	gameInfo.name = "Untitled Game";
-	Game* game = new Game(&gameInfo);
-	
-	game->RegisterLevel(new TestLevel);
-	game->SwitchLevel("Test");
-
-	engine->Launch(game);
-
-	delete game;
-	delete engine;
+	Game game(&gameInfo);
 
 
-	// Wait whilst in debug to read log
-#ifdef BUILD_DEBUG
-	while (true) {}
-#endif
+	// Register levels
+	game.SetDefaultLevelName("Test");
+	game.RegisterLevel(new TestLevel);
+
+	engine.Launch(&game);
 	return 0;
 }
 
@@ -64,7 +58,13 @@ std::vector<string> GetArgs(int argc, wchar_t** argv)
 int wmain(int argc, wchar_t** argv)
 {
 	std::vector<string> args = GetArgs(argc, argv);
-	return entry(args);
+	int o = entry(args);
+
+	// Wait whilst in debug to read log
+#ifdef BUILD_DEBUG
+	while (true) {}
+#endif
+	return o;
 }
 
 #else

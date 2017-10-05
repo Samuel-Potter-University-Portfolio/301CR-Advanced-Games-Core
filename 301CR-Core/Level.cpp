@@ -20,3 +20,8 @@ void Level::DestroyLevel()
 {
 
 }
+
+void Level::AddEntity(Entity* entity) 
+{
+	m_entities.push_back(entity);
+}

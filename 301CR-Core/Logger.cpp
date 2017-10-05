@@ -30,13 +30,13 @@ void Logger::LogMessage(std::string msg)
 void Logger::LogWarning(std::string msg)
 {
 	std::stringstream stream;
-	stream << TimeStamp() << "__WARNING__: " << msg << '\n';
+	stream << "__WARNING__" << TimeStamp() << ": " << msg << '\n';
 	std::cout << stream.str();
 }
 
 void Logger::LogError(std::string msg)
 {
 	std::stringstream stream;
-	stream << TimeStamp() << "__ERROR__: " << msg << '\n';
+	stream << "___ERROR___" << TimeStamp() << ": " << msg << '\n';
 	std::cout << stream.str();
 }

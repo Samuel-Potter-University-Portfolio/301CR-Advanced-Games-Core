@@ -14,6 +14,7 @@ Engine::Engine(EngineInfo* info) : m_initInfo(*info)
 
 Engine::~Engine()
 {
+	LOG("Engine destroyed");
 }
 
 void Engine::Launch(Game* game)
