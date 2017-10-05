@@ -3,6 +3,8 @@
 #include "Game.h"
 #include <SFML/Graphics.hpp>
 
+#include "TestLevel.h"
+
 
 inline int entry(std::vector<string>& args)
 {
@@ -15,11 +17,14 @@ inline int entry(std::vector<string>& args)
 
 
 	EngineInfo engineInfo(args);
+	Engine* engine = new Engine(&engineInfo);
+	
 	GameInfo gameInfo(args);
 	gameInfo.name = "Untitled Game";
-
-	Engine* engine = new Engine(&engineInfo);
 	Game* game = new Game(&gameInfo);
+	
+	game->RegisterLevel(new TestLevel);
+	game->SwitchLevel("Test");
 
 	engine->Launch(game);
 

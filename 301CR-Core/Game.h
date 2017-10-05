@@ -6,6 +6,7 @@
 
 
 class Engine;
+class Level;
 
 
 struct GameInfo
@@ -21,7 +22,10 @@ class Game
 {
 private:
 	string m_name;
-	Engine* m_engine;
+	Engine* m_engine = nullptr;
+
+	std::vector<Level*> m_levels;
+	Level* currentLevel = nullptr;
 
 public:
 	Game(GameInfo* info);
@@ -47,11 +51,24 @@ public:
 	void DisplayUpdate(const float& deltaTime);
 #endif
 
+	/**
+	* Registers a given level, so it may be loaded by the game
+	* (Memory management goes to the game)
+	* @param level		The level in question
+	*/
+	void RegisterLevel(Level* level);
+
+	/**
+	* Switch to level with this registered name
+	* @param levelName		The name of the level
+	* @returns If switch was successful
+	*/
+	bool SwitchLevel(string levelName);
 
 	/**
 	* Getters & Setters
 	*/
 public:
-	inline string GetName() { return m_name; }
+	inline string GetName() const  { return m_name; }
 };
 

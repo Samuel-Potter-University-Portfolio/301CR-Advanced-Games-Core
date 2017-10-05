@@ -75,7 +75,7 @@ private:
 public:
 
 #ifdef BUILD_CLIENT
-	inline sf::RenderWindow* GetDisplayWindow() { return m_renderWindow; }
+	inline sf::RenderWindow* GetDisplayWindow() const { return m_renderWindow; }
 #endif
 };
 
