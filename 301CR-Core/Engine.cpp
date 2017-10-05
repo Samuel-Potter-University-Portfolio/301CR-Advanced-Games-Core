@@ -1,7 +1,8 @@
 #include "Engine.h"
+#include "Game.h"
 
 
-EngineInfo::EngineInfo(int argc, char** argv)
+EngineInfo::EngineInfo(std::vector<string>& args)
 {
 	// TODO - Parse any command line args
 }
@@ -15,15 +16,21 @@ Engine::~Engine()
 {
 }
 
-void Engine::Launch()
+void Engine::Launch(Game* game)
 {
-	LOG("Launching game engine");
+	LOG("Launching game engine with game '%s'", game->GetName().c_str());
+
+	// Setup game
+	m_game = game;
+	m_game->HookEngine(this);
+
 	
 	// Launch main loop for handling visuals
 #ifdef BUILD_CLIENT
 	sf::Thread m_displayThread(&Engine::DisplayLoop, this);
 	m_displayThread.launch();
 #endif
+
 
 	// Launch into main loop
 	MainLoop();
@@ -34,7 +41,7 @@ void Engine::Launch()
 	m_displayThread.wait();
 #endif
 
-
+	m_game = nullptr;
 	LOG("Main engine loop closed");
 }
 	
@@ -51,6 +58,7 @@ void Engine::MainLoop()
 	{
 		// Tick logic 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
+		m_game->MainUpdate(deltaTime);
 		// TODO
 
 		sf::sleep(sf::milliseconds(1));
@@ -72,8 +80,8 @@ void Engine::DisplayLoop()
 
 
 	// Open Window
-	m_renderWindow = new sf::RenderWindow(sf::VideoMode(m_initInfo.windowWidth, m_initInfo.windowHeight), m_initInfo.gameTitle);
-	LOG("Opening window (%s, %ix%i)", m_initInfo.gameTitle.c_str(), m_initInfo.windowWidth, m_initInfo.windowHeight);
+	m_renderWindow = new sf::RenderWindow(sf::VideoMode(m_initInfo.windowWidth, m_initInfo.windowHeight), m_game->GetName());
+	LOG("Opening window (%s, %ix%i)", m_game->GetName().c_str(), m_initInfo.windowWidth, m_initInfo.windowHeight);
 
 
 	// Launch into main loop
@@ -89,11 +97,9 @@ void Engine::DisplayLoop()
 		// Clear window
 		m_renderWindow->clear();
 
-
 		// Tick rendering 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
-		// TODO
-
+		m_game->DisplayUpdate(deltaTime);
 
 		// Update display (Performs any syncing aswell)
 		m_renderWindow->display();

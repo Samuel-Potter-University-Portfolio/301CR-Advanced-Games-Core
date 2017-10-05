@@ -2,17 +2,20 @@
 #include "Types.h"
 #include "Logger.h"
 
-#include <SFML/Graphics.hpp>
+#include <vector>
 #include <string>
+#include <SFML/Graphics.hpp>
+
+
+class Game;
 
 
 struct EngineInfo
 {
-	string gameTitle = "Untitled";
 	uint32 windowWidth = 800;
 	uint32 windowHeight = 600;
 
-	EngineInfo(int argc, char** argv);
+	EngineInfo(std::vector<string>& args);
 };
 
 
@@ -23,10 +26,14 @@ class Engine
 {
 private:
 	EngineInfo m_initInfo;
-	sf::RenderWindow* m_renderWindow;
+	Game* m_game;
 
 	bool bUpdateMain;
 	bool bUpdateDisplay;
+
+#ifdef BUILD_CLIENT
+	sf::RenderWindow* m_renderWindow;
+#endif
 
 public:
 	Engine(EngineInfo* info);
@@ -34,8 +41,9 @@ public:
 
 	/**
 	* Launch the engine into it's main loops
+	* @param game		The game for the engine to run
 	*/
-	void Launch();
+	void Launch(Game* game);
 
 	/**
 	* Flags the engine to close itself
@@ -59,6 +67,15 @@ private:
 	* @param event		The event information in question
 	*/
 	void HandleDisplayEvent(sf::Event& event);
+#endif
+
+	/**
+	* Getters and setters
+	*/
+public:
+
+#ifdef BUILD_CLIENT
+	inline sf::RenderWindow* GetDisplayWindow() { return m_renderWindow; }
 #endif
 };
 
