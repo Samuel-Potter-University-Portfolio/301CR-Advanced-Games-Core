@@ -9,6 +9,9 @@ class Engine;
 class Level;
 
 
+/**
+* Initialization settings used by the game
+*/
 struct GameInfo
 {
 	string name = "Untitled";
@@ -17,7 +20,10 @@ struct GameInfo
 };
 
 
-
+/**
+* Contains any relevent information about a given game 
+* e.g. Assets to load, Supported entity types, Supported levels etc.
+*/
 class Game
 {
 private:

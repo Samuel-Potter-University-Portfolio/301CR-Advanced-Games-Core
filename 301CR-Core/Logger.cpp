@@ -27,6 +27,22 @@ void Logger::LogMessage(std::string msg)
 	std::cout << stream.str();
 }
 
+#ifdef BUILD_DEBUG
+void Logger::LogWarning(std::string msg, std::string file, int line)
+{
+	std::stringstream stream;
+	stream << "__WARNING__" << TimeStamp() << ": " << msg << '\n' << "\t@ (" << line << ')' << file << '\n';
+	std::cout << stream.str();
+}
+
+void Logger::LogError(std::string msg, std::string file, int line)
+{
+	std::stringstream stream;
+	stream << "___ERROR___" << TimeStamp() << ": " << msg << '\n' << "\t@ (" << line << ')' << file << '\n';
+	std::cout << stream.str();
+}
+
+#else
 void Logger::LogWarning(std::string msg)
 {
 	std::stringstream stream;
@@ -40,3 +56,4 @@ void Logger::LogError(std::string msg)
 	stream << "___ERROR___" << TimeStamp() << ": " << msg << '\n';
 	std::cout << stream.str();
 }
+#endif

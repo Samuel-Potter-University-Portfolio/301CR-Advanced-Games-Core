@@ -10,6 +10,9 @@
 class Game;
 
 
+/**
+* Initialization settings used by the engine
+*/
 struct EngineInfo
 {
 	uint32 windowWidth = 800;
@@ -20,7 +23,7 @@ struct EngineInfo
 
 
 /**
-* Interface for handling any subsystem relating to games
+* Main controller and central controller for any subsystems
 */
 class Engine
 {

@@ -51,6 +51,9 @@ void Game::MainUpdate(const float& deltaTime)
 #ifdef BUILD_CLIENT
 void Game::DisplayUpdate(const float& deltaTime) 
 {
+	if (currentLevel == nullptr)
+		return;
+
 	std::vector<Entity*> entities = currentLevel->GetEntities();
 	sf::RenderWindow* window = m_engine->GetDisplayWindow();
 
