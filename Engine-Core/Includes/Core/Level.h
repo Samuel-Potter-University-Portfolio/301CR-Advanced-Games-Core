@@ -17,7 +17,6 @@ private:
 	Game* m_game;
 
 	std::vector<Entity*> m_entities;
-	class Camera* m_camera;
 
 public:
 	Level(string name);
@@ -49,7 +48,19 @@ public:
 	* @param name			The name that the entity was registered under
 	* @returns The new entity that has spawned into the world
 	*/
-	Entity* SpawnEntity(string name);
+	template<class Type>
+	Type* SpawnEntity()
+	{
+		ClassFactory<Entity>* factory = m_game->GetEntityFactory(typeid(Type).hash_code());
+		if (factory != nullptr)
+		{
+			Type* e = factory->New<Type>();
+			AddEntity(e);
+			return e;
+		}
+		else
+			return nullptr;
+	}
 
 	/**
 	* Getters and setters
@@ -60,5 +71,4 @@ public:
 
 	inline std::vector<Entity*>& GetEntities() { return m_entities; }
 	inline std::vector<Entity*> GetEntities() const { return m_entities; }
-	inline Camera* GetMainCamera() const { return m_camera; }
 };

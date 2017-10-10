@@ -51,10 +51,19 @@ public:
 	* Fetch the name of the type that this factory was made using
 	* @returns The name of this factory
 	*/
-	virtual const char* GetName() 
+	virtual const char* GetName() const
 	{
 		// Called 'class xyz' so remove class part
 		return (typeid(Type).name() + 6);
+	}
+
+	/**
+	* Fetch the hash for the type this factory produces
+	* @returns 32 bit type hash (From compiler)
+	*/
+	virtual const uint32 GetHash() const 
+	{
+		return typeid(Type).hash_code();
 	}
 };
 
@@ -79,9 +88,18 @@ public:
 	* Fetch the name of the type that this factory was made using
 	* @returns The name of this factory
 	*/
-	virtual const char* GetName()
+	virtual const char* GetName() const
 	{
 		// Called 'class xyz' so remove class part
 		return (typeid(Child).name() + 6);
+	}
+	
+	/**
+	* Fetch the hash for the type this factory produces
+	* @returns 32 bit type hash (From compiler)
+	*/
+	virtual const uint32 GetHash() const
+	{
+		return typeid(Child).hash_code();
 	}
 }; 

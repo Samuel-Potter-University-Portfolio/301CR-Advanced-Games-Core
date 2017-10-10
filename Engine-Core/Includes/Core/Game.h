@@ -21,8 +21,11 @@ private:
 	string m_name;
 	Engine* m_engine = nullptr;
 
+	/** Map of all supported levels that can be loaded */
 	std::unordered_map<string, Level*> m_levels;
-	std::unordered_map<string, ClassFactory<Entity>*> m_entityTypes;
+
+	/** Map using class hashes to link to factories	*/
+	std::unordered_map<uint32, ClassFactory<Entity>*> m_entityTypes;
 
 	string defaultLevel = "Main";
 	Level* currentLevel = nullptr;
@@ -75,10 +78,10 @@ public:
 
 	/**
 	* Fetch the factory for a given entity from its name
-	* @param name		The name that the entity was previously registered under
+	* @param hash		The hash of the entity type
 	* @return The factory that can be used to build the entity
 	*/
-	ClassFactory<Entity>* GetEntityFactory(string name);
+	ClassFactory<Entity>* GetEntityFactory(uint32 hash);
 
 	/**
 	* Getters & Setters

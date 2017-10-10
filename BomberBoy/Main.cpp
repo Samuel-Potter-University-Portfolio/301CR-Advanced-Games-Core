@@ -5,6 +5,7 @@
 
 #include "MainLevel.h"
 
+#include "Core\Camera.h"
 #include "TestEntity.h"
 
 
@@ -27,6 +28,7 @@ static inline int entry(std::vector<string>& args)
 		game.RegisterLevel(new MainLevel);
 
 		// Register entities
+		game.RegisterEntity(new EntityFactory<Camera>());
 		game.RegisterEntity(new EntityFactory<TestEntity>());
 
 		// Register assets

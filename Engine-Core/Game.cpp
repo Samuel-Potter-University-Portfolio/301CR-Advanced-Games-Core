@@ -89,6 +89,13 @@ bool Game::SwitchLevel(string levelName)
 		currentLevel = nullptr;
 	}
 
+	// Recentre camera
+#ifdef BUILD_CLIENT
+	sf::RenderWindow* window = m_engine->GetDisplayWindow();
+	if(window != nullptr)
+		window->setView(window->getDefaultView());
+#endif
+
 	// Attempt to load level with given name
 	Level* level = m_levels[levelName];
 
@@ -118,20 +125,20 @@ bool Game::SwitchLevel(string levelName)
 
 void Game::RegisterEntity(ClassFactory<Entity>* entityType) 
 {
-	if (m_entityTypes.find(entityType->GetName()) != m_entityTypes.end())
+	if (m_entityTypes.find(entityType->GetHash()) != m_entityTypes.end())
 	{
 		LOG_ERROR("Cannot register multiple entities with name '%s'", entityType->GetName());
 	}
 
-	m_entityTypes[entityType->GetName()] = entityType;
+	m_entityTypes[entityType->GetHash()] = entityType;
 }
 
-ClassFactory<Entity>* Game::GetEntityFactory(string name) 
+ClassFactory<Entity>* Game::GetEntityFactory(uint32 hash)
 {
-	auto it = m_entityTypes.find(name);
+	auto it = m_entityTypes.find(hash);
 	if (it == m_entityTypes.end())
 	{
-		LOG_ERROR("Cannot find registered entity '%s'", name.c_str());
+		LOG_ERROR("Cannot find registered entity of hash '%i'", hash);
 		return nullptr;
 	}
 

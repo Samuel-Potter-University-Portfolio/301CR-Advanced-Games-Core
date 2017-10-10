@@ -20,6 +20,8 @@ private:
 	bool bHasStarted = false;
 	uint8 m_sortingLayer;
 
+	sf::Vector2f location;
+
 public:
 	Entity();
 	~Entity();
@@ -68,6 +70,9 @@ public:
 
 	inline uint8 GetSortingLayer() const { return m_sortingLayer; }
 	inline void SetSortingLayer(uint8 layer) { m_sortingLayer = layer; }
+
+	inline sf::Vector2f GetLocation() const { return location; }
+	inline void SetLocation(sf::Vector2f loc) { location = loc; }
 };
 
 
