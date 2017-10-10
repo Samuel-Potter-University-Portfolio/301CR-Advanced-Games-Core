@@ -15,7 +15,9 @@ class CORE_API Level
 private:
 	string m_name;
 	Game* m_game;
+
 	std::vector<Entity*> m_entities;
+	class Camera* m_camera;
 
 public:
 	Level(string name);
@@ -49,5 +51,7 @@ public:
 	inline string GetName() const { return m_name; }
 	inline Game* GetGame() const { return m_game; }
 
+	inline std::vector<Entity*>& GetEntities() { return m_entities; }
 	inline std::vector<Entity*> GetEntities() const { return m_entities; }
+	inline Camera* GetMainCamera() const { return m_camera; }
 };

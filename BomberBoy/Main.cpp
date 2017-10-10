@@ -1,29 +1,32 @@
 #include "Core/Common.h"
 #include "Core/Engine.h"
 #include "Core/Game.h"
-#include <SFML/Graphics.hpp>
+
+#include "MainLevel.h"
 
 
-inline int entry(std::vector<string>& args)
+static inline int entry(std::vector<string>& args)
 {
 	LOG("Discovered %i cmd arguments", args.size());
-
 	for (string& str : args)
-	{
-		LOG("\t-'%s'", str.c_str());
-	}
+		LOG("\t-'%s'", str.c_str())
+
 
 	// Setup engine
 	EngineInfo engineInfo(args);
 	Engine engine(&engineInfo);
 
 	// Setup game
-	Game game("Untitled Game");
+	Game game("Bomber Boy");
+	{
+		// Add levels
+		game.SetDefaultLevelName("Main");
+		game.RegisterLevel(new MainLevel);
 
+		// Register entities
 
-	// Register levels
-	game.SetDefaultLevelName("Test");
-	//game.RegisterLevel(new TestLevel);
+		// Register assets
+	}
 
 	engine.Launch(&game);
 	return 0;

@@ -6,6 +6,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -35,6 +36,12 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="Includes\Core\Logger.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\ClassFactory.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\Camera.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

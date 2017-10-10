@@ -1,9 +1,11 @@
 #pragma once
 #include "Common.h"
-#include "Types.h"
-#include "Logger.h"
+
+#include "ClassFactory.h"
+#include "Entity.h"
 
 #include <vector>
+#include <unordered_map>
 
 
 class Engine;
@@ -19,9 +21,12 @@ private:
 	string m_name;
 	Engine* m_engine = nullptr;
 
-	std::vector<Level*> m_levels;
+	std::unordered_map<string, Level*> m_levels;
+	std::unordered_map<string, ClassFactory<Entity>*> m_entityTypes;
+
 	string defaultLevel = "Main";
 	Level* currentLevel = nullptr;
+
 
 public:
 	Game(string name);
@@ -60,6 +65,13 @@ public:
 	* @returns If switch was successful
 	*/
 	bool SwitchLevel(string levelName);
+
+	/**
+	* Registers a given entity type, so that it may be spawned later into the level
+	* (Memory management goes to the game)
+	* @param entityType		Factory to create the given entity
+	*/
+	void RegisterEntity(ClassFactory<Entity>* entityType);
 
 	/**
 	* Getters & Setters

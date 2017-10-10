@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "Types.h"
+#include "ClassFactory.h"
 #include <SFML/Graphics.hpp>
 
 
@@ -20,7 +21,7 @@ private:
 	uint8 m_sortingLayer;
 
 public:
-	Entity(string name);
+	Entity();
 	~Entity();
 
 	/**
@@ -41,7 +42,7 @@ public:
 	* @param window			The window to draw to
 	* @param deltaTime		Time since last draw in seconds)
 	*/
-	virtual void Draw(sf::RenderWindow* window, const float& deltaTime) {}
+	virtual void Draw(sf::RenderWindow* window, const float& deltaTime);
 #endif
 
 protected:
@@ -68,3 +69,12 @@ public:
 	inline uint8 GetSortingLayer() const { return m_sortingLayer; }
 	inline void SetSortingLayer(uint8 layer) { m_sortingLayer = layer; }
 };
+
+
+
+/**
+* Factory used for creating entities
+*/
+template<class Type>
+class CORE_API EntityFactory : public ChildFactory<Entity, Type> 
+{};

@@ -1,9 +1,9 @@
 #include "Includes\Core\Entity.h"
 
 
-Entity::Entity(string name)
+Entity::Entity()
 {
-	m_name = name;
+	m_name = "Unnamed Entity";
 }
 
 Entity::~Entity()
@@ -25,3 +25,9 @@ void Entity::HandleMainUpdate(const float& deltaTime)
 		bHasStarted = true;
 	}
 }
+
+#ifdef BUILD_CLIENT
+void Entity::Draw(sf::RenderWindow* window, const float& deltaTime) 
+{
+}
+#endif

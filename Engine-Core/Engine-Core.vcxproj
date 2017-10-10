@@ -277,6 +277,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -284,6 +285,8 @@
     <ClCompile Include="Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Includes\Core\Camera.h" />
+    <ClInclude Include="Includes\Core\ClassFactory.h" />
     <ClInclude Include="Includes\Core\Common.h" />
     <ClInclude Include="Includes\Core\CoreDefs.h" />
     <ClInclude Include="Includes\Core\Engine.h" />

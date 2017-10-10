@@ -18,9 +18,13 @@ Game::~Game()
 		currentLevel = nullptr;
 	}
 
+	// Delete all entities
+	for (auto& pair : m_entityTypes)
+		delete pair.second;
+
 	// Delete all levels
-	for (Level* level : m_levels)
-		delete level;
+	for (auto& pair : m_levels)
+		delete pair.second;
 
 	LOG("Closed game '%s'", m_name.c_str());
 }
@@ -66,7 +70,12 @@ void Game::DisplayUpdate(const float& deltaTime)
 
 void Game::RegisterLevel(Level* level) 
 {
-	m_levels.push_back(level);
+	if (m_levels.find(level->GetName()) != m_levels.end())
+	{
+		LOG_ERROR("Cannot register multiple levels with name '%s'", level->GetName().c_str());
+	}
+
+	m_levels[level->GetName()] = level;
 	level->HookGame(this);
 }
 
@@ -81,15 +90,16 @@ bool Game::SwitchLevel(string levelName)
 	}
 
 	// Attempt to load level with given name
-	for(Level* level : m_levels)
-		if (level->GetName() == levelName)
-		{
-			// Load new level
-			LOG("Loading level '%s'", levelName.c_str());
-			currentLevel = level;
-			currentLevel->BuildLevel();
-			return true;
-		}
+	Level* level = m_levels[levelName];
+
+	// Load new level
+	if (level != nullptr) 
+	{
+		LOG("Loading level '%s'", levelName.c_str());
+		currentLevel = level;
+		currentLevel->BuildLevel();
+		return true;
+	}
 
 	
 	// Attempt to load into default level
@@ -104,4 +114,14 @@ bool Game::SwitchLevel(string levelName)
 	}
 
 	return false;
+}
+
+void Game::RegisterEntity(ClassFactory<Entity>* entityType) 
+{
+	if (m_entityTypes.find(entityType->GetName()) != m_entityTypes.end())
+	{
+		LOG_ERROR("Cannot register multiple entities with name '%s'", entityType->GetName());
+	}
+
+	m_entityTypes[entityType->GetName()] = entityType;
 }

@@ -36,6 +36,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainLevel.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainLevel.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
