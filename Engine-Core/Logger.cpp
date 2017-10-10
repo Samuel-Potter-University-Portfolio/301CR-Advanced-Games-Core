@@ -4,9 +4,6 @@
 #include <iostream>
 
 
-using namespace EngineCore;
-
-
 /**
 * Get the current system time in format [%H:%M:%S]
 */

@@ -3,9 +3,6 @@
 #include "Includes\Core\Entity.h"
 
 
-using namespace EngineCore;
-
-
 Game::Game(string name)
 {
 	m_name = name;

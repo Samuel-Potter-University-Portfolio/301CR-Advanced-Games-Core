@@ -2,7 +2,10 @@
 #include "Includes\Core\Game.h"
 
 
-using namespace EngineCore;
+EngineInfo::EngineInfo(std::vector<string>& args) 
+{
+	// TODO - Parse args
+}
 
 
 Engine::Engine(EngineInfo* info) : m_initInfo(*info)

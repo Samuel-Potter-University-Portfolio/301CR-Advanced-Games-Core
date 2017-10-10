@@ -1,9 +1,6 @@
 #include "Includes\Core\Entity.h"
 
 
-using namespace EngineCore;
-
-
 Entity::Entity(string name)
 {
 	m_name = name;
