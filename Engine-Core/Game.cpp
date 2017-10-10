@@ -125,3 +125,15 @@ void Game::RegisterEntity(ClassFactory<Entity>* entityType)
 
 	m_entityTypes[entityType->GetName()] = entityType;
 }
+
+ClassFactory<Entity>* Game::GetEntityFactory(string name) 
+{
+	auto it = m_entityTypes.find(name);
+	if (it == m_entityTypes.end())
+	{
+		LOG_ERROR("Cannot find registered entity '%s'", name.c_str());
+		return nullptr;
+	}
+
+	return it->second;
+}

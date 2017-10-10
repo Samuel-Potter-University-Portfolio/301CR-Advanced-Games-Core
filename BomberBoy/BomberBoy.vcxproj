@@ -37,9 +37,11 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
+    <ClCompile Include="TestEntity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h" />
+    <ClInclude Include="TestEntity.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

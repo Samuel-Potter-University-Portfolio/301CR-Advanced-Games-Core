@@ -74,6 +74,13 @@ public:
 	void RegisterEntity(ClassFactory<Entity>* entityType);
 
 	/**
+	* Fetch the factory for a given entity from its name
+	* @param name		The name that the entity was previously registered under
+	* @return The factory that can be used to build the entity
+	*/
+	ClassFactory<Entity>* GetEntityFactory(string name);
+
+	/**
 	* Getters & Setters
 	*/
 public:

@@ -2,7 +2,10 @@
 #include "Core/Engine.h"
 #include "Core/Game.h"
 
+
 #include "MainLevel.h"
+
+#include "TestEntity.h"
 
 
 static inline int entry(std::vector<string>& args)
@@ -24,6 +27,7 @@ static inline int entry(std::vector<string>& args)
 		game.RegisterLevel(new MainLevel);
 
 		// Register entities
+		game.RegisterEntity(new EntityFactory<TestEntity>());
 
 		// Register assets
 	}

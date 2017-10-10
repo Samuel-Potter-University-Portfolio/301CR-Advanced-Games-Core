@@ -6,9 +6,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MainLevel.h" />
+    <ClCompile Include="MainLevel.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="TestEntity.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MainLevel.cpp" />
+    <ClInclude Include="MainLevel.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="TestEntity.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

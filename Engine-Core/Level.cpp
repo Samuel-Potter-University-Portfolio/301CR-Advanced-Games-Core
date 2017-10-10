@@ -28,4 +28,18 @@ void Level::DestroyLevel()
 void Level::AddEntity(Entity* entity) 
 {
 	m_entities.push_back(entity);
+	entity->HandleSpawn(this);
+}
+
+Entity* Level::SpawnEntity(string name) 
+{
+	ClassFactory<Entity>* factory = m_game->GetEntityFactory(name);
+	if (factory != nullptr)
+	{
+		Entity* e = factory->New();
+		AddEntity(e);
+		return e;
+	}
+	else
+		return nullptr;
 }

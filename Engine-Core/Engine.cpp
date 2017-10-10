@@ -61,7 +61,6 @@ void Engine::MainLoop()
 		// Tick logic 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
 		m_game->MainUpdate(deltaTime);
-		// TODO
 
 		sf::sleep(sf::milliseconds(1));
 	}
@@ -82,7 +81,10 @@ void Engine::DisplayLoop()
 
 
 	// Open Window
-	m_renderWindow = new sf::RenderWindow(sf::VideoMode(m_initInfo.windowWidth, m_initInfo.windowHeight), m_game->GetName());
+	sf::ContextSettings settings;
+	settings.antialiasingLevel = 4;
+	m_renderWindow = new sf::RenderWindow(sf::VideoMode(m_initInfo.windowWidth, m_initInfo.windowHeight), m_game->GetName(), sf::Style::Default, settings);
+
 	LOG("Opening window (%s, %ix%i)", m_game->GetName().c_str(), m_initInfo.windowWidth, m_initInfo.windowHeight);
 
 

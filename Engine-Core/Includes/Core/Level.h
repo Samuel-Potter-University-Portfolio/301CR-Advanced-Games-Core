@@ -45,6 +45,13 @@ public:
 	void AddEntity(Entity* entity);
 
 	/**
+	* Spawn an entity into this level from it's name
+	* @param name			The name that the entity was registered under
+	* @returns The new entity that has spawned into the world
+	*/
+	Entity* SpawnEntity(string name);
+
+	/**
 	* Getters and setters
 	*/
 public:
