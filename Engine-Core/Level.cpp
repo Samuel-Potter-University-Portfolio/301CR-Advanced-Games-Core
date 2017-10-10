@@ -1,5 +1,7 @@
-#include "Level.h"
+#include "Includes\Core\Level.h"
 
+
+using namespace EngineCore;
 
 
 Level::Level(string name)

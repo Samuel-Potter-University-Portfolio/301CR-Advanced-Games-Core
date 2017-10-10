@@ -1,5 +1,7 @@
-#include "Entity.h"
+#include "Includes\Core\Entity.h"
 
+
+using namespace EngineCore;
 
 
 Entity::Entity(string name)

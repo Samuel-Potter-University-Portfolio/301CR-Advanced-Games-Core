@@ -1,4 +1,5 @@
 #pragma once
+#include "CoreDefs.h"
 #include <string>
 
 #define LOG(message, ...) { \
@@ -33,22 +34,24 @@
 }
 #endif
 
-
-/**
-* Centralized logging class
-* NOTE: All text output should be through this class (preferably by use of LOG(_XYZ) macros)
-*/
-class Logger
+namespace EngineCore
 {
-public:
-	static void LogMessage(std::string msg);
+	/**
+	* Centralized logging class
+	* NOTE: All text output should be through this class (preferably by use of LOG(_XYZ) macros)
+	*/
+	class CORE_API Logger
+	{
+	public:
+		static void LogMessage(std::string msg);
 
 #ifdef BUILD_DEBUG
-	static void LogWarning(std::string msg, std::string file, int line);
-	static void LogError(std::string msg, std::string file, int line);
+		static void LogWarning(std::string msg, std::string file, int line);
+		static void LogError(std::string msg, std::string file, int line);
 #else
-	static void LogWarning(std::string msg);
-	static void LogError(std::string msg);
+		static void LogWarning(std::string msg);
+		static void LogError(std::string msg);
 #endif
-};
+	};
+}
 

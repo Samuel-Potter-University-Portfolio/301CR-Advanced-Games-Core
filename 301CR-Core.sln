@@ -3,36 +3,94 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "301CR-Core", "301CR-Core\301CR-Core.vcxproj", "{890C7E06-9D85-46D3-9D15-5F7462EAD785}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine-Core", "Engine-Core\Engine-Core.vcxproj", "{890C7E06-9D85-46D3-9D15-5F7462EAD785}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine-Wrapper", "Engine-Wrapper\Engine-Wrapper.vcxproj", "{960083AE-734C-4311-A9C0-3A78621947AA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{890C7E06-9D85-46D3-9D15-5F7462EAD785} = {890C7E06-9D85-46D3-9D15-5F7462EAD785}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BomberMan", "BomberMan\BomberMan.csproj", "{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}"
+	ProjectSection(ProjectDependencies) = postProject
+		{960083AE-734C-4311-A9C0-3A78621947AA} = {960083AE-734C-4311-A9C0-3A78621947AA}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Client Debug|Any CPU = Client Debug|Any CPU
 		Client Debug|x64 = Client Debug|x64
 		Client Debug|x86 = Client Debug|x86
+		Client Release|Any CPU = Client Release|Any CPU
 		Client Release|x64 = Client Release|x64
 		Client Release|x86 = Client Release|x86
+		Server Debug|Any CPU = Server Debug|Any CPU
 		Server Debug|x64 = Server Debug|x64
 		Server Debug|x86 = Server Debug|x86
+		Server Release|Any CPU = Server Release|Any CPU
 		Server Release|x64 = Server Release|x64
 		Server Release|x86 = Server Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Debug|Any CPU.ActiveCfg = Client Debug|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Debug|x64.ActiveCfg = Client Debug|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Debug|x64.Build.0 = Client Debug|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Debug|x86.ActiveCfg = Client Debug|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Debug|x86.Build.0 = Client Debug|Win32
+		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Release|Any CPU.ActiveCfg = Client Release|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Release|x64.ActiveCfg = Client Release|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Release|x64.Build.0 = Client Release|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Release|x86.ActiveCfg = Client Release|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Client Release|x86.Build.0 = Client Release|Win32
+		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Debug|Any CPU.ActiveCfg = Server Debug|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Debug|x64.ActiveCfg = Server Debug|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Debug|x64.Build.0 = Server Debug|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Debug|x86.ActiveCfg = Server Debug|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Debug|x86.Build.0 = Server Debug|Win32
+		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Release|Any CPU.ActiveCfg = Server Release|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Release|x64.ActiveCfg = Server Release|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Release|x64.Build.0 = Server Release|x64
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Release|x86.ActiveCfg = Server Release|Win32
 		{890C7E06-9D85-46D3-9D15-5F7462EAD785}.Server Release|x86.Build.0 = Server Release|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Debug|Any CPU.ActiveCfg = Client Debug|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Debug|x64.ActiveCfg = Client Debug|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Debug|x64.Build.0 = Client Debug|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Debug|x86.ActiveCfg = Client Debug|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Debug|x86.Build.0 = Client Debug|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Release|Any CPU.ActiveCfg = Client Release|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Release|x64.ActiveCfg = Client Release|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Release|x64.Build.0 = Client Release|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Release|x86.ActiveCfg = Client Release|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Client Release|x86.Build.0 = Client Release|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Debug|Any CPU.ActiveCfg = Server Debug|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Debug|x64.ActiveCfg = Server Debug|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Debug|x64.Build.0 = Server Debug|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Debug|x86.ActiveCfg = Server Debug|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Debug|x86.Build.0 = Server Debug|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Release|Any CPU.ActiveCfg = Server Release|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Release|x64.ActiveCfg = Server Release|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Release|x64.Build.0 = Server Release|x64
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Release|x86.ActiveCfg = Server Release|Win32
+		{960083AE-734C-4311-A9C0-3A78621947AA}.Server Release|x86.Build.0 = Server Release|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Debug|Any CPU.ActiveCfg = Client Debug|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Debug|x64.ActiveCfg = Client Debug|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Debug|x64.Build.0 = Client Debug|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Debug|x86.ActiveCfg = Client Debug|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Debug|x86.Build.0 = Client Debug|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Release|Any CPU.ActiveCfg = Client Release|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Release|x64.ActiveCfg = Client Release|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Release|x64.Build.0 = Client Release|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Release|x86.ActiveCfg = Client Release|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Client Release|x86.Build.0 = Client Release|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Debug|Any CPU.ActiveCfg = Server Debug|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Debug|x64.ActiveCfg = Server Debug|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Debug|x64.Build.0 = Server Debug|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Debug|x86.ActiveCfg = Server Debug|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Debug|x86.Build.0 = Server Debug|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Release|Any CPU.ActiveCfg = Server Release|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Release|x64.ActiveCfg = Server Release|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Release|x64.Build.0 = Server Release|x64
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Release|x86.ActiveCfg = Server Release|Win32
+		{A79CE7C7-F8D3-4D52-B248-CE3050DEAE68}.Server Release|x86.Build.0 = Server Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

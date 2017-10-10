@@ -1,12 +1,15 @@
-#include "Logger.h"
+#include "Includes\Core\Logger.h"
 #include <ctime>
 #include <sstream>
 #include <iostream>
 
 
+using namespace EngineCore;
+
+
 /**
-Get the current system time in format [%H:%M:%S]
-**/
+* Get the current system time in format [%H:%M:%S]
+*/
 static std::string TimeStamp()
 {
 	time_t timeStamp = time(nullptr);

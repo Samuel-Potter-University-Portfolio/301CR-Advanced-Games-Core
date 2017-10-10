@@ -1,11 +1,9 @@
-#include "Engine.h"
-#include "Game.h"
+#include "Includes\Core\Engine.h"
+#include "Includes\Core\Game.h"
 
 
-EngineInfo::EngineInfo(std::vector<string>& args)
-{
-	// TODO - Parse any command line args
-}
+using namespace EngineCore;
+
 
 Engine::Engine(EngineInfo* info) : m_initInfo(*info)
 {

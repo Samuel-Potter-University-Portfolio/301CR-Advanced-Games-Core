@@ -1,16 +1,14 @@
-#include "Game.h"
-#include "Level.h"
-#include "Entity.h"
+#include "Includes\Core\Game.h"
+#include "Includes\Core\Level.h"
+#include "Includes\Core\Entity.h"
 
 
-GameInfo::GameInfo(std::vector<string>& args)
+using namespace EngineCore;
+
+
+Game::Game(string name)
 {
-	// TODO - Parse any command line args
-}
-
-Game::Game(GameInfo* info)
-{
-	m_name = info->name;
+	m_name = name;
 }
 
 Game::~Game()
