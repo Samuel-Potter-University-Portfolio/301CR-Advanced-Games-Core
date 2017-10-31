@@ -51,8 +51,8 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 
 			// Attempt to read all data
 			RawNetPacket packet;
-			packet.sourceAddress = socket->getRemoteAddress();
-			packet.sourcePort = socket->getRemotePort();
+			packet.source.ip = socket->getRemoteAddress();
+			packet.source.port = socket->getRemotePort();
 
 			while (socket->receive(packet.data, NET_PACKET_MAX, packet.dataCount) == sf::Socket::Done)
 			{
@@ -70,8 +70,7 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 		// Attempt to read all data
 		bool received = false;
 		RawNetPacket packet;
-		packet.sourceAddress = m_address;
-		packet.sourcePort = m_port;
+		packet.source = m_identity;
 
 		while (sock->receive(packet.data, NET_PACKET_MAX, packet.dataCount) == sf::Socket::Done)
 		{
@@ -82,7 +81,7 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 	}
 }
 
-bool NetSocketTcp::Send(const uint8* data, uint32 count)
+bool NetSocketTcp::SendTo(const uint8* data, uint32 count, NetIdentity identity)
 {
 	if (m_socket == nullptr)
 		return false;
@@ -94,22 +93,22 @@ bool NetSocketTcp::Send(const uint8* data, uint32 count)
 		{
 			sf::TcpSocket* socket = m_activeConnections[i];
 
-			// Ignore disconnections
-			if (socket->getRemoteAddress() == sf::IpAddress::None)
-				continue;
-
-			socket->send(data, count);
+			if (socket->getRemoteAddress() == identity.ip && socket->getRemotePort() == identity.port)
+				return socket->send(data, count);
 		}
-		return true;
+		return false;
 	}
 	else
 	{
-		sf::TcpSocket* sock = (sf::TcpSocket*)m_socket;
-		return (sock->send(data, count) == sf::Socket::Done);
+		sf::TcpSocket* socket = (sf::TcpSocket*)m_socket;
+		if (socket->getRemoteAddress() == identity.ip && socket->getRemotePort() == identity.port)
+			return (socket->send(data, count) == sf::Socket::Done);
+		else
+			return false;
 	}
 }
 
-bool NetSocketTcp::Listen(uint16 port, sf::IpAddress address)
+bool NetSocketTcp::Listen(NetIdentity identity)
 {
 	if (m_socket != nullptr)
 	{
@@ -119,25 +118,25 @@ bool NetSocketTcp::Listen(uint16 port, sf::IpAddress address)
 
 	// Setup listener
 	sf::TcpListener* lsnr = new sf::TcpListener;
-	if (lsnr->listen(port, address) != sf::Socket::Done)
+	if (lsnr->listen(identity.port, identity.ip) != sf::Socket::Done)
 	{
-		LOG_ERROR("Failed to setup TCP listener on port %i", port);
+		LOG_ERROR("Failed to setup TCP listener on %s:%i", identity.ip.toString().c_str(), identity.port);
 		return false;
 	}
 
 	m_socket = lsnr;
-	m_address = address;
-	m_port = port;
+	m_identity = identity;
 	bIsListener = true;
 
 	// Add socket to reuse later
 	m_activeConnections.push_back(new sf::TcpSocket);
 
 	m_socket->setBlocking(false);
+	bIsOpen = true;
 	return true;
 }
 
-bool NetSocketTcp::Connect(sf::IpAddress address, uint16 port)
+bool NetSocketTcp::Connect(NetIdentity identity)
 {
 	if (m_socket != nullptr)
 	{
@@ -147,18 +146,18 @@ bool NetSocketTcp::Connect(sf::IpAddress address, uint16 port)
 
 	// Connect socket
 	sf::TcpSocket* sock = new sf::TcpSocket;
-	if (sock->connect(address, port) != sf::Socket::Done)
+	if (sock->connect(identity.ip, identity.port) != sf::Socket::Done)
 	{
-		LOG_ERROR("Failed to setup TCP socket to connection %s:%i", address.toString().c_str(), port);
+		LOG_ERROR("Failed to setup TCP socket to connection %s:%i", identity.ip.toString().c_str(), identity.port);
 		return false;
 	}
 
 	m_socket = sock;
-	m_address = address;
-	m_port = port;
+	m_identity = identity;
 	bIsListener = false;
 
 	m_socket->setBlocking(false);
+	bIsOpen = true;
 	return true;
 }
 
@@ -188,5 +187,6 @@ bool NetSocketTcp::Close()
 		delete sock;
 	}
 	m_socket = nullptr;
+	bIsOpen = false;
 	return true;
 }

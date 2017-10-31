@@ -12,29 +12,38 @@
 #include "Core\NetSocketTcp.h"
 #include "Core\NetSocketUdp.h"
 #include <sstream>
+#include <map>
 
 
 static inline int entry(std::vector<string>& args)
 {
+	NetIdentity host("localhost", 20010);
+	
+	std::map<NetIdentity, int> test;
+	test[host] = 23;
+	test[NetIdentity("google.com", 80)] = 2356;
+	test[NetIdentity("localhost", 20011)] = 3;
+
 	/*
 	NetSocketUdp sock;
 
-	if (sock.Connect("localhost", 20010)) 
+	if (sock.Connect(host))
 	{
 		LOG("CONNECT");
 
 		std::stringstream ss;
-		for (int i = 0; i < 100; ++i)
-			ss << i << ' ';
+		//for (int i = 0; i < 1040; ++i)
+			//ss << i << ' ';
+		std::string str = "Hello";
 
 		const uint8* data = (const uint8*)ss.str().c_str();
-		if (sock.Send(data, ss.str().length()))
+		if (sock.Send(data, str.length()))
 		{
-			LOG("YES SEND");
+			LOG("YES SEND %i %s", str.length(), str.c_str());
 		}
 		else
 		{
-			LOG("NO SEND");
+			LOG("NO SEND %i", ss.str().length() + 1);
 		}
 	}
 	else
@@ -42,12 +51,11 @@ static inline int entry(std::vector<string>& args)
 		LOG("NO CONNECT");
 	}
 	/*/
-	//*
 	NetSocketUdp listener;
 	
-	if (listener.Listen(20010))
+	if (listener.Listen(host))
 	{
-		LOG("Listening on %s:%i", listener.GetAddress().toString().c_str(), listener.GetPort());
+		LOG("Listening on %s:%i", host.ip.toString().c_str(), host.port);
 		std::vector<RawNetPacket> input;
 
 		while (true)
@@ -56,12 +64,17 @@ static inline int entry(std::vector<string>& args)
 
 			if (listener.Poll(input))
 			{
+				int total = 0;
+
 				for(RawNetPacket& packet : input)
 				{
-					LOG("Received (%s:%i) %i bytes", packet.sourceAddress.toString().c_str(), packet.sourcePort, packet.dataCount);
+					LOG("Received (%s:%i) %i bytes", packet.source.ip.toString().c_str(), packet.source.port, packet.dataCount);
 					LOG("\t%s", packet.data);
+
+					total += packet.dataCount;
+					listener.SendTo((const uint8*)"OK", 3, packet.source);
 				}
-				listener.Send((const uint8*)"OK", 3);
+				LOG("Total %i \n", total);
 			}
 		}
 	}

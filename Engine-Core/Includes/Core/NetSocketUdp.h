@@ -4,9 +4,12 @@
 
 class CORE_API NetSocketUdp : public NetSocket
 {
+private:
+	sf::UdpSocket* m_socket;
+
 public:
 	NetSocketUdp();
-	~NetSocketUdp();
+	virtual ~NetSocketUdp();
 
 	/**
 	* Polls the socket attempting to retrieve and data
@@ -19,9 +22,11 @@ public:
 	* Attempt to send data through this socket
 	* @param data		Pointer to data to send
 	* @param count		The size of data to send
+	* @param address	Destination address
+	* @param port		Destination port
 	* @returns Has the data been successfully sent
 	*/
-	virtual bool Send(const uint8* data, uint32 count);
+	virtual bool SendTo(const uint8* data, uint32 count, NetIdentity identity);
 
 	/**
 	* Try to close this socket
@@ -34,11 +39,11 @@ public:
 	* @param address	The address to bind the socket onto
 	* @returns Whether this successfully opens or not
 	*/
-	virtual bool Listen(uint16 port, sf::IpAddress address = sf::IpAddress::LocalHost);
+	virtual bool Listen(NetIdentity identity);
 
 	/**
 	* Open a connect to the given destination
 	*/
-	virtual bool Connect(sf::IpAddress address, uint16 port);
+	virtual bool Connect(NetIdentity identity);
 };
 

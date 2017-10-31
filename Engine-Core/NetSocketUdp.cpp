@@ -17,12 +17,11 @@ bool NetSocketUdp::Poll(std::vector<RawNetPacket>& outPackets)
 	if (m_socket == nullptr)
 		return false;
 
-	sf::UdpSocket* sock = (sf::UdpSocket*)m_socket;
 
 	// Attempt to read all data
 	bool recieved = false;
 	RawNetPacket packet;
-	while (sock->receive(packet.data, NET_PACKET_MAX, packet.dataCount, packet.sourceAddress, packet.sourcePort) == sf::Socket::Done)
+	while (m_socket->receive(packet.data, NET_PACKET_MAX, packet.dataCount, packet.source.ip, packet.source.port) == sf::Socket::Done)
 	{
 		outPackets.emplace_back(packet);
 		recieved = true;
@@ -30,62 +29,69 @@ bool NetSocketUdp::Poll(std::vector<RawNetPacket>& outPackets)
 	return recieved;
 }
 
-bool NetSocketUdp::Send(const uint8* data, uint32 count)
+bool NetSocketUdp::SendTo(const uint8* data, uint32 count, NetIdentity identity)
 {
 	if (m_socket == nullptr)
 		return false;
 
-	sf::UdpSocket* sock = (sf::UdpSocket*)m_socket;
-	return (sock->send(data, count, m_address, m_port) == sf::Socket::Done);
+	if (count >= NET_PACKET_MAX)
+	{
+		LOG_ERROR("Packet exceeds maximum supported size (%i)", NET_PACKET_MAX);
+		return false;
+	}
+
+	return (m_socket->send(data, count, identity.ip, identity.port) == sf::Socket::Done);
 }
 
-bool NetSocketUdp::Listen(uint16 port, sf::IpAddress address)
+bool NetSocketUdp::Listen(NetIdentity identity)
 {
 	if (m_socket != nullptr)
 	{
-		LOG_ERROR("Socket cannot listen as it's already in use")
-			return false;
+		LOG_ERROR("Socket cannot listen as it's already in use");
+		return false;
 	}
 
 	// Open socket on port
-	sf::UdpSocket* sock = new sf::UdpSocket;
-	if (sock->bind(port, address) != sf::Socket::Done)
+	m_socket = new sf::UdpSocket;
+	if (m_socket->bind(identity.port, identity.ip) != sf::Socket::Done)
 	{
-		LOG_ERROR("Failed to setup UDP listener on port %i", port);
+		LOG_ERROR("Failed to setup UDP listener on %s:%i", identity.ip.toString().c_str(), identity.port);
+		delete m_socket;
+		m_socket = nullptr;
 		return false;
 	}
 
-	m_socket = sock;
-	m_address = address;
-	m_port = port;
+	m_identity = identity;
 	bIsListener = true;
 
 	m_socket->setBlocking(false);
+	bIsOpen = true;
 	return true;
 }
 
-bool NetSocketUdp::Connect(sf::IpAddress address, uint16 port)
+bool NetSocketUdp::Connect(NetIdentity identity)
 {
 	if (m_socket != nullptr)
 	{
-		LOG_ERROR("Socket cannot connect as it's already in use")
-			return false;
-	}
-
-	// Open socket on any free port
-	sf::UdpSocket* sock = new sf::UdpSocket;
-	if (sock->bind(sf::Socket::AnyPort) != sf::Socket::Done)
-	{
-		LOG_ERROR("Failed to setup UDP socket to connection %s:%i", address.toString().c_str(), port);
+		LOG_ERROR("Socket cannot connect as it's already in use");
 		return false;
 	}
 
-	m_socket = sock;
-	m_address = address;
-	m_port = port;
+	// Open socket on any free port
+	m_socket = new sf::UdpSocket;
+	if (m_socket->bind(sf::Socket::AnyPort) != sf::Socket::Done)
+	{
+		LOG_ERROR("Failed to setup UDP socket to connection %s:%i", identity.ip.toString().c_str(), identity.port);
+		delete m_socket;
+		m_socket = nullptr;
+		return false;
+	}
+
+	m_identity = identity;
 	bIsListener = false;
 
 	m_socket->setBlocking(false);
+	bIsOpen = true;
 	return true;
 }
 
@@ -93,14 +99,14 @@ bool NetSocketUdp::Close()
 {
 	if (m_socket == nullptr)
 	{
-		LOG_ERROR("Socket cannot close as it's not in use")
-			return false;
+		LOG_ERROR("Socket cannot close as it's not in use");
+		return false;
 	}
 	
 	// Release port
-	sf::UdpSocket* sock = (sf::UdpSocket*)m_socket;
-	sock->unbind();
-	delete sock;
+	m_socket->unbind();
+	delete m_socket;
 	m_socket = nullptr;
+	bIsOpen = false;
 	return true;
 }
