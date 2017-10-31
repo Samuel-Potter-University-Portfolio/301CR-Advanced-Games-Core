@@ -14,6 +14,11 @@ class Level;
 class CORE_API Entity
 {
 private:
+	friend class Level;
+	uint32 m_typeId;
+	uint32 m_instanceId;
+	uint32 m_networkId;
+
 	string m_name;
 	Level* m_level;
 
@@ -73,6 +78,10 @@ public:
 
 	inline sf::Vector2f GetLocation() const { return location; }
 	inline void SetLocation(sf::Vector2f loc) { location = loc; }
+
+	inline uint32 GetTypeID() const { return m_typeId; }
+	inline uint32 GetInstanceID() const { return m_instanceId; }
+	inline uint32 GetNetworkID() const { return m_networkId; }
 };
 
 

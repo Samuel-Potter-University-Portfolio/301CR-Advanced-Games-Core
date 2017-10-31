@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="EngineCore" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Client Release x64">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_RELEASE" />
+					<Add option="-DBUILD_CLIENT" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics.lib" />
+					<Add library="sfml-window.lib" />
+					<Add library="sfml-system.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/lib" />
+				</Linker>
+			</Target>
+			<Target title="Server Debug x64">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_DEBUG" />
+					<Add option="-DBUILD_SERVER" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics-d.lib" />
+					<Add library="sfml-window-d.lib" />
+					<Add library="sfml-system-d.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/lib" />
+				</Linker>
+			</Target>
+			<Target title="Client Release Win32">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_CLIENT" />
+					<Add option="-DBUILD_RELEASE" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics.lib" />
+					<Add library="sfml-window.lib" />
+					<Add library="sfml-system.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/lib" />
+				</Linker>
+			</Target>
+			<Target title="Client Debug Win32">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_CLIENT" />
+					<Add option="-DBUILD_DEBUG" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics-d.lib" />
+					<Add library="sfml-window-d.lib" />
+					<Add library="sfml-system-d.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/lib" />
+				</Linker>
+			</Target>
+			<Target title="Server Release x64">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_RELEASE" />
+					<Add option="-DBUILD_SERVER" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics.lib" />
+					<Add library="sfml-window.lib" />
+					<Add library="sfml-system.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/lib" />
+				</Linker>
+			</Target>
+			<Target title="Server Debug Win32">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_SERVER" />
+					<Add option="-DBUILD_DEBUG" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics-d.lib" />
+					<Add library="sfml-window-d.lib" />
+					<Add library="sfml-system-d.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/lib" />
+				</Linker>
+			</Target>
+			<Target title="Server Release Win32">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_SERVER" />
+					<Add option="-DBUILD_RELEASE" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics.lib" />
+					<Add library="sfml-window.lib" />
+					<Add library="sfml-system.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-32/lib" />
+				</Linker>
+			</Target>
+			<Target title="Client Debug x64">
+				<Option output="Engine-Core" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-DSFML_STATIC" />
+					<Add option="-DBUILD_CORE" />
+					<Add option="-DBUILD_DEBUG" />
+					<Add option="-DBUILD_CLIENT" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/include" />
+				</Compiler>
+				<Linker>
+					<Add library="sfml-graphics-d.lib" />
+					<Add library="sfml-window-d.lib" />
+					<Add library="sfml-system-d.lib" />
+					<Add directory="$(SolutionDir)Dependencies/SFML-64/lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="Camera.cpp" />
+		<Unit filename="Engine.cpp" />
+		<Unit filename="Entity.cpp" />
+		<Unit filename="Game.cpp" />
+		<Unit filename="Includes/Core/Camera.h" />
+		<Unit filename="Includes/Core/ClassFactory.h" />
+		<Unit filename="Includes/Core/Common.h" />
+		<Unit filename="Includes/Core/CoreDefs.h" />
+		<Unit filename="Includes/Core/Engine.h" />
+		<Unit filename="Includes/Core/Entity.h" />
+		<Unit filename="Includes/Core/Game.h" />
+		<Unit filename="Includes/Core/Level.h" />
+		<Unit filename="Includes/Core/Logger.h" />
+		<Unit filename="Includes/Core/Types.h" />
+		<Unit filename="Level.cpp" />
+		<Unit filename="Logger.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

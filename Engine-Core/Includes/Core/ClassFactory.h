@@ -11,6 +11,7 @@ class CORE_API ClassFactory
 private:
 	/// Create 1 element per factory to get default set variables
 	Type* m_control;
+	uint32 m_id;
 
 public:
 	ClassFactory() 
@@ -65,6 +66,10 @@ public:
 	{
 		return typeid(Type).hash_code();
 	}
+
+
+	inline void SetID(uint32 id) { m_id = id; }
+	inline const uint32& GetID() const { return m_id; }
 };
 
 

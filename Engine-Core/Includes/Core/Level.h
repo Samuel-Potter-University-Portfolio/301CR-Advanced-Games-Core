@@ -15,8 +15,10 @@ class CORE_API Level
 private:
 	string m_name;
 	Game* m_game;
+	uint32 m_id;
 
 	std::vector<Entity*> m_entities;
+	uint32 m_entityCounter;
 
 public:
 	Level(string name);
@@ -51,10 +53,11 @@ public:
 	template<class Type>
 	Type* SpawnEntity()
 	{
-		ClassFactory<Entity>* factory = m_game->GetEntityFactory(typeid(Type).hash_code());
+		ClassFactory<Entity>* factory = m_game->GetEntityFactoryFromHash(typeid(Type).hash_code());
 		if (factory != nullptr)
 		{
 			Type* e = factory->New<Type>();
+			e->m_typeId = factory->GetID();
 			AddEntity(e);
 			return e;
 		}
@@ -71,4 +74,6 @@ public:
 
 	inline std::vector<Entity*>& GetEntities() { return m_entities; }
 	inline std::vector<Entity*> GetEntities() const { return m_entities; }
+
+	inline uint32 GetID() { return m_id; }
 };

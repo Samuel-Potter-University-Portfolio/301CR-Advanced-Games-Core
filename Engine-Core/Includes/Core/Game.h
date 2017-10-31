@@ -23,9 +23,11 @@ private:
 
 	/** Map of all supported levels that can be loaded */
 	std::unordered_map<string, Level*> m_levels;
+	std::vector<Level*> m_levelLookup;
 
 	/** Map using class hashes to link to factories	*/
 	std::unordered_map<uint32, ClassFactory<Entity>*> m_entityTypes;
+	std::vector<ClassFactory<Entity>*> m_entityTypeLookup;
 
 	string defaultLevel = "Main";
 	Level* currentLevel = nullptr;
@@ -76,12 +78,20 @@ public:
 	*/
 	void RegisterEntity(ClassFactory<Entity>* entityType);
 
+
+	/**
+	* Fetch the factory for a given entity from its name
+	* @param id			The id that the type is registered with
+	* @return The factory that can be used to build the entity
+	*/
+	ClassFactory<Entity>* GetEntityFactoryFromID(uint32 id);
+
 	/**
 	* Fetch the factory for a given entity from its name
 	* @param hash		The hash of the entity type
 	* @return The factory that can be used to build the entity
 	*/
-	ClassFactory<Entity>* GetEntityFactory(uint32 hash);
+	ClassFactory<Entity>* GetEntityFactoryFromHash(uint32 hash);
 
 	/**
 	* Getters & Setters

@@ -13,7 +13,7 @@ static inline int entry(std::vector<string>& args)
 {
 	LOG("Discovered %i cmd arguments", args.size());
 	for (string& str : args)
-		LOG("\t-'%s'", str.c_str())
+		LOG("\t'%s'", str.c_str())
 
 
 	// Setup engine

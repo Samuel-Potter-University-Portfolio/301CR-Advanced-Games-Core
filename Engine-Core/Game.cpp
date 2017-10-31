@@ -6,6 +6,10 @@
 Game::Game(string name)
 {
 	m_name = name;
+
+	// Reserve 0 ids as null
+	m_entityTypeLookup.push_back(nullptr);
+	m_levelLookup.push_back(nullptr);
 }
 
 Game::~Game()
@@ -77,6 +81,7 @@ void Game::RegisterLevel(Level* level)
 
 	m_levels[level->GetName()] = level;
 	level->HookGame(this);
+	m_levelLookup.push_back(level);
 }
 
 bool Game::SwitchLevel(string levelName)
@@ -130,10 +135,23 @@ void Game::RegisterEntity(ClassFactory<Entity>* entityType)
 		LOG_ERROR("Cannot register multiple entities with name '%s'", entityType->GetName());
 	}
 
+	// Give type a unique id
 	m_entityTypes[entityType->GetHash()] = entityType;
+	m_entityTypeLookup.push_back(entityType);
+	entityType->SetID(m_entityTypeLookup.size() - 1);
 }
 
-ClassFactory<Entity>* Game::GetEntityFactory(uint32 hash)
+ClassFactory<Entity>* Game::GetEntityFactoryFromID(uint32 id) 
+{
+	if (id >= m_entityTypeLookup.size())
+	{
+		LOG_ERROR("Cannot find registered entity of type id '%i'", id);
+		return nullptr;
+	}
+	return m_entityTypeLookup[id];
+}
+
+ClassFactory<Entity>* Game::GetEntityFactoryFromHash(uint32 hash)
 {
 	auto it = m_entityTypes.find(hash);
 	if (it == m_entityTypes.end())
