@@ -9,8 +9,76 @@
 #include "TestEntity.h"
 
 
+#include "Core\NetSocketTcp.h"
+#include "Core\NetSocketUdp.h"
+#include <sstream>
+
+
 static inline int entry(std::vector<string>& args)
 {
+	/*
+	NetSocketUdp sock;
+
+	if (sock.Connect("localhost", 20010)) 
+	{
+		LOG("CONNECT");
+
+		std::stringstream ss;
+		for (int i = 0; i < 100; ++i)
+			ss << i << ' ';
+
+		const uint8* data = (const uint8*)ss.str().c_str();
+		if (sock.Send(data, ss.str().length()))
+		{
+			LOG("YES SEND");
+		}
+		else
+		{
+			LOG("NO SEND");
+		}
+	}
+	else
+	{
+		LOG("NO CONNECT");
+	}
+	/*/
+	//*
+	NetSocketUdp listener;
+	
+	if (listener.Listen(20010))
+	{
+		LOG("Listening on %s:%i", listener.GetAddress().toString().c_str(), listener.GetPort());
+		std::vector<RawNetPacket> input;
+
+		while (true)
+		{
+			input.clear();
+
+			if (listener.Poll(input))
+			{
+				for(RawNetPacket& packet : input)
+				{
+					LOG("Received (%s:%i) %i bytes", packet.sourceAddress.toString().c_str(), packet.sourcePort, packet.dataCount);
+					LOG("\t%s", packet.data);
+				}
+				listener.Send((const uint8*)"OK", 3);
+			}
+		}
+	}
+	//*/
+	return 0;
+
+
+
+
+
+
+
+
+
+
+
+
 	LOG("Discovered %i cmd arguments", args.size());
 	for (string& str : args)
 		LOG("\t'%s'", str.c_str())
@@ -38,6 +106,15 @@ static inline int entry(std::vector<string>& args)
 	return 0;
 }
 
+
+
+
+/**
+* Using appropriate entry point based on build mode
+* and converting launch args into vector
+*/
+
+
 /**
 * Convert cmd arguments into more usable string array
 */
@@ -56,7 +133,6 @@ std::vector<string> GetArgs(int argc, wchar_t** argv)
 }
 
 
-
 #if BUILD_DEBUG || BUILD_SERVER
 
 // Show Cmd for only server or debug builds
@@ -67,7 +143,7 @@ int wmain(int argc, wchar_t** argv)
 
 	// Wait whilst in debug to read log
 #ifdef BUILD_DEBUG
-	while (true) {}
+	system("pause");
 #endif
 	return o;
 }

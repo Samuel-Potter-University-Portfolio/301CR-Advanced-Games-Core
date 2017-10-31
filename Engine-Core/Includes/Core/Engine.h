@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "NetworkController.h"
 
 #include <vector>
 #include <string>
@@ -29,6 +30,8 @@ class CORE_API Engine
 private:
 	EngineInfo m_initInfo;
 	Game* m_game;
+
+	NetworkController m_netController;
 
 	bool bUpdateMain;
 	bool bUpdateDisplay;
@@ -79,4 +82,6 @@ public:
 #ifdef BUILD_CLIENT
 	inline sf::RenderWindow* GetDisplayWindow() const { return m_renderWindow; }
 #endif
+
+	inline NetworkController* GetNetController() { return &m_netController; }
 };

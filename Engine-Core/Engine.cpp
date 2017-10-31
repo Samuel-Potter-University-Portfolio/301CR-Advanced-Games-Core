@@ -27,7 +27,7 @@ void Engine::Launch(Game* game)
 	m_game->HookEngine(this);
 
 	
-	// Launch main loop for handling visuals
+	// Launch display loop for handling visuals
 #ifdef BUILD_CLIENT
 	sf::Thread m_displayThread(&Engine::DisplayLoop, this);
 	m_displayThread.launch();
