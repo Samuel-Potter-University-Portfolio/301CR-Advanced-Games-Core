@@ -54,7 +54,7 @@ struct RawNetPacket
 
 
 /**
-* Represents a TCP or UDP socket
+* Represents a socketed connection for either listening or requesting data
 */
 class CORE_API NetSocket
 {
@@ -64,6 +64,7 @@ private:
 protected:
 	NetIdentity m_identity;
 
+	bool bIsReusable = false;
 	bool bIsOpen = false;
 	bool bIsListener = false;
 
@@ -120,6 +121,9 @@ public:
 public:
 	inline const SocketType& GetSocketType() const { return m_socketType; }
 	inline const NetIdentity& GetNetIdentity() const { return m_identity; }
+
+	inline void MarkAsReusable() { bIsReusable = true; }
+	inline const bool& IsReusable() const { return bIsReusable; }
 
 	inline const bool& IsOpen() const { return bIsOpen; }
 	inline const bool& IsListener() const { return bIsListener; }

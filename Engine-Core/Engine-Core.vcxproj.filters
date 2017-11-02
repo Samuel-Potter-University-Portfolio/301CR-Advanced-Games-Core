@@ -7,10 +7,10 @@
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="NetworkController.cpp" />
     <ClCompile Include="NetSocket.cpp" />
     <ClCompile Include="NetSocketTcp.cpp" />
     <ClCompile Include="NetSocketUdp.cpp" />
+    <ClCompile Include="NetController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -60,7 +60,13 @@
     <ClInclude Include="Includes\Core\NetSocketUdp.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="Includes\Core\NetworkController.h">
+    <ClInclude Include="Includes\Core\NetController.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\EngineMemory.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\Version.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

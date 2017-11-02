@@ -4,6 +4,7 @@
 
 class CORE_API NetSocketUdp : public NetSocket
 {
+	friend class NetController;
 private:
 	sf::UdpSocket* m_socket;
 

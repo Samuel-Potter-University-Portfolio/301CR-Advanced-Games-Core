@@ -286,7 +286,7 @@
     <ClCompile Include="NetSocket.cpp" />
     <ClCompile Include="NetSocketTcp.cpp" />
     <ClCompile Include="NetSocketUdp.cpp" />
-    <ClCompile Include="NetworkController.cpp" />
+    <ClCompile Include="NetController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Includes\Core\Camera.h" />
@@ -295,6 +295,7 @@
     <ClInclude Include="Includes\Core\CoreDefs.h" />
     <ClInclude Include="Includes\Core\Encoding.h" />
     <ClInclude Include="Includes\Core\Engine.h" />
+    <ClInclude Include="Includes\Core\EngineMemory.h" />
     <ClInclude Include="Includes\Core\Entity.h" />
     <ClInclude Include="Includes\Core\Game.h" />
     <ClInclude Include="Includes\Core\Level.h" />
@@ -302,8 +303,9 @@
     <ClInclude Include="Includes\Core\NetSocket.h" />
     <ClInclude Include="Includes\Core\NetSocketTcp.h" />
     <ClInclude Include="Includes\Core\NetSocketUdp.h" />
-    <ClInclude Include="Includes\Core\NetworkController.h" />
+    <ClInclude Include="Includes\Core\NetController.h" />
     <ClInclude Include="Includes\Core\Types.h" />
+    <ClInclude Include="Includes\Core\Version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

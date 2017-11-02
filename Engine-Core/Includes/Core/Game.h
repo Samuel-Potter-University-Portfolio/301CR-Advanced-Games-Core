@@ -21,6 +21,7 @@ private:
 	string m_name;
 	Engine* m_engine = nullptr;
 
+
 	/** Map of all supported levels that can be loaded */
 	std::unordered_map<string, Level*> m_levels;
 	std::vector<Level*> m_levelLookup;

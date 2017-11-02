@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "NetworkController.h"
+#include "NetController.h"
 
 #include <vector>
 #include <string>
@@ -31,7 +31,7 @@ private:
 	EngineInfo m_initInfo;
 	Game* m_game;
 
-	NetworkController m_netController;
+	NetController m_netController;
 
 	bool bUpdateMain;
 	bool bUpdateDisplay;
@@ -83,5 +83,5 @@ public:
 	inline sf::RenderWindow* GetDisplayWindow() const { return m_renderWindow; }
 #endif
 
-	inline NetworkController* GetNetController() { return &m_netController; }
+	inline NetController* GetNetController() { return &m_netController; }
 };
