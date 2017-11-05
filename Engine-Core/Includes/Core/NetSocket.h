@@ -18,7 +18,7 @@ enum SocketType
 /**
 * Holds basic information about a connection
 */
-struct NetIdentity 
+struct CORE_API NetIdentity
 {
 	sf::IpAddress	ip;
 	uint16			port;
@@ -45,7 +45,7 @@ struct NetIdentity
 /**
 * Holds the raw packet data for when it is read by the user
 */
-struct RawNetPacket
+struct CORE_API RawNetPacket
 {
 	NetIdentity		source;
 	uint8			data[NET_PACKET_MAX];

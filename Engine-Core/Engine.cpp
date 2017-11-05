@@ -8,9 +8,10 @@ EngineInfo::EngineInfo(std::vector<string>& args)
 }
 
 
-Engine::Engine(EngineInfo* info) : m_initInfo(*info)
+Engine::Engine(EngineInfo* info) : m_initInfo(*info), m_version(0,1,0)
 {
 	LOG("Engine Initializing");
+	LOG("\t-Engine Version (%i.%i.%i)", m_version.major, m_version.minor, m_version.patch);
 }
 
 Engine::~Engine()
@@ -21,6 +22,7 @@ Engine::~Engine()
 void Engine::Launch(Game* game)
 {
 	LOG("Launching game engine with game '%s'", game->GetName().c_str());
+	LOG("\t-Game Version (%i.%i.%i)", game->GetVersionNo().major, game->GetVersionNo().minor, game->GetVersionNo().patch);
 
 	// Setup game
 	m_game = game;

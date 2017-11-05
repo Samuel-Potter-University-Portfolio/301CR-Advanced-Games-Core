@@ -21,7 +21,7 @@ static inline int entry(std::vector<string>& args)
 	Engine engine(&engineInfo);
 
 	// Setup game
-	Game game("Bomber Boy");
+	Game game("Bomber Boy", Version(0,1,0));
 	{
 		// Add levels
 		game.SetDefaultLevelName("Main");

@@ -3,10 +3,10 @@
 #include "Includes\Core\Entity.h"
 
 
-Game::Game(string name)
+Game::Game(string name, Version version) :
+	m_name(name),
+	m_version(version)
 {
-	m_name = name;
-
 	// Reserve 0 ids as null
 	m_entityTypeLookup.push_back(nullptr);
 	m_levelLookup.push_back(nullptr);

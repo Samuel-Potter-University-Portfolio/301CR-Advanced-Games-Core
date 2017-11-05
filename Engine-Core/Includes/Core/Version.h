@@ -46,7 +46,7 @@ struct CORE_API Version
 
 
 template<>
-void Encode<Version>(ByteBuffer& buffer, Version& data)
+inline void Encode<Version>(ByteBuffer& buffer, Version& data)
 {
 	Encode<uint16>(buffer, data.major);
 	Encode<uint16>(buffer, data.minor);
@@ -54,7 +54,7 @@ void Encode<Version>(ByteBuffer& buffer, Version& data)
 }
 
 template<>
-void Decode<Version>(ByteBuffer& buffer, Version& out)
+inline void Decode<Version>(ByteBuffer& buffer, Version& out)
 {
 	Decode<uint16>(buffer, out.patch);
 	Decode<uint16>(buffer, out.minor);

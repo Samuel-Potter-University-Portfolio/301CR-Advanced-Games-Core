@@ -20,20 +20,20 @@ void Encode(ByteBuffer& buffer, T& data)
 
 
 template<>
-void Encode<int8>(ByteBuffer& buffer, int8& data)
+inline void Encode<int8>(ByteBuffer& buffer, int8& data)
 {
 	buffer.push(data);
 }
 
 template<>
-void Encode<int16>(ByteBuffer& buffer, int16& data)
+inline void Encode<int16>(ByteBuffer& buffer, int16& data)
 {
 	buffer.push(data >> 0 * 8);
 	buffer.push(data >> 1 * 8);
 }
 
 template<>
-void Encode<int32>(ByteBuffer& buffer, int32& data)
+inline void Encode<int32>(ByteBuffer& buffer, int32& data)
 {
 	buffer.push(data >> 0 * 8);
 	buffer.push(data >> 1 * 8);
@@ -42,7 +42,7 @@ void Encode<int32>(ByteBuffer& buffer, int32& data)
 }
 
 template<>
-void Encode<int64>(ByteBuffer& buffer, int64& data)
+inline void Encode<int64>(ByteBuffer& buffer, int64& data)
 {
 	buffer.push(data >> 0 * 8);
 	buffer.push(data >> 1 * 8);
@@ -56,20 +56,20 @@ void Encode<int64>(ByteBuffer& buffer, int64& data)
 
 
 template<>
-void Encode<uint8>(ByteBuffer& buffer, uint8& data)
+inline void Encode<uint8>(ByteBuffer& buffer, uint8& data)
 {
 	buffer.push(data);
 }
 
 template<>
-void Encode<uint16>(ByteBuffer& buffer, uint16& data)
+inline void Encode<uint16>(ByteBuffer& buffer, uint16& data)
 {
 	buffer.push(data >> 0 * 8);
 	buffer.push(data >> 1 * 8);
 }
 
 template<>
-void Encode<uint32>(ByteBuffer& buffer, uint32& data)
+inline void Encode<uint32>(ByteBuffer& buffer, uint32& data)
 {
 	buffer.push(data >> 0 * 8);
 	buffer.push(data >> 1 * 8);
@@ -78,7 +78,7 @@ void Encode<uint32>(ByteBuffer& buffer, uint32& data)
 }
 
 template<>
-void Encode<uint64>(ByteBuffer& buffer, uint64& data)
+inline void Encode<uint64>(ByteBuffer& buffer, uint64& data)
 {
 	buffer.push(data >> 0 * 8);
 	buffer.push(data >> 1 * 8);
@@ -92,7 +92,7 @@ void Encode<uint64>(ByteBuffer& buffer, uint64& data)
 
 
 template<>
-void Encode<float>(ByteBuffer& buffer, float& data)
+inline void Encode<float>(ByteBuffer& buffer, float& data)
 {
 	int temp;
 	std::memcpy(&temp, &data, sizeof(float));
@@ -100,7 +100,7 @@ void Encode<float>(ByteBuffer& buffer, float& data)
 }
 
 template<>
-void Encode<std::string>(ByteBuffer& buffer, string& data)
+inline void Encode<std::string>(ByteBuffer& buffer, string& data)
 {
 	buffer.push('\0');
 	for (int i = data.length() - 1; i >= 0; --i)
@@ -108,7 +108,7 @@ void Encode<std::string>(ByteBuffer& buffer, string& data)
 }
 
 template<>
-void Encode<const char*>(ByteBuffer& buffer, const char*& data)
+inline void Encode<const char*>(ByteBuffer& buffer, const char*& data)
 {
 	std::string str = data;
 	Encode(buffer, str);
@@ -125,7 +125,7 @@ void Decode(ByteBuffer& buffer, T& out)
 }
 
 template<>
-void Decode<int8>(ByteBuffer& buffer, int8& out)
+inline void Decode<int8>(ByteBuffer& buffer, int8& out)
 {
 	out = 0;
 
@@ -134,7 +134,7 @@ void Decode<int8>(ByteBuffer& buffer, int8& out)
 }
 
 template<>
-void Decode<int16>(ByteBuffer& buffer, int16& out)
+inline void Decode<int16>(ByteBuffer& buffer, int16& out)
 {
 	out = 0;
 
@@ -146,7 +146,7 @@ void Decode<int16>(ByteBuffer& buffer, int16& out)
 }
 
 template<>
-void Decode<int32>(ByteBuffer& buffer, int32& out)
+inline void Decode<int32>(ByteBuffer& buffer, int32& out)
 {
 	out = 0;
 
@@ -164,7 +164,7 @@ void Decode<int32>(ByteBuffer& buffer, int32& out)
 }
 
 template<>
-void Decode<int64>(ByteBuffer& buffer, int64& out)
+inline void Decode<int64>(ByteBuffer& buffer, int64& out)
 {
 	out = 0;
 
@@ -195,7 +195,7 @@ void Decode<int64>(ByteBuffer& buffer, int64& out)
 
 
 template<>
-void Decode<uint8>(ByteBuffer& buffer, uint8& out)
+inline void Decode<uint8>(ByteBuffer& buffer, uint8& out)
 {
 	out = 0;
 
@@ -204,7 +204,7 @@ void Decode<uint8>(ByteBuffer& buffer, uint8& out)
 }
 
 template<>
-void Decode<uint16>(ByteBuffer& buffer, uint16& out)
+inline void Decode<uint16>(ByteBuffer& buffer, uint16& out)
 {
 	out = 0;
 
@@ -216,7 +216,7 @@ void Decode<uint16>(ByteBuffer& buffer, uint16& out)
 }
 
 template<>
-void Decode<uint32>(ByteBuffer& buffer, uint32& out)
+inline void Decode<uint32>(ByteBuffer& buffer, uint32& out)
 {
 	out = 0;
 
@@ -234,7 +234,7 @@ void Decode<uint32>(ByteBuffer& buffer, uint32& out)
 }
 
 template<>
-void Decode<uint64>(ByteBuffer& buffer, uint64& out)
+inline void Decode<uint64>(ByteBuffer& buffer, uint64& out)
 {
 	out = 0;
 
@@ -265,7 +265,7 @@ void Decode<uint64>(ByteBuffer& buffer, uint64& out)
 
 
 template<>
-void Decode<float>(ByteBuffer& buffer, float& out)
+inline void Decode<float>(ByteBuffer& buffer, float& out)
 {
 	int temp;
 	Decode(buffer, temp);
@@ -273,7 +273,7 @@ void Decode<float>(ByteBuffer& buffer, float& out)
 }
 
 template<>
-void Decode<std::string>(ByteBuffer& buffer, string& out)
+inline void Decode<std::string>(ByteBuffer& buffer, string& out)
 {
 	while (true)
 	{

@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "Version.h"
 
 #include "ClassFactory.h"
 #include "Entity.h"
@@ -20,6 +21,7 @@ class CORE_API Game
 private:
 	string m_name;
 	Engine* m_engine = nullptr;
+	Version m_version;
 
 
 	/** Map of all supported levels that can be loaded */
@@ -35,7 +37,7 @@ private:
 
 
 public:
-	Game(string name);
+	Game(string name, Version version);
 	~Game();
 
 	/**
@@ -101,6 +103,7 @@ public:
 	inline Engine* GetEngine() { return m_engine; m_engine; }
 
 	inline string GetName() const { return m_name; }
+	inline const Version& GetVersionNo() const { return m_version; }
 
 	inline string GetDefaultLevelName() const { return defaultLevel; }
 	inline void SetDefaultLevelName(string levelName) { defaultLevel = levelName; }

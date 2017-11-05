@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "Version.h"
 #include "NetController.h"
 
 #include <vector>
@@ -29,6 +30,7 @@ class CORE_API Engine
 {
 private:
 	EngineInfo m_initInfo;
+	Version m_version;
 	Game* m_game;
 
 	NetController m_netController;
@@ -83,5 +85,6 @@ public:
 	inline sf::RenderWindow* GetDisplayWindow() const { return m_renderWindow; }
 #endif
 
+	inline const Version& GetVersionNo() const { return m_version; }
 	inline NetController* GetNetController() { return &m_netController; }
 };
