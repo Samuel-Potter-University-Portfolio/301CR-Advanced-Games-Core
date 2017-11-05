@@ -16,6 +16,9 @@ Engine::Engine(EngineInfo* info) : m_initInfo(*info), m_version(0,1,0)
 
 Engine::~Engine()
 {
+	if (m_netSession != nullptr)
+		delete m_netSession;
+
 	LOG("Engine destroyed");
 }
 
@@ -33,6 +36,11 @@ void Engine::Launch(Game* game)
 #ifdef BUILD_CLIENT
 	sf::Thread m_displayThread(&Engine::DisplayLoop, this);
 	m_displayThread.launch();
+
+	// Automatically open session for server build
+#else
+	m_netSession = NetSession::HostSession(m_initInfo.defaultNetIdentity);
+
 #endif
 
 
@@ -63,6 +71,10 @@ void Engine::MainLoop()
 		// Tick logic 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
 		m_game->MainUpdate(deltaTime);
+
+		// Tick net session
+		if (m_netSession != nullptr)
+			m_netSession->Update(this, deltaTime);
 
 		sf::sleep(sf::milliseconds(1));
 	}

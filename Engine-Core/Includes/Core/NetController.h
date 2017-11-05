@@ -11,7 +11,7 @@
 
 
 /**
-* Vendor for sockets and networking
+* Vendor for sockets (Ensures all sockets leaving this controller will be cleaned up correctly)
 */
 class NetController
 {

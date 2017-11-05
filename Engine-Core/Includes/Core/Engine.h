@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "Version.h"
 #include "NetController.h"
+#include "NetSession.h"
 
 #include <vector>
 #include <string>
@@ -19,6 +20,8 @@ struct CORE_API EngineInfo
 	uint32 windowWidth = 800;
 	uint32 windowHeight = 600;
 
+	NetIdentity defaultNetIdentity = NetIdentity(sf::IpAddress::LocalHost, 20010);
+
 	EngineInfo(std::vector<string>& args);
 };
 
@@ -33,6 +36,7 @@ private:
 	Version m_version;
 	Game* m_game;
 
+	NetSession* m_netSession = nullptr;
 	NetController m_netController;
 
 	bool bUpdateMain;
@@ -87,4 +91,5 @@ public:
 
 	inline const Version& GetVersionNo() const { return m_version; }
 	inline NetController* GetNetController() { return &m_netController; }
+	inline NetSession* GetCurrentNetSession() const { return m_netSession; }
 };

@@ -11,6 +11,7 @@
     <ClCompile Include="NetSocketTcp.cpp" />
     <ClCompile Include="NetSocketUdp.cpp" />
     <ClCompile Include="NetController.cpp" />
+    <ClCompile Include="NetSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -69,5 +70,6 @@
     <ClInclude Include="Includes\Core\Version.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="Includes\Core\NetSession.h" />
   </ItemGroup>
 </Project>

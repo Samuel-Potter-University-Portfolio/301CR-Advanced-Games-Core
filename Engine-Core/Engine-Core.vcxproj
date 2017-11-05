@@ -283,6 +283,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="NetSession.cpp" />
     <ClCompile Include="NetSocket.cpp" />
     <ClCompile Include="NetSocketTcp.cpp" />
     <ClCompile Include="NetSocketUdp.cpp" />
@@ -300,6 +301,7 @@
     <ClInclude Include="Includes\Core\Game.h" />
     <ClInclude Include="Includes\Core\Level.h" />
     <ClInclude Include="Includes\Core\Logger.h" />
+    <ClInclude Include="Includes\Core\NetSession.h" />
     <ClInclude Include="Includes\Core\NetSocket.h" />
     <ClInclude Include="Includes\Core\NetSocketTcp.h" />
     <ClInclude Include="Includes\Core\NetSocketUdp.h" />
