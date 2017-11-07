@@ -8,16 +8,18 @@ EngineInfo::EngineInfo(std::vector<string>& args)
 }
 
 
-Engine::Engine(EngineInfo* info) : m_initInfo(*info), m_version(0,1,0)
+Engine::Engine(EngineInfo* info) : 
+	m_initInfo(*info), m_version(0,1,0)
 {
 	LOG("Engine Initializing");
 	LOG("\t-Engine Version (%i.%i.%i)", m_version.major, m_version.minor, m_version.patch);
+	m_netController = new NetController(this);
 }
 
 Engine::~Engine()
 {
-	if (m_netSession != nullptr)
-		delete m_netSession;
+	if (m_netController != nullptr)
+		delete m_netController;
 
 	LOG("Engine destroyed");
 }
@@ -32,14 +34,18 @@ void Engine::Launch(Game* game)
 	m_game->HookEngine(this);
 
 	
-	// Launch display loop for handling visuals
 #ifdef BUILD_CLIENT
+	// Launch display loop for handling visuals
 	sf::Thread m_displayThread(&Engine::DisplayLoop, this);
 	m_displayThread.launch();
 
-	// Automatically open session for server build
 #else
-	m_netSession = NetSession::HostSession(m_initInfo.defaultNetIdentity);
+	// Automatically open session on server
+	if (!m_netController->HostSession(m_initInfo.defaultNetIdentity)) 
+	{
+		LOG_ERROR("Aborting launch (Failed to launch session)");
+		return;
+	}
 
 #endif
 
@@ -71,11 +77,10 @@ void Engine::MainLoop()
 		// Tick logic 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
 		m_game->MainUpdate(deltaTime);
+		m_netController->HandleUpdate(deltaTime);
 
-		// Tick net session
-		if (m_netSession != nullptr)
-			m_netSession->Update(this, deltaTime);
 
+		// Sleep a little
 		sf::sleep(sf::milliseconds(1));
 	}
 

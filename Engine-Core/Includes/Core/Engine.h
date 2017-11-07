@@ -36,8 +36,7 @@ private:
 	Version m_version;
 	Game* m_game;
 
-	NetSession* m_netSession = nullptr;
-	NetController m_netController;
+	NetController* m_netController;
 
 	bool bUpdateMain;
 	bool bUpdateDisplay;
@@ -88,8 +87,8 @@ public:
 #ifdef BUILD_CLIENT
 	inline sf::RenderWindow* GetDisplayWindow() const { return m_renderWindow; }
 #endif
-
+	inline const Game* GetGame() const { return m_game; }
 	inline const Version& GetVersionNo() const { return m_version; }
-	inline NetController* GetNetController() { return &m_netController; }
-	inline NetSession* GetCurrentNetSession() const { return m_netSession; }
+
+	inline NetController* GetNetController() { return m_netController; }
 };

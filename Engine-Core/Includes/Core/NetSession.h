@@ -1,49 +1,88 @@
 #pragma once
 #include "Common.h"
+#include "NetClient.h"
+
 #include "NetSocketTcp.h"
 #include "NetSocketUdp.h"
 
 
+class Engine;
+
+
 /**
-* Represents the current connection between player(s) and server
+* What sort of requests can be performed during a handshake
+*/
+enum NetRequestType : uint16
+{
+	Ping		= 0,
+	Connect		= 200,
+	Query		= 201
+};
+
+
+/**
+* Response codes used in the initial handshake
+*/
+enum NetResponseCode : uint16
+{
+	Unknown			= 0,
+
+	Accepted		= 200,
+	Responded		= 201,
+
+	BadRequest		= 400,
+	Banned			= 401,
+	BadPassword		= 403,
+	BadVersions		= 426,
+
+	ServerFull		= 512
+};
+
+
+/**
+* Abstract class represents the current connection between player(s) and a server
 */
 class CORE_API NetSession
 {
 private:
+	const NetIdentity m_netIdentity;
+
+	uint32 m_tickRate = 20;
+	float m_sleepRate = 1.0f / (float)m_tickRate;
+	float m_tickTimer = 0.0f;
+
+protected:
 	NetSocketTcp m_TcpSocket;
 	NetSocketUdp m_UdpSocket;
-
-	const uint32 tickRate;
-	const float desiredTickRate = 1.0f / (float)tickRate;
-	float m_tickTimer = 0.0f;
+	const Engine* m_engine;
 
 	bool bIsHost = false;
 	bool bIsConnected = false;
 
-	NetSession();
 public:
-	~NetSession();
+	NetSession(const Engine* engine, const NetIdentity identity);
+	virtual ~NetSession();
 
 	/**
-	* Attempt to host a new game session over this network identity
-	* @param host			The ip:port to host over
-	* @returns New session that has been started or nullptr if failed to open session
+	* Attempt to start up the session at/on this identity
+	* @returns If setup correctly
 	*/
-	static NetSession* HostSession(const NetIdentity& host);
-	
-	/**
-	* Attempt to connect to a remotely hosted game session at this network identity
-	* @param remote			The ip:port to connect to
-	* @returns New session that has been connected to or nullptr if failed to join session
-	*/
-	static NetSession* JoinSession(const NetIdentity& remote);
+	virtual bool Start() = 0;
 
 	/**
 	* Callback from engine for every tick by main
 	* @param engine			The engine + game to update using
 	* @param deltaTime		Time since last update (In seconds)
 	*/
-	void Update(class Engine* engine, const float& deltaTime);
+	void HandleUpdate(const float& deltaTime);
+
+protected:
+	/**
+	* Called from handle update, at desired tickrate (Previously set)
+	* @param engine			The engine + game to update using
+	* @param deltaTime		Time since last update (In seconds)
+	*/
+	virtual void Update(const float& deltaTime) = 0;
 
 
 	/**
@@ -51,6 +90,11 @@ public:
 	*/
 public:
 	inline const bool& IsHost() const { return bIsHost; }
-	inline const bool& IsRemote() const { return bIsHost; }
-};
+	inline const bool& IsRemote() const { return !bIsHost; }
 
+	inline const bool& IsConnected() const { return bIsConnected; }
+	inline const NetIdentity& GetSessionIdentity() const { return m_netIdentity; }
+
+	inline const uint32& GetTickRate() const { return m_tickRate; }
+	inline void SetTickRate(const uint32& v) { m_tickRate = (v == 0 ? 1 : v); m_sleepRate = 1.0f / (float)m_tickRate; }
+};

@@ -1,21 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Level.cpp" />
-    <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="NetSocket.cpp" />
-    <ClCompile Include="NetSocketTcp.cpp" />
-    <ClCompile Include="NetSocketUdp.cpp" />
-    <ClCompile Include="NetController.cpp" />
-    <ClCompile Include="NetSession.cpp" />
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Level.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NetSocketTcp.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetClient.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetController.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetHostSession.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetSession.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetSocket.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetSocketUdp.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetRemoteSession.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="ByteBuffer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
       <UniqueIdentifier>{b1c162a9-cc92-4e70-ad04-855825df1992}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes\Net">
+      <UniqueIdentifier>{7a5de2a6-257b-456e-a608-2a9b2eb59960}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{9df494a1-619e-4ec4-b7dd-d5570d532b99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Net">
+      <UniqueIdentifier>{ef31c51d-12a5-453d-8e5a-696b12ac4d6a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -52,24 +95,38 @@
     <ClInclude Include="Includes\Core\ClassFactory.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="Includes\Core\NetSocket.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="Includes\Core\NetSocketTcp.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="Includes\Core\NetSocketUdp.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="Includes\Core\NetController.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="Includes\Core\EngineMemory.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="Includes\Core\Version.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="Includes\Core\NetSession.h" />
+    <ClInclude Include="Includes\Core\NetHostSession.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetController.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetClient.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetSession.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetSocket.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetSocketTcp.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetSocketUdp.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetRemoteSession.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\ByteBuffer.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

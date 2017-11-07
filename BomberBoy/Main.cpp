@@ -8,40 +8,9 @@
 #include "Core\Camera.h"
 #include "TestEntity.h"
 
-#include "Core\Encoding.h"
-#include "Core\Version.h"
-
 
 static inline int entry(std::vector<string>& args)
 {
-	ByteBuffer bb;
-	string str = "Another test string";
-
-	Encode<int8>(bb, 12);
-	Encode<int8>(bb, 34);
-	Encode<const char*>(bb, "Hello World how are you today?");
-	Encode<string>(bb, str);
-	Encode<float>(bb, 234.23f);
-	Encode<int32>(bb, 21474);
-	Encode<Version>(bb, Version(23, 145, 123));
-	
-	int outA;
-	float outB;
-	string outStrA;
-	string outStrB;
-	int8 outC;
-	int8 outD;
-	Version outV;
-	bb.Flip();
-
-	Decode<int8>(bb, outD);
-	Decode<int8>(bb, outC);
-	Decode<string>(bb, outStrA);
-	Decode<string>(bb, outStrB);
-	Decode<float>(bb, outB);
-	Decode<int32>(bb, outA);
-	Decode<Version>(bb, outV);
-
 	LOG("Discovered %i cmd arguments", args.size());
 	for (string& str : args)
 		LOG("\t'%s'", str.c_str())
