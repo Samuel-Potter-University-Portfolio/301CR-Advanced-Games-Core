@@ -96,20 +96,25 @@ inline void Encode<float>(ByteBuffer& buffer, const float& data)
 }
 
 template<>
-inline void Encode<std::string>(ByteBuffer& buffer, const string& data)
+inline void Encode<const char*>(ByteBuffer& buffer, const char* const& data)
 {
-	buffer.Push('\0');
-	for (int i = data.length() - 1; i >= 0; --i)
-		buffer.Push(data[i]);
+	const char* c = data;
+	while (true) 
+	{
+		buffer.Push(*c);
+		if (*c == '\0')
+			return;
+		else
+			++c;
+	}
 }
 
 template<>
-inline void Encode<const char*>(ByteBuffer& buffer, const char* const& data)
+inline void Encode<std::string>(ByteBuffer& buffer, const string& data)
 {
-	std::string str = data;
-	Encode(buffer, str);
+	Encode<const char*>(buffer, data.c_str());
+	//buffer.Push((const uint8*)data.c_str(), data.length() + 1);
 }
-
 
 
 
@@ -141,8 +146,8 @@ inline bool Decode<int16>(ByteBuffer& buffer, int16& out)
 	if (buffer.Size() < sizeof(int16))
 		return false;
 
-	out += buffer.Pop() << 1 * 8;
 	out += buffer.Pop() << 0 * 8;
+	out += buffer.Pop() << 1 * 8;
 	return true;
 }
 
@@ -154,10 +159,10 @@ inline bool Decode<int32>(ByteBuffer& buffer, int32& out)
 	if (buffer.Size() < sizeof(int32))
 		return false;
 
-	out += buffer.Pop() << 3 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 1 * 8;
 	out += buffer.Pop() << 0 * 8;
+	out += buffer.Pop() << 1 * 8;
+	out += buffer.Pop() << 2 * 8;
+	out += buffer.Pop() << 3 * 8;
 	return true;
 }
 
@@ -169,14 +174,14 @@ inline bool Decode<int64>(ByteBuffer& buffer, int64& out)
 	if (buffer.Size() < sizeof(int64))
 		return false;
 
-	out += buffer.Pop() << 7 * 8;
-	out += buffer.Pop() << 6 * 8;
-	out += buffer.Pop() << 5 * 8;
-	out += buffer.Pop() << 4 * 8;
-	out += buffer.Pop() << 3 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 1 * 8;
 	out += buffer.Pop() << 0 * 8;
+	out += buffer.Pop() << 1 * 8;
+	out += buffer.Pop() << 2 * 8;
+	out += buffer.Pop() << 3 * 8;
+	out += buffer.Pop() << 4 * 8;
+	out += buffer.Pop() << 5 * 8;
+	out += buffer.Pop() << 6 * 8;
+	out += buffer.Pop() << 7 * 8;
 	return true;
 }
 
@@ -201,8 +206,8 @@ inline bool Decode<uint16>(ByteBuffer& buffer, uint16& out)
 	if (buffer.Size() < sizeof(uint16))
 		return false;
 
-	out += buffer.Pop() << 1 * 8;
 	out += buffer.Pop() << 0 * 8;
+	out += buffer.Pop() << 1 * 8;
 	return true;
 }
 
@@ -214,10 +219,10 @@ inline bool Decode<uint32>(ByteBuffer& buffer, uint32& out)
 	if (buffer.Size() < sizeof(uint32))
 		return false;
 
-	out += buffer.Pop() << 3 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 1 * 8;
 	out += buffer.Pop() << 0 * 8;
+	out += buffer.Pop() << 1 * 8;
+	out += buffer.Pop() << 2 * 8;
+	out += buffer.Pop() << 3 * 8;
 	return true;
 }
 
@@ -229,14 +234,14 @@ inline bool Decode<uint64>(ByteBuffer& buffer, uint64& out)
 	if (buffer.Size() < sizeof(uint64))
 		return false;
 
-	out += buffer.Pop() << 7 * 8;
-	out += buffer.Pop() << 6 * 8;
-	out += buffer.Pop() << 5 * 8;
-	out += buffer.Pop() << 4 * 8;
-	out += buffer.Pop() << 3 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 1 * 8;
 	out += buffer.Pop() << 0 * 8;
+	out += buffer.Pop() << 1 * 8;
+	out += buffer.Pop() << 2 * 8;
+	out += buffer.Pop() << 3 * 8;
+	out += buffer.Pop() << 4 * 8;
+	out += buffer.Pop() << 5 * 8;
+	out += buffer.Pop() << 6 * 8;
+	out += buffer.Pop() << 7 * 8;
 	return true;
 }
 

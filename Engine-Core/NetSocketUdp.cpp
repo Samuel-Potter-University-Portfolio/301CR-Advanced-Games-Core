@@ -20,9 +20,22 @@ bool NetSocketUdp::Poll(std::vector<RawNetPacket>& outPackets)
 
 	// Attempt to read all data
 	bool recieved = false;
-	RawNetPacket packet;
-	while (m_socket->receive(packet.data, NET_PACKET_MAX, packet.dataCount, packet.source.ip, packet.source.port) == sf::Socket::Done)
+
+	NetIdentity source;
+	uint8 data[NET_PACKET_MAX];
+	uint32 dataCount;
+
+	while (m_socket->receive(data, NET_PACKET_MAX, dataCount, source.ip, source.port) == sf::Socket::Done)
 	{
+		// Only listen to server's traffic, if not listener
+		if (!bIsListener && source != m_identity)
+			continue;
+
+		// Format packet
+		RawNetPacket packet;
+		packet.source = source;
+		packet.buffer.Push(data, dataCount);
+
 		outPackets.emplace_back(packet);
 		recieved = true;
 	}

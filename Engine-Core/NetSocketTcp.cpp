@@ -49,16 +49,27 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 				continue;
 			}
 
+
 			// Attempt to read all data
 			RawNetPacket packet;
 			packet.source.ip = socket->getRemoteAddress();
 			packet.source.port = socket->getRemotePort();
 
-			while (socket->receive(packet.data, NET_PACKET_MAX, packet.dataCount) == sf::Socket::Done)
+			
+			bool read = false;
+			uint8 data[NET_PACKET_MAX];
+			uint32 dataCount;
+
+			while (socket->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
 			{
-				outPackets.emplace_back(packet);
+				// Put all data into a single packet, for ease of use
+				packet.buffer.Push(data, dataCount);
+				read = true;
 				received = true;
 			}
+
+			if(read)
+				outPackets.emplace_back(packet);
 		}
 
 		return received;
@@ -72,11 +83,19 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 		RawNetPacket packet;
 		packet.source = m_identity;
 
-		while (sock->receive(packet.data, NET_PACKET_MAX, packet.dataCount) == sf::Socket::Done)
+		uint8 data[NET_PACKET_MAX];
+		uint32 dataCount;
+
+		while (sock->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
 		{
-			outPackets.emplace_back(packet);
+			// Put all data into a single packet, for ease of use
+			packet.buffer.Push(data, dataCount);
 			received = true;
 		}
+
+		if (received)
+			outPackets.emplace_back(packet);
+
 		return received;
 	}
 }

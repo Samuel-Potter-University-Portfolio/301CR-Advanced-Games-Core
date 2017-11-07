@@ -1,7 +1,9 @@
 #pragma once
 #include <SFML\Network.hpp>
 #include <vector>
+
 #include "Common.h"
+#include "ByteBuffer.h"
 
 
 #define NET_PACKET_MAX 4096
@@ -48,8 +50,7 @@ struct CORE_API NetIdentity
 struct CORE_API RawNetPacket
 {
 	NetIdentity		source;
-	uint8			data[NET_PACKET_MAX];
-	uint32			dataCount;
+	ByteBuffer		buffer;
 };
 
 
