@@ -48,6 +48,11 @@ void Engine::Launch(Game* game)
 	}
 
 #endif
+	
+	// TEEESSSSSTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+#ifdef BUILD_CLIENT
+	GetNetController()->JoinSession(NetIdentity(sf::IpAddress::LocalHost, 20010));
+#endif
 
 
 	// Launch into main loop

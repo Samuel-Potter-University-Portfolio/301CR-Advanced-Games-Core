@@ -4,8 +4,8 @@
 
 void ByteBuffer::Push(const uint8* b, uint32 count)
 {
-	m_data.reserve(m_data.size() + count);
-	std::memcpy(m_data.data() + m_data.size(), b, count);
+	m_data.resize(m_data.size() + count);
+	std::memcpy(m_data.data(), b, count);
 }
 
 void ByteBuffer::Flip() 

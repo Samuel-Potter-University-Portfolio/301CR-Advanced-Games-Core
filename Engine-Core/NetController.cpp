@@ -72,9 +72,17 @@ bool NetController::JoinSession(const NetIdentity& remote)
 {
 	if (m_activeSession != nullptr)
 	{
-		LOG_ERROR("Cannot host session, as active session already exist on %s:%i", m_activeSession->GetSessionIdentity().ip.toString().c_str(), m_activeSession->GetSessionIdentity().port);
+		LOG_ERROR("Cannot connect to session, as active session already exist on %s:%i", m_activeSession->GetSessionIdentity().ip.toString().c_str(), m_activeSession->GetSessionIdentity().port);
 		return false;
 	}
 
-	return false;
+	NetRemoteSession* session = new NetRemoteSession(m_engine, remote);
+	if (!session->Start())
+	{
+		delete session;
+		return false;
+	}
+
+	m_activeSession = session;
+	return true;
 }

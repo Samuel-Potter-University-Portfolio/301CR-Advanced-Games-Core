@@ -21,16 +21,20 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 	if (bIsListener)
 	{
 		sf::TcpListener* lsnr = (sf::TcpListener*)m_socket;
-		// Front is where to store temp value
-		sf::TcpSocket* buffSock = m_activeConnections.front();
-
-		// Add all active connections
-		while (lsnr->accept(*buffSock) == sf::Socket::Done)
+		
+		// Accept new connections
 		{
-			// Push active socket into chain
-			m_activeConnections.push_back(buffSock);
-			buffSock == new sf::TcpSocket;
-			m_activeConnections[0] = buffSock;
+			// Front is where to store temp value
+			sf::TcpSocket* buffSock = m_activeConnections.front();
+
+			// Add all active connections
+			while (lsnr->accept(*buffSock) == sf::Socket::Done)
+			{
+				// Push active socket into chain
+				m_activeConnections.push_back(buffSock);
+				buffSock = new sf::TcpSocket;
+				m_activeConnections[0] = buffSock;
+			}
 		}
 
 
@@ -56,20 +60,16 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 			packet.source.port = socket->getRemotePort();
 
 			
-			bool read = false;
 			uint8 data[NET_PACKET_MAX];
 			uint32 dataCount;
 
-			while (socket->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
+			if (socket->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
 			{
 				// Put all data into a single packet, for ease of use
 				packet.buffer.Push(data, dataCount);
-				read = true;
+				outPackets.emplace_back(packet);
 				received = true;
 			}
-
-			if(read)
-				outPackets.emplace_back(packet);
 		}
 
 		return received;
@@ -79,24 +79,21 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 		sf::TcpSocket* sock = (sf::TcpSocket*)m_socket;
 
 		// Attempt to read all data
-		bool received = false;
 		RawNetPacket packet;
 		packet.source = m_identity;
 
 		uint8 data[NET_PACKET_MAX];
 		uint32 dataCount;
 
-		while (sock->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
+		if (sock->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
 		{
 			// Put all data into a single packet, for ease of use
 			packet.buffer.Push(data, dataCount);
-			received = true;
+			outPackets.emplace_back(packet);
+			return true;
 		}
 
-		if (received)
-			outPackets.emplace_back(packet);
-
-		return received;
+		return false;
 	}
 }
 
@@ -113,7 +110,7 @@ bool NetSocketTcp::SendTo(const uint8* data, uint32 count, NetIdentity identity)
 			sf::TcpSocket* socket = m_activeConnections[i];
 
 			if (socket->getRemoteAddress() == identity.ip && socket->getRemotePort() == identity.port)
-				return socket->send(data, count);
+				return socket->send(data, count) == sf::Socket::Status::Done;
 		}
 		return false;
 	}

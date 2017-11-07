@@ -50,6 +50,7 @@ void NetHostSession::Update(const float& deltaTime)
 			for (RawNetPacket& p : packets)
 			{
 				p.buffer.Flip();
+				LOG("r %i", p.buffer.Size());
 				ForwardToClient(p, m_TcpSocket);
 			}
 		}
