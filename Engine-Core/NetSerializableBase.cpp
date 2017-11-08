@@ -16,7 +16,6 @@ void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& para
 	// Encode function call information
 	Encode<uint16>(buffer, id);
 	Encode<uint8>(buffer, (uint8)target);
-	Encode<uint16>(buffer, params.Size());
 	if (params.Size() != 0)
 		buffer.Push(params.Data(), params.Size());
 
@@ -32,4 +31,36 @@ bool NetSerializableBase::FetchRPCIndex(const char* funcName, uint16& outID) con
 bool NetSerializableBase::ExecuteRPC(uint16& id, ByteBuffer& params)
 {
 	return false;
+}
+
+void NetSerializableBase::PerformNetEncode(ByteBuffer& buffer, const SocketType& socketType) 
+{
+	// Encode RPC calls
+	ByteBuffer& rpcBuffer = (socketType == SocketType::TCP ? m_TcpCallQueue : m_UdpCallQueue);
+	Encode<uint16>(buffer, rpcBuffer.Size());
+	buffer.Push(rpcBuffer.Data(), rpcBuffer.Size());
+	rpcBuffer.Clear();
+}
+
+void NetSerializableBase::PerformNetDecode(ByteBuffer& buffer, const SocketType& socketType)
+{
+	// Decode and execute RPC calls
+	uint16 rpcSize;
+	Decode<uint16>(buffer, rpcSize);
+	uint32 endSize = buffer.Size() - rpcSize;
+
+	// Try to decode and execute all RPCs
+	while (buffer.Size() > endSize)
+	{
+		uint16 index;
+		uint8 rawTarget;
+		Decode(buffer, index);
+		Decode(buffer, rawTarget);
+
+		RPCTarget target = (RPCTarget)rawTarget;
+		if (!ExecuteRPC(index, buffer))
+		{
+			LOG_WARNING("Received bad RPC request");
+		}
+	}
 }

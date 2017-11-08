@@ -4,6 +4,19 @@
 
 TestEntity::TestEntity()
 {
+	bNetSynced = true;
+}
+
+bool TestEntity::FetchRPCIndex(const char* funcName, uint16& outID) const
+{
+	RPC_INDEX_HEADER(funcName, outID);
+	return false;
+}
+
+bool TestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
+{
+	RPC_EXEC_HEADER(id, params);
+	return false;
 }
 
 void TestEntity::OnBegin() 

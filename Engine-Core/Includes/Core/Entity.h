@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "Types.h"
 #include "ClassFactory.h"
+#include "NetSerializableBase.h"
 #include <SFML/Graphics.hpp>
 
 
@@ -11,13 +12,13 @@ class Level;
 /**
 * Represents anything which exists in a level
 */
-class CORE_API Entity
+class CORE_API Entity : public NetSerializableBase
 {
 private:
 	friend class Level;
+	bool bWasLoadedWithLevel = false;
 	uint32 m_typeId;
 	uint32 m_instanceId;
-	uint32 m_networkId;
 
 	string m_name;
 	Level* m_level;
@@ -29,7 +30,7 @@ private:
 
 public:
 	Entity();
-	~Entity();
+	virtual ~Entity();
 
 	/**
 	* Callback for when this entity is spawned into this level
@@ -81,7 +82,8 @@ public:
 
 	inline uint32 GetTypeID() const { return m_typeId; }
 	inline uint32 GetInstanceID() const { return m_instanceId; }
-	inline uint32 GetNetworkID() const { return m_networkId; }
+
+	inline const bool& WasLoadedWithLevel() const { return bWasLoadedWithLevel; }
 };
 
 

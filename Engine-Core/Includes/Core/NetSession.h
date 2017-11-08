@@ -12,7 +12,7 @@ class Engine;
 /**
 * What sort of requests can be performed during a handshake
 */
-enum NetRequestType : uint16
+enum class NetRequestType : uint16
 {
 	Ping		= 0,
 	Connect		= 200,
@@ -23,7 +23,7 @@ enum NetRequestType : uint16
 /**
 * Response codes used in the initial handshake
 */
-enum NetResponseCode : uint16
+enum class NetResponseCode : uint16
 {
 	Unknown			= 0,
 
@@ -37,6 +37,20 @@ enum NetResponseCode : uint16
 
 	ServerFull		= 512
 };
+
+
+/**
+* What this current packet is trying to do
+*/
+enum class NetPacketType : uint8
+{
+	Nothing					= 0,
+	EntitySpawn				= 1,
+	EntityDespawn			= 2,
+	EntityControlOverride	= 3,
+	EntityUpdate			= 4,
+};
+
 
 
 /**

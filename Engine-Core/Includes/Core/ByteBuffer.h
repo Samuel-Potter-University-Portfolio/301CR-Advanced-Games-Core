@@ -24,6 +24,7 @@ public:
 public:
 	inline const uint8* Data() const { return m_data.data(); }
 
+	inline void Clear() { m_data.clear(); }
 	inline void Reserve(const uint32 size) { m_data.reserve(size); }
 	inline const uint32 Size() const { return m_data.size(); }
 

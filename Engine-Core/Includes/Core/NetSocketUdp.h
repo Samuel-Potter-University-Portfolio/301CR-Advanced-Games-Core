@@ -46,5 +46,10 @@ public:
 	* Open a connect to the given destination
 	*/
 	virtual bool Connect(NetIdentity identity);
+
+	/**
+	* Open a connection to the given destination, using a desired port
+	*/
+	bool ConnectAs(NetIdentity target, NetIdentity asIdentity);
 };
 

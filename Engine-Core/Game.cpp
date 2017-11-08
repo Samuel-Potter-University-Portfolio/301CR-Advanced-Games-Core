@@ -110,6 +110,7 @@ bool Game::SwitchLevel(string levelName)
 		LOG("Loading level '%s'", levelName.c_str());
 		currentLevel = level;
 		currentLevel->BuildLevel();
+		currentLevel->OnPostLoad();
 		return true;
 	}
 
@@ -161,4 +162,39 @@ ClassFactory<Entity>* Game::GetEntityFactoryFromHash(uint32 hash)
 	}
 
 	return it->second;
+}
+
+static int tempI = 0;
+void Game::PerformNetEncode(ByteBuffer& buffer, const SocketType& socketType) 
+{
+	__super::PerformNetEncode(buffer, socketType);
+
+
+	// TEST
+	if (socketType == SocketType::TCP)
+		return;
+
+	// TEST
+	++tempI;
+
+	if (tempI >= 40)
+	{
+		tempI = 0;
+		LOG("Send");
+		Encode<uint32>(buffer, 12);
+	}
+}
+
+void Game::PerformNetDecode(ByteBuffer& buffer, const SocketType& socketType)
+{
+	__super::PerformNetDecode(buffer, socketType);
+
+	// TEST
+	if (socketType == SocketType::TCP)
+		return;
+
+	if (buffer.Size() != 0)
+	{
+		LOG("EXTRA");
+	}
 }

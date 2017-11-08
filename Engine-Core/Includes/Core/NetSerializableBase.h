@@ -34,8 +34,9 @@ enum class RPCTarget : uint8
 */
 class CORE_API NetSerializableBase
 {
-public:
-//private:
+private:
+	uint32 m_networkId = 0;
+
 	ByteBuffer m_UdpCallQueue;
 	ByteBuffer m_TcpCallQueue;
 
@@ -62,6 +63,7 @@ public:
 	*/
 	void RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType);
 
+protected:
 	/**
 	* Call a given function fromt it's RPC id
 	* NOTE: macro order between FetchRPCIndex and ExecuteRPC must align
@@ -71,12 +73,31 @@ public:
 	*/
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
 
+public:
+	/**
+	* Encode all required information about this object ready to send over net
+	* @param buffer			The buffer to fill with all this information
+	* @param socketType		The socket type this will be sent over
+	*/
+	virtual void PerformNetEncode(ByteBuffer& buffer, const SocketType& socketType);
+
+	/**
+	* Decode any information that has reached this object
+	* @param buffer			The buffer to fill with all this information
+	* @param socketType		The socket type this was recieved by
+	*/
+	virtual void PerformNetDecode(ByteBuffer& buffer, const SocketType& socketType);
 
 	/**
 	* Getters & Setters
 	*/
 public:
 	inline const bool& IsNetSynced() const { return bNetSynced; }
+
+	/**
+	* A unique ID for identifying this object over the current NetSession
+	*/
+	inline uint32 GetNetworkID() const { return m_networkId; }
 };
 
 
@@ -133,8 +154,8 @@ public:
 	if (__TEMP_ID == 0) \
 	{ \
 		paramAType A; \
-		Decode<paramAType>(__TEMP_BUFFER, A); \
-		func(A); \
+		if(Decode<paramAType>(__TEMP_BUFFER, A)) \
+			func(A); \
 		return true; \
 	} \
 	else \
@@ -149,9 +170,9 @@ public:
 	{ \
 		paramAType A; \
 		paramBType B; \
-		Decode<paramAType>(__TEMP_BUFFER, A); \
-		Decode<paramBType>(__TEMP_BUFFER, B); \
-		func(A, B); \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
+			Decode<paramBType>(__TEMP_BUFFER, B)) \
+			func(A, B); \
 		return true; \
 	} \
 	else \
@@ -167,10 +188,10 @@ public:
 		paramAType A; \
 		paramBType B; \
 		paramCType C; \
-		Decode<paramAType>(__TEMP_BUFFER, A); \
-		Decode<paramBType>(__TEMP_BUFFER, B); \
-		Decode<paramCType>(__TEMP_BUFFER, C); \
-		func(A, B, C); \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
+			Decode<paramBType>(__TEMP_BUFFER, B) && \
+			Decode<paramCType>(__TEMP_BUFFER, C)) \
+			func(A, B, C); \
 		return true; \
 	} \
 	else \
@@ -187,11 +208,11 @@ public:
 		paramBType B; \
 		paramCType C; \
 		paramDType D; \
-		Decode<paramAType>(__TEMP_BUFFER, A); \
-		Decode<paramBType>(__TEMP_BUFFER, B); \
-		Decode<paramCType>(__TEMP_BUFFER, C); \
-		Decode<paramDType>(__TEMP_BUFFER, D); \
-		func(A, B, C, D); \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
+			Decode<paramBType>(__TEMP_BUFFER, B) && \
+			Decode<paramCType>(__TEMP_BUFFER, C) && \
+			Decode<paramDType>(__TEMP_BUFFER, D)) \
+			func(A, B, C, D); \
 		return true; \
 	} \
 	else \
@@ -209,12 +230,12 @@ public:
 		paramCType C; \
 		paramDType D; \
 		paramEType E; \
-		Decode<paramAType>(__TEMP_BUFFER, A); \
-		Decode<paramBType>(__TEMP_BUFFER, B); \
-		Decode<paramCType>(__TEMP_BUFFER, C); \
-		Decode<paramDType>(__TEMP_BUFFER, D); \
-		Decode<paramEType>(__TEMP_BUFFER, E); \
-		func(A, B, C, D, E); \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
+			Decode<paramBType>(__TEMP_BUFFER, B) && \
+			Decode<paramCType>(__TEMP_BUFFER, C) && \
+			Decode<paramDType>(__TEMP_BUFFER, D) && \
+			Decode<paramEType>(__TEMP_BUFFER, E)) \
+			func(A, B, C, D, E); \
 		return true; \
 	} \
 	else \

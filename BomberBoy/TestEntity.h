@@ -7,6 +7,11 @@ class TestEntity : public Entity
 public:
 	TestEntity();
 
+
+protected:
+	virtual bool FetchRPCIndex(const char* funcName, uint16& outID) const;
+	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
+
 protected:
 	/**
 	* Callback for entity's level first tick

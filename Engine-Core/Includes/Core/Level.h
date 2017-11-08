@@ -38,6 +38,10 @@ public:
 	* Called when this level is about to go out of usage
 	*/
 	virtual void DestroyLevel();
+	/**
+	* Callback for after the level is successfully built and loaded
+	*/
+	void OnPostLoad();
 
 	/**
 	* Called when an entity should be added to a level

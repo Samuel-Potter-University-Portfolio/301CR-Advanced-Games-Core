@@ -48,5 +48,10 @@ public:
 	* Open a connect to the given destination
 	*/
 	virtual bool Connect(NetIdentity identity);
+
+	/**
+	* Return the local identity that this socket is using (Same as identity, if listener)
+	*/
+	NetIdentity GetLocalIdentity();
 };
 

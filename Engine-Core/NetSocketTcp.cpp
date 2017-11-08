@@ -12,6 +12,18 @@ NetSocketTcp::~NetSocketTcp()
 		Close();
 }
 
+NetIdentity NetSocketTcp::GetLocalIdentity() 
+{
+	if (bIsListener)
+		return GetNetIdentity();
+
+	sf::TcpSocket* socket = (sf::TcpSocket*)m_socket;
+	if (socket == nullptr)
+		return GetNetIdentity();
+
+	return NetIdentity(sf::IpAddress::getLocalAddress(), socket->getLocalPort());
+}
+
 bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 {
 	if (m_socket == nullptr)
@@ -31,6 +43,7 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 			while (lsnr->accept(*buffSock) == sf::Socket::Done)
 			{
 				// Push active socket into chain
+				buffSock->setBlocking(false);
 				m_activeConnections.push_back(buffSock);
 				buffSock = new sf::TcpSocket;
 				m_activeConnections[0] = buffSock;
@@ -58,15 +71,13 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 			RawNetPacket packet;
 			packet.source.ip = socket->getRemoteAddress();
 			packet.source.port = socket->getRemotePort();
+			sf::Packet sfPacket;
 
-			
-			uint8 data[NET_PACKET_MAX];
-			uint32 dataCount;
 
-			if (socket->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
+			if (socket->receive(sfPacket) == sf::Socket::Done)
 			{
 				// Put all data into a single packet, for ease of use
-				packet.buffer.Push(data, dataCount);
+				packet.buffer.Push((const uint8*)sfPacket.getData(), sfPacket.getDataSize());
 				outPackets.emplace_back(packet);
 				received = true;
 			}
@@ -81,14 +92,13 @@ bool NetSocketTcp::Poll(std::vector<RawNetPacket>& outPackets)
 		// Attempt to read all data
 		RawNetPacket packet;
 		packet.source = m_identity;
+		sf::Packet sfPacket;
 
-		uint8 data[NET_PACKET_MAX];
-		uint32 dataCount;
 
-		if (sock->receive(data, NET_PACKET_MAX, dataCount) == sf::Socket::Done)
+		if (sock->receive(sfPacket) == sf::Socket::Done)
 		{
 			// Put all data into a single packet, for ease of use
-			packet.buffer.Push(data, dataCount);
+			packet.buffer.Push((const uint8*)sfPacket.getData(), sfPacket.getDataSize());
 			outPackets.emplace_back(packet);
 			return true;
 		}
@@ -102,6 +112,9 @@ bool NetSocketTcp::SendTo(const uint8* data, uint32 count, NetIdentity identity)
 	if (m_socket == nullptr)
 		return false;
 
+	sf::Packet sfPacket;
+	sfPacket.append(data, count);
+
 	if (bIsListener)
 	{
 		// Update active connections
@@ -110,7 +123,7 @@ bool NetSocketTcp::SendTo(const uint8* data, uint32 count, NetIdentity identity)
 			sf::TcpSocket* socket = m_activeConnections[i];
 
 			if (socket->getRemoteAddress() == identity.ip && socket->getRemotePort() == identity.port)
-				return socket->send(data, count) == sf::Socket::Status::Done;
+				return socket->send(sfPacket) == sf::Socket::Status::Done;
 		}
 		return false;
 	}
@@ -118,7 +131,7 @@ bool NetSocketTcp::SendTo(const uint8* data, uint32 count, NetIdentity identity)
 	{
 		sf::TcpSocket* socket = (sf::TcpSocket*)m_socket;
 		if (socket->getRemoteAddress() == identity.ip && socket->getRemotePort() == identity.port)
-			return (socket->send(data, count) == sf::Socket::Done);
+			return (socket->send(sfPacket) == sf::Socket::Done);
 		else
 			return false;
 	}

@@ -22,10 +22,9 @@ bool NetSocketUdp::Poll(std::vector<RawNetPacket>& outPackets)
 	bool recieved = false;
 
 	NetIdentity source;
-	uint8 data[NET_PACKET_MAX];
-	uint32 dataCount;
+	sf::Packet sfPacket;
 
-	while (m_socket->receive(data, NET_PACKET_MAX, dataCount, source.ip, source.port) == sf::Socket::Done)
+	while (m_socket->receive(sfPacket, source.ip, source.port) == sf::Socket::Done)
 	{
 		// Only listen to server's traffic, if not listener
 		if (!bIsListener && source != m_identity)
@@ -34,7 +33,7 @@ bool NetSocketUdp::Poll(std::vector<RawNetPacket>& outPackets)
 		// Format packet
 		RawNetPacket packet;
 		packet.source = source;
-		packet.buffer.Push(data, dataCount);
+		packet.buffer.Push((const uint8*)sfPacket.getData(), sfPacket.getDataSize());
 
 		outPackets.emplace_back(packet);
 		recieved = true;
@@ -53,7 +52,10 @@ bool NetSocketUdp::SendTo(const uint8* data, uint32 count, NetIdentity identity)
 		return false;
 	}
 
-	return (m_socket->send(data, count, identity.ip, identity.port) == sf::Socket::Done);
+	sf::Packet sfPacket;
+	sfPacket.append(data, count);
+
+	return (m_socket->send(sfPacket, identity.ip, identity.port) == sf::Socket::Done);
 }
 
 bool NetSocketUdp::Listen(NetIdentity identity)
@@ -84,6 +86,11 @@ bool NetSocketUdp::Listen(NetIdentity identity)
 
 bool NetSocketUdp::Connect(NetIdentity identity)
 {
+	return ConnectAs(identity, NetIdentity(sf::IpAddress::getLocalAddress(), sf::Socket::AnyPort));
+}
+
+bool NetSocketUdp::ConnectAs(NetIdentity target, NetIdentity asIdentity)
+{
 	if (m_socket != nullptr)
 	{
 		LOG_ERROR("Socket cannot connect as it's already in use");
@@ -92,15 +99,15 @@ bool NetSocketUdp::Connect(NetIdentity identity)
 
 	// Open socket on any free port
 	m_socket = new sf::UdpSocket;
-	if (m_socket->bind(sf::Socket::AnyPort) != sf::Socket::Done)
+	if (m_socket->bind(asIdentity.port) != sf::Socket::Done)
 	{
-		LOG_ERROR("Failed to setup UDP socket to connection %s:%i", identity.ip.toString().c_str(), identity.port);
+		LOG_ERROR("Failed to setup UDP socket to connection %s:%i as %s:%i", target.ip.toString().c_str(), target.port, asIdentity.ip.toString().c_str(), asIdentity.port);
 		delete m_socket;
 		m_socket = nullptr;
 		return false;
 	}
 
-	m_identity = identity;
+	m_identity = target;
 	bIsListener = false;
 
 	m_socket->setBlocking(false);

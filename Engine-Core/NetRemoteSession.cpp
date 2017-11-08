@@ -23,7 +23,7 @@ bool NetRemoteSession::Start()
 		LOG_ERROR("Unable to connect to net session (%s:%i). TCP error.", remote.ip.toString().c_str(), remote.port);
 		return false;
 	}
-	if (!m_UdpSocket.Connect(remote))
+	if (!m_UdpSocket.ConnectAs(remote, m_TcpSocket.GetLocalIdentity()))
 	{
 		LOG_ERROR("Unable to connect to net session (%s:%i). UDP error.", remote.ip.toString().c_str(), remote.port);
 		return false;
@@ -43,7 +43,7 @@ bool NetRemoteSession::SendHandshake()
 	// Build header
 	Encode<Version>(content, m_engine->GetVersionNo());
 	Encode<Version>(content, m_engine->GetGame()->GetVersionNo());
-	Encode<uint16>(content, NetRequestType::Connect);
+	Encode<uint16>(content, (uint16)NetRequestType::Connect);
 
 	// TODO - Encode password
 	// TODO - Encode username
@@ -61,29 +61,29 @@ bool NetRemoteSession::ValidateHandshakeResponse(RawNetPacket& packet)
 	switch (m_connectionStatus)
 	{
 	// Unknown should never be returned, so just rubbish?
-	case Unknown:
+	case NetResponseCode::Unknown:
 		return false;
 
-	case Accepted:
+	case NetResponseCode::Accepted:
 		m_clientStatus = Connected;
 		break;
 
-	case Responded:
+	case NetResponseCode::Responded:
 		break;
 
-	case BadRequest:
+	case NetResponseCode::BadRequest:
 		break;
 
-	case Banned:
+	case NetResponseCode::Banned:
 		break;
 
-	case BadPassword:
+	case NetResponseCode::BadPassword:
 		break;
 
-	case BadVersions:
+	case NetResponseCode::BadVersions:
 		break;
 
-	case ServerFull:
+	case NetResponseCode::ServerFull:
 		break;
 	}
 
@@ -119,7 +119,7 @@ void NetRemoteSession::Update(const float& deltaTime)
 				p.buffer.Flip();
 				if (ValidateHandshakeResponse(p))
 				{
-					LOG("Received response from server");
+					LOG("Received handshake response from server");
 					break;
 				}
 			}
@@ -135,5 +135,35 @@ void NetRemoteSession::Update(const float& deltaTime)
 	{
 		bIsConnected = false;
 		return;
+	}
+
+
+	// Regular update from this point onwards
+	std::vector<RawNetPacket> packets;
+	if (m_TcpSocket.Poll(packets))
+	{
+		ByteBuffer content;
+		for (RawNetPacket& p : packets)
+		{
+			p.buffer.Flip();
+			content.Push(p.buffer.Data(), p.buffer.Size());
+		}
+
+		// Send to game to decode
+		m_engine->GetGame()->PerformNetDecode(content, SocketType::TCP);
+	}
+
+	packets.clear();
+	if (m_UdpSocket.Poll(packets))
+	{
+		ByteBuffer content;
+		for (RawNetPacket& p : packets)
+		{
+			p.buffer.Flip();
+			content.Push(p.buffer.Data(), p.buffer.Size());
+		}
+
+		// Send to game to decode
+		m_engine->GetGame()->PerformNetDecode(content, SocketType::UDP);
 	}
 }
