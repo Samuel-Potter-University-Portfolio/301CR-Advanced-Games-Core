@@ -11,7 +11,7 @@ void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& para
 	}
 
 	// Select appropriate queue
-	ByteBuffer& buffer = socketType == TCP ? m_TcpCallQueue : m_UdpCallQueue;
+	ByteBuffer& buffer = (socketType == TCP ? m_TcpCallQueue : m_UdpCallQueue);
 
 	// Encode function call information
 	Encode<uint16>(buffer, id);

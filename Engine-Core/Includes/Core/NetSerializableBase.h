@@ -34,7 +34,8 @@ enum class RPCTarget : uint8
 */
 class CORE_API NetSerializableBase
 {
-private:
+public:
+//private:
 	ByteBuffer m_UdpCallQueue;
 	ByteBuffer m_TcpCallQueue;
 
@@ -61,7 +62,6 @@ public:
 	*/
 	void RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType);
 
-protected:
 	/**
 	* Call a given function fromt it's RPC id
 	* NOTE: macro order between FetchRPCIndex and ExecuteRPC must align
@@ -227,7 +227,7 @@ public:
 * Execute RPC with given settings
 * Containing 0 parameters
 */
-#define CallRPC(socket, mode, object, func) \
+#define CallRPC(socket, mode, object, func) {\
 	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
 	uint16 __TEMP_ID; \
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
@@ -236,13 +236,14 @@ public:
 		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
 	} \
 	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object");
+		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
+}
 
 /**
 * Execute RPC with given settings
 * Containing 1 parameters
 */
-#define CallRPC_OneParam(socket, mode, object, func, paramA) \
+#define CallRPC_OneParam(socket, mode, object, func, paramA) {\
 	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
 	uint16 __TEMP_ID; \
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
@@ -252,13 +253,14 @@ public:
 		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
 	} \
 	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object");
+		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
+}
 
 /**
 * Execute RPC with given settings
 * Containing 2 parameters
 */
-#define CallRPC_TwoParam(socket, mode, object, func, paramA, paramB) \
+#define CallRPC_TwoParam(socket, mode, object, func, paramA, paramB) {\
 	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
 	uint16 __TEMP_ID; \
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
@@ -269,13 +271,14 @@ public:
 		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
 	} \
 	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object");
+		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
+}
 
 /**
 * Execute RPC with given settings
 * Containing 3 parameters
 */
-#define CallRPC_ThreeParam(socket, mode, object, func, paramA, paramB, paramC) \
+#define CallRPC_ThreeParam(socket, mode, object, func, paramA, paramB, paramC) {\
 	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
 	uint16 __TEMP_ID; \
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
@@ -287,13 +290,14 @@ public:
 		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
 	} \
 	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object");
+		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
+}
 
 /**
 * Execute RPC with given settings
 * Containing 4 parameters
 */
-#define CallRPC_FourParam(socket, mode, object, func, paramA, paramB, paramC, paramD) \
+#define CallRPC_FourParam(socket, mode, object, func, paramA, paramB, paramC, paramD) {\
 	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
 	uint16 __TEMP_ID; \
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
@@ -306,13 +310,14 @@ public:
 		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
 	} \
 	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object");
+		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
+}
 
 /**
 * Execute RPC with given settings
 * Containing 5 parameters
 */
-#define CallRPC_FiveParam(socket, mode, object, func, paramA, paramB, paramC, paramD, paramE) \
+#define CallRPC_FiveParam(socket, mode, object, func, paramA, paramB, paramC, paramD, paramE) {\
 	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
 	uint16 __TEMP_ID; \
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
@@ -326,4 +331,5 @@ public:
 		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
 	} \
 	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object");
+		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
+}

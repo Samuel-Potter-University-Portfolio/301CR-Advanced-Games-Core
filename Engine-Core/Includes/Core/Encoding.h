@@ -7,6 +7,11 @@
 #include <memory>
 
 
+// Let game override encoding, if they need to
+#ifndef STR_MAX_ENCODE_LEN
+#define STR_MAX_ENCODE_LEN 128
+#endif
+
 
 template<typename T>
 void Encode(ByteBuffer& buffer, const T& data)
@@ -99,7 +104,7 @@ template<>
 inline void Encode<const char*>(ByteBuffer& buffer, const char* const& data)
 {
 	const char* c = data;
-	while (true) 
+	for (uint32 i = 1; i < STR_MAX_ENCODE_LEN; ++i)
 	{
 		buffer.Push(*c);
 		if (*c == '\0')
@@ -107,13 +112,15 @@ inline void Encode<const char*>(ByteBuffer& buffer, const char* const& data)
 		else
 			++c;
 	}
+
+	// Reached limit
+	buffer.Push('\0');
 }
 
 template<>
 inline void Encode<std::string>(ByteBuffer& buffer, const string& data)
 {
 	Encode<const char*>(buffer, data.c_str());
-	//buffer.Push((const uint8*)data.c_str(), data.length() + 1);
 }
 
 

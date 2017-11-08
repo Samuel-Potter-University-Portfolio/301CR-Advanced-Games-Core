@@ -16,9 +16,13 @@ class TESTCLASS : public NetSerializableBase
 public:
 	TESTCLASS();
 	void TestFunc();
+	void TestFunc2(int no);
 
 
-protected:
+	void ComplexFunction(string message, int repeatTimes);
+
+
+public:
 	virtual bool FetchRPCIndex(const char* funcName, uint16& outID) const;
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
 };
@@ -29,21 +33,42 @@ TESTCLASS::TESTCLASS()
 	bNetSynced = true;
 }
 
-void TESTCLASS::TestFunc() 
+void TESTCLASS::ComplexFunction(string message, int repeatTimes) 
 {
-	
+	LOG("Complex Function start");
+	for (int i = 0; i < repeatTimes; i++)
+	{
+		LOG("\t%s", message.c_str());
+	}
+
+	LOG("Complex Function end");
+}
+
+void TESTCLASS::TestFunc()
+{
+	LOG("This is test func 1");
+}
+void TESTCLASS::TestFunc2(int no)
+{
+	LOG("This is test func 2 with %i", no);
 }
 
 bool TESTCLASS::FetchRPCIndex(const char* funcName, uint16& outID) const 
 {
 	RPC_INDEX_HEADER(funcName, outID);
 	RPC_INDEX(TestFunc);
+	RPC_INDEX(TestFunc2);
+	RPC_INDEX(ComplexFunction);
+	return false;
 }
 
 bool TESTCLASS::ExecuteRPC(uint16& id, ByteBuffer& params) 
 {
 	RPC_EXEC_HEADER(id, params);
 	RPC_EXEC(TestFunc);
+	RPC_EXEC_OneParam(TestFunc2, int);
+	RPC_EXEC_TwoParam(ComplexFunction, string, int);
+	return false;
 }
 
 
@@ -52,7 +77,24 @@ static inline int entry(std::vector<string>& args)
 {
 	TESTCLASS tc;
 	CallRPC(UDP, RPCTarget::GlobalBroadcast, &tc, TestFunc);
+	CallRPC_OneParam(UDP, RPCTarget::GlobalBroadcast, &tc, TestFunc2, 34);
+	CallRPC_TwoParam(UDP, RPCTarget::GlobalBroadcast, &tc, ComplexFunction, (const char*)"Hello There", 4);
 
+	ByteBuffer& buffer = tc.m_UdpCallQueue;
+	buffer.Flip();
+
+	uint16 funcIndex;
+	uint8 rawFuncTarget;
+	uint16 paramCount;
+
+	while (buffer.Size() != 0)
+	{
+		Decode(buffer, funcIndex);
+		Decode(buffer, rawFuncTarget);
+		Decode(buffer, paramCount);
+		RPCTarget target = (RPCTarget)rawFuncTarget;
+		tc.ExecuteRPC(funcIndex, buffer);
+	}
 
 	/*
 	LOG("Discovered %i cmd arguments", args.size());
