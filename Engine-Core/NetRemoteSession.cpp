@@ -125,8 +125,6 @@ void NetRemoteSession::Update(const float& deltaTime)
 			}
 		}
 
-		// TODO - Process remainder of the packets
-
 		// Wait until handshake has been processed
 		if (m_clientStatus == WaitingOnHandshake)
 			return;

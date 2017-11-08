@@ -54,7 +54,7 @@ inline void Encode<Version>(ByteBuffer& buffer, const Version& data)
 }
 
 template<>
-inline bool Decode<Version>(ByteBuffer& buffer, Version& out)
+inline bool Decode<Version>(ByteBuffer& buffer, Version& out, void* context)
 {
 	return	Decode<uint16>(buffer, out.major) &&
 			Decode<uint16>(buffer, out.minor) &&

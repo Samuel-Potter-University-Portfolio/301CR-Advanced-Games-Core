@@ -46,6 +46,9 @@
     <ClCompile Include="ByteBuffer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="NetSerializableBase.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -127,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="Includes\Core\ByteBuffer.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetSerializableBase.h">
+      <Filter>Includes\Net</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -120,14 +120,14 @@ inline void Encode<std::string>(ByteBuffer& buffer, const string& data)
 
 
 template<typename T>
-bool Decode(ByteBuffer& buffer, T& out)
+bool Decode(ByteBuffer& buffer, T& out, void* context = nullptr)
 {
 	static_assert(false, "No decode implementation");
 	return false;
 }
 
 template<>
-inline bool Decode<int8>(ByteBuffer& buffer, int8& out)
+inline bool Decode<int8>(ByteBuffer& buffer, int8& out, void* context)
 {
 	out = 0;
 
@@ -139,7 +139,7 @@ inline bool Decode<int8>(ByteBuffer& buffer, int8& out)
 }
 
 template<>
-inline bool Decode<int16>(ByteBuffer& buffer, int16& out)
+inline bool Decode<int16>(ByteBuffer& buffer, int16& out, void* context)
 {
 	out = 0;
 
@@ -152,7 +152,7 @@ inline bool Decode<int16>(ByteBuffer& buffer, int16& out)
 }
 
 template<>
-inline bool Decode<int32>(ByteBuffer& buffer, int32& out)
+inline bool Decode<int32>(ByteBuffer& buffer, int32& out, void* context)
 {
 	out = 0;
 
@@ -167,7 +167,7 @@ inline bool Decode<int32>(ByteBuffer& buffer, int32& out)
 }
 
 template<>
-inline bool Decode<int64>(ByteBuffer& buffer, int64& out)
+inline bool Decode<int64>(ByteBuffer& buffer, int64& out, void* context)
 {
 	out = 0;
 
@@ -187,7 +187,7 @@ inline bool Decode<int64>(ByteBuffer& buffer, int64& out)
 
 
 template<>
-inline bool Decode<uint8>(ByteBuffer& buffer, uint8& out)
+inline bool Decode<uint8>(ByteBuffer& buffer, uint8& out, void* context)
 {
 	out = 0;
 
@@ -199,7 +199,7 @@ inline bool Decode<uint8>(ByteBuffer& buffer, uint8& out)
 }
 
 template<>
-inline bool Decode<uint16>(ByteBuffer& buffer, uint16& out)
+inline bool Decode<uint16>(ByteBuffer& buffer, uint16& out, void* context)
 {
 	out = 0;
 
@@ -212,7 +212,7 @@ inline bool Decode<uint16>(ByteBuffer& buffer, uint16& out)
 }
 
 template<>
-inline bool Decode<uint32>(ByteBuffer& buffer, uint32& out)
+inline bool Decode<uint32>(ByteBuffer& buffer, uint32& out, void* context)
 {
 	out = 0;
 
@@ -227,7 +227,7 @@ inline bool Decode<uint32>(ByteBuffer& buffer, uint32& out)
 }
 
 template<>
-inline bool Decode<uint64>(ByteBuffer& buffer, uint64& out)
+inline bool Decode<uint64>(ByteBuffer& buffer, uint64& out, void* context)
 {
 	out = 0;
 
@@ -247,7 +247,7 @@ inline bool Decode<uint64>(ByteBuffer& buffer, uint64& out)
 
 
 template<>
-inline bool Decode<float>(ByteBuffer& buffer, float& out)
+inline bool Decode<float>(ByteBuffer& buffer, float& out, void* context)
 {
 	if (buffer.Size() < sizeof(float))
 		return false;
@@ -259,7 +259,7 @@ inline bool Decode<float>(ByteBuffer& buffer, float& out)
 }
 
 template<>
-inline bool Decode<std::string>(ByteBuffer& buffer, string& out)
+inline bool Decode<std::string>(ByteBuffer& buffer, string& out, void* context)
 {
 	while (true)
 	{

@@ -9,8 +9,52 @@
 #include "TestEntity.h"
 
 
+#include "Core\NetSerializableBase.h"
+
+class TESTCLASS : public NetSerializableBase
+{
+public:
+	TESTCLASS();
+	void TestFunc();
+
+
+protected:
+	virtual bool FetchRPCIndex(const char* funcName, uint16& outID) const;
+	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
+};
+
+
+TESTCLASS::TESTCLASS() 
+{
+	bNetSynced = true;
+}
+
+void TESTCLASS::TestFunc() 
+{
+	
+}
+
+bool TESTCLASS::FetchRPCIndex(const char* funcName, uint16& outID) const 
+{
+	RPC_INDEX_HEADER(funcName, outID);
+	RPC_INDEX(TestFunc);
+}
+
+bool TESTCLASS::ExecuteRPC(uint16& id, ByteBuffer& params) 
+{
+	RPC_EXEC_HEADER(id, params);
+	RPC_EXEC(TestFunc);
+}
+
+
+
 static inline int entry(std::vector<string>& args)
 {
+	TESTCLASS tc;
+	CallRPC(UDP, RPCTarget::GlobalBroadcast, &tc, TestFunc);
+
+
+	/*
 	LOG("Discovered %i cmd arguments", args.size());
 	for (string& str : args)
 		LOG("\t'%s'", str.c_str())
@@ -35,6 +79,7 @@ static inline int entry(std::vector<string>& args)
 	}
 
 	engine.Launch(&game);
+	*/
 	return 0;
 }
 

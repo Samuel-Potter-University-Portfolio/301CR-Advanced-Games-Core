@@ -18,10 +18,10 @@ NetSession::~NetSession()
 void NetSession::HandleUpdate(const float& deltaTime)
 {
 	// Only tick at desired rate
-	m_tickTimer -= deltaTime;
-	if (m_tickTimer > 0)
+	m_tickTimer += deltaTime;
+	if (m_tickTimer < m_sleepRate )
 		return;
-	m_tickTimer += m_sleepRate;
 
-	Update(deltaTime);
+	Update(m_tickTimer);
+	m_tickTimer -= m_sleepRate;
 }
