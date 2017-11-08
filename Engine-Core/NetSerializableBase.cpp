@@ -19,6 +19,14 @@ void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& para
 	if (params.Size() != 0)
 		buffer.Push(params.Data(), params.Size());
 
+	if (target == RPCTarget::GlobalBroadcast)
+	{
+		uint16 tempId = id;
+		ByteBuffer tempBuffer(params);
+		tempBuffer.Flip();
+		ExecuteRPC(tempId, tempBuffer);
+	}
+
 	// TODO - Checks to see if need to be executed here? Is host?
 }
 

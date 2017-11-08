@@ -24,6 +24,11 @@ protected:
 	*/
 	virtual void OnTick(const float& deltaTime);
 
+	sf::Vector2f startPos;
+	float timer;
+	void ResetPosition();
+	void MoveTo(float x, float y);
+
 #ifdef BUILD_CLIENT
 	/**
 	* Called when this entity should be drawn to the screen
