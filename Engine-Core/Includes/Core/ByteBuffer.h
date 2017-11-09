@@ -31,6 +31,7 @@ public:
 	void Push(const uint8* b, uint32 count);
 	inline void Push(const uint8& b) { m_data.emplace_back(b); }
 
+	void PopBuffer(ByteBuffer& target, uint32 count);
 	inline uint8 Pop() { const uint8 b = m_data.back(); m_data.pop_back(); return b; }
 	inline const uint8& Peek() const { return m_data.back(); }
 };

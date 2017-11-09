@@ -13,3 +13,12 @@ void ByteBuffer::Flip()
 {
 	std::reverse(m_data.begin(), m_data.end());
 }
+
+void ByteBuffer::PopBuffer(ByteBuffer& target, uint32 count) 
+{
+	// Make sure count isn't too big
+	count = m_data.size() < count ? m_data.size() : count;
+
+	target.Push(m_data.data() + m_data.size() - count, count);
+	m_data.resize(m_data.size() - count);
+}

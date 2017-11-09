@@ -284,8 +284,8 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="NetClient.cpp" />
     <ClCompile Include="NetHostSession.cpp" />
+    <ClCompile Include="NetPlayer.cpp" />
     <ClCompile Include="NetRemoteSession.cpp" />
     <ClCompile Include="NetSerializableBase.cpp" />
     <ClCompile Include="NetSession.cpp" />
@@ -307,8 +307,8 @@
     <ClInclude Include="Includes\Core\Game.h" />
     <ClInclude Include="Includes\Core\Level.h" />
     <ClInclude Include="Includes\Core\Logger.h" />
-    <ClInclude Include="Includes\Core\NetClient.h" />
     <ClInclude Include="Includes\Core\NetHostSession.h" />
+    <ClInclude Include="Includes\Core\NetPlayer.h" />
     <ClInclude Include="Includes\Core\NetRemoteSession.h" />
     <ClInclude Include="Includes\Core\NetSerializableBase.h" />
     <ClInclude Include="Includes\Core\NetSession.h" />

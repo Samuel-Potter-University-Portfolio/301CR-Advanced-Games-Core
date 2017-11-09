@@ -9,16 +9,20 @@ void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& para
 		LOG_ERROR("Cannot call RPCs for a non-net synced class");
 		return;
 	}
+	
+	// TODO - Check target is valid
 
-	// Select appropriate queue
-	ByteBuffer& buffer = (socketType == TCP ? m_TcpCallQueue : m_UdpCallQueue);
 
-	// Encode function call information
-	Encode<uint16>(buffer, id);
-	Encode<uint8>(buffer, (uint8)target);
-	if (params.Size() != 0)
-		buffer.Push(params.Data(), params.Size());
+	// Insert into appropriate queue
+	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
+	RPCRequest request;
+	request.index = id;
+	request.target = target;
+	request.params.Push(params.Data(), params.Size());
+	queue.emplace_back(request);
 
+
+	// TODO - Move into macro call, as this is really inefficient (It will also help validate params, as macro will not compile otherwise)
 	if (target == RPCTarget::GlobalBroadcast)
 	{
 		uint16 tempId = id;
@@ -41,34 +45,32 @@ bool NetSerializableBase::ExecuteRPC(uint16& id, ByteBuffer& params)
 	return false;
 }
 
-void NetSerializableBase::PerformNetEncode(ByteBuffer& buffer, const SocketType& socketType) 
+void NetSerializableBase::EncodeRPCRequests(ByteBuffer& buffer, const SocketType& socketType)
 {
-	// Encode RPC calls
-	ByteBuffer& rpcBuffer = (socketType == SocketType::TCP ? m_TcpCallQueue : m_UdpCallQueue);
-	Encode<uint16>(buffer, rpcBuffer.Size());
-	buffer.Push(rpcBuffer.Data(), rpcBuffer.Size());
-	rpcBuffer.Clear();
+	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
+
+	Encode<uint16>(buffer, queue.size()); // Encode number of calls
+	for (const RPCRequest& request : queue) // Encode each call
+		Encode<RPCRequest>(buffer, request);
 }
 
-void NetSerializableBase::PerformNetDecode(ByteBuffer& buffer, const SocketType& socketType)
+void NetSerializableBase::DecodeRPCRequests(ByteBuffer& buffer, RPCQueue& output)
 {
-	// Decode and execute RPC calls
-	uint16 rpcSize;
-	Decode<uint16>(buffer, rpcSize);
-	uint32 endSize = buffer.Size() - rpcSize;
+	uint16 count;
+	if (!Decode(buffer, count))
+		return;
 
-	// Try to decode and execute all RPCs
-	while (buffer.Size() > endSize)
+	for (uint32 i = 0; i < count; ++i)
 	{
-		uint16 index;
-		uint8 rawTarget;
-		Decode(buffer, index);
-		Decode(buffer, rawTarget);
-
-		RPCTarget target = (RPCTarget)rawTarget;
-		if (!ExecuteRPC(index, buffer))
-		{
-			LOG_WARNING("Received bad RPC request");
-		}
+		RPCRequest call;
+		if (!Decode(buffer, call))
+			continue;
+		output.emplace_back(call);
 	}
+}
+
+void NetSerializableBase::ClearQueuedNetData()
+{
+	m_UdpRpcQueue.clear();
+	m_TcpRpcQueue.clear();
 }

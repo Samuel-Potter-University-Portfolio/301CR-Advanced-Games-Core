@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "Version.h"
 
-#include "NetSerializableBase.h"
 #include "ClassFactory.h"
 #include "Entity.h"
 
@@ -17,7 +16,7 @@ class Level;
 * Contains any relevent information about a given game
 * e.g. Assets to load, Supported entity types, Supported levels etc.
 */
-class CORE_API Game : public NetSerializableBase
+class CORE_API Game
 {
 private:
 	string m_name;
@@ -98,22 +97,6 @@ public:
 	ClassFactory<Entity>* GetEntityFactoryFromHash(uint32 hash);
 
 
-public:
-	/**
-	* Encode all required information about this object ready to send over net
-	* @param buffer			The buffer to fill with all this information
-	* @param socketType		The socket type this will be sent over
-	*/
-	virtual void PerformNetEncode(ByteBuffer& buffer, const SocketType& socketType) override;
-
-	/**
-	* Decode any information that has reached this object
-	* @param buffer			The buffer to fill with all this information
-	* @param socketType		The socket type this was recieved by
-	*/
-	virtual void PerformNetDecode(ByteBuffer& buffer, const SocketType& socketType) override;
-
-
 	/**
 	* Getters & Setters
 	*/
@@ -126,4 +109,6 @@ public:
 
 	inline string GetDefaultLevelName() const { return defaultLevel; }
 	inline void SetDefaultLevelName(string levelName) { defaultLevel = levelName; }
+
+	NetSession* GetSession() const;
 };

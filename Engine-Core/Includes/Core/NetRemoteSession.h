@@ -38,17 +38,26 @@ public:
 
 private:
 	/**
-	* Attempt to accept of deny the client
-	* @returns If the handshake was successfully sent
-	*/
-	bool SendHandshake();
-
-	/**
 	* Attempt to validate the response from the handshake
 	* @param packet			The response from the server
 	* @return If the handshake has been resolved (Not whether it has been accepted)
 	*/
 	bool ValidateHandshakeResponse(RawNetPacket& packet);
+
+	/**
+	* Make sure that the client is connected to the server
+	* @returns If this player is currently connected to the server
+	*/
+	bool EnsureConnection();
+
+
+protected:
+	/**
+	* Encode any relevant information to be sent out this net update
+	* @param buffer			Where to store all information
+	* @param socketType		The socket type this content will be sent over
+	*/
+	virtual void NetEncode(ByteBuffer& buffer, const SocketType& socketType);
 
 
 	/**

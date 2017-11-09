@@ -1,12 +1,12 @@
 #pragma once
 #include "Common.h"
-#include "NetClient.h"
 
 #include "NetSocketTcp.h"
 #include "NetSocketUdp.h"
 
 
 class Engine;
+class Entity;
 
 
 /**
@@ -18,7 +18,6 @@ enum class NetRequestType : uint16
 	Connect		= 200,
 	Query		= 201
 };
-
 
 /**
 * Response codes used in the initial handshake
@@ -39,16 +38,26 @@ enum class NetResponseCode : uint16
 };
 
 
+
 /**
-* What this current packet is trying to do
+* What is this current message trying to do
 */
-enum class NetPacketType : uint8
+enum class NetMessage : uint8 
 {
-	Nothing					= 0,
-	EntitySpawn				= 1,
-	EntityDespawn			= 2,
-	EntityControlOverride	= 3,
-	EntityUpdate			= 4,
+	Nothing				= 0,
+	EntityMessage		= 1,
+};
+
+/**
+* What this current entity message doing
+*/
+enum class NetEntityMethod : uint8
+{
+	Nothing				= 0,
+	Spawn				= 1,
+	Despawn				= 2,
+	ControlOverride		= 3,
+	Update				= 4,
 };
 
 
@@ -60,6 +69,7 @@ class CORE_API NetSession
 {
 private:
 	const NetIdentity m_netIdentity;
+	uint16 m_netIdCounter;
 
 	uint32 m_tickRate = 20;
 	float m_sleepRate = 1.0f / (float)m_tickRate;
@@ -70,6 +80,8 @@ protected:
 	NetSocketUdp m_UdpSocket;
 	const Engine* m_engine;
 
+	/// Used to tell host session apart from remote
+	uint16 m_netId;
 	bool bIsHost = false;
 	bool bIsConnected = false;
 
@@ -100,6 +112,58 @@ protected:
 
 
 	/**
+	* Encode a handshake to be sent from a client to the server
+	* @param buffer			Where to store all information
+	*/
+	void EncodeClientHandshake(ByteBuffer& buffer);
+	/**
+	* Decode a handshake sent from a client to the server
+	* @param inbuffer			Where read data from
+	* @param outBuffer			Where write data to (To be sent back to the client as a response)
+	* @param outNetId			The net id of the player (If accepted)
+	* @returns The handshake request type
+	*/
+	NetRequestType DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuffer& outBuffer, uint16& outNetId);
+	/**
+	* Decode a handshake response received from the server
+	* @param buffer			Where read data from
+	* @returns The result of the handshake
+	*/
+	NetResponseCode DecodeServerHandshake(ByteBuffer& buffer);
+
+
+	/**
+	* Encode all relevent information about this given entity
+	* @param buffer			Where to store all information
+	* @param socketType		The socket type this content will be sent over
+	* @param entity			The entity that we wish to encode
+	*/
+	void EncodeEntityMessage(ByteBuffer& buffer, const SocketType& socketType, Entity* entity);
+	/**
+	* Decode information about this entity message
+	* @param netId			The net id of where this data has arrived from
+	* @param buffer			Where read data from
+	* @param socketType		The socket type this content will be sent over
+	*/
+	void DecodeEntityMessage(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType);
+
+
+	/**
+	* Encode any relevant information to be sent out this net update
+	* @param buffer			Where to store all information
+	* @param socketType		The socket type this content will be sent over
+	*/
+	virtual void NetEncode(ByteBuffer& buffer, const SocketType& socketType) = 0;
+	/**
+	* Decode any information that was received this net update
+	* @param netId			The net id of where this data has arrived from
+	* @param buffer			Where to read all the information
+	* @param socketType		The socket type this content was read over
+	*/
+	virtual void NetDecode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType);
+
+
+	/**
 	* Getters and setters
 	*/
 public:
@@ -108,6 +172,7 @@ public:
 
 	inline const bool& IsConnected() const { return bIsConnected; }
 	inline const NetIdentity& GetSessionIdentity() const { return m_netIdentity; }
+	inline const uint16& GetNetworkID() const { return m_netId; }
 
 	inline const uint32& GetTickRate() const { return m_tickRate; }
 	inline void SetTickRate(const uint32& v) { m_tickRate = (v == 0 ? 1 : v); m_sleepRate = 1.0f / (float)m_tickRate; }

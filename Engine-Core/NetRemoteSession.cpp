@@ -1,6 +1,8 @@
 #include "Includes\Core\NetRemoteSession.h"
 #include "Includes\Core\Engine.h"
 #include "Includes\Core\Game.h"
+#include "Includes\Core\Level.h"
+#include "Includes\Core\Entity.h"
 
 
 
@@ -36,19 +38,52 @@ bool NetRemoteSession::Start()
 	return true;
 }
 
-bool NetRemoteSession::SendHandshake() 
+void NetRemoteSession::Update(const float& deltaTime)
 {
-	ByteBuffer content;
+	if (!EnsureConnection())
+		return;
 
-	// Build header
-	Encode<Version>(content, m_engine->GetVersionNo());
-	Encode<Version>(content, m_engine->GetGame()->GetVersionNo());
-	Encode<uint16>(content, (uint16)NetRequestType::Connect);
+	////
+	// Read and attempt to connect/decode any data retrieved from server
+	////
+	std::vector<RawNetPacket> packets;
 
-	// TODO - Encode password
-	// TODO - Encode username
+	// Fetch TCP packets
+	if (m_TcpSocket.Poll(packets))
+		for (RawNetPacket& packet : packets)
+		{
+			packet.buffer.Flip();
+			NetDecode(0, packet.buffer, TCP);
+		}
 
-	return m_TcpSocket.Send(content.Data(), content.Size());
+	// Fetch UDP packets
+	packets.clear();
+	if (m_UdpSocket.Poll(packets))
+		for (RawNetPacket& packet : packets)
+		{
+			packet.buffer.Flip();
+			NetDecode(0, packet.buffer, UDP);
+		}
+
+
+
+	////
+	// Encode any data to send to the server
+	////
+	ByteBuffer tcpContent;
+	ByteBuffer udpContent;
+
+	NetEncode(tcpContent, TCP);
+	NetEncode(udpContent, UDP);
+
+	const NetIdentity& identity = GetSessionIdentity();
+	if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
+	{
+		// TODO - Handle disconnections 
+		LOG_ERROR("Failed to send TCP update to %s:%i", identity.ip.toString(), identity.port);
+	}
+	if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
+		LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString(), identity.port); // Will never happen, as connectionless
 }
 
 bool NetRemoteSession::ValidateHandshakeResponse(RawNetPacket& packet) 
@@ -62,28 +97,36 @@ bool NetRemoteSession::ValidateHandshakeResponse(RawNetPacket& packet)
 	{
 	// Unknown should never be returned, so just rubbish?
 	case NetResponseCode::Unknown:
+		LOG_ERROR("Unknown connection error");
 		return false;
 
 	case NetResponseCode::Accepted:
 		m_clientStatus = Connected;
+		LOG("Connected to server");
 		break;
 
 	case NetResponseCode::Responded:
+		LOG("Server acknowledged");
 		break;
 
 	case NetResponseCode::BadRequest:
+		LOG_ERROR("BadRequest connecting to server");
 		break;
 
 	case NetResponseCode::Banned:
+		LOG("Banned from server");
 		break;
 
 	case NetResponseCode::BadPassword:
+		LOG("Bad password provided when connecting to server");
 		break;
 
 	case NetResponseCode::BadVersions:
+		LOG("Version missmatch between client and server");
 		break;
 
 	case NetResponseCode::ServerFull:
+		LOG("Server full");
 		break;
 	}
 
@@ -91,20 +134,22 @@ bool NetRemoteSession::ValidateHandshakeResponse(RawNetPacket& packet)
 	return true;
 }
 
-
-void NetRemoteSession::Update(const float& deltaTime) 
+bool NetRemoteSession::EnsureConnection() 
 {
-	// Send handshake
+	// Send handshake if not connected
 	if (m_clientStatus == PreHandshake)
 	{
-		if (!SendHandshake())
+		ByteBuffer content;
+		EncodeClientHandshake(content);
+		if (!m_TcpSocket.Send(content.Data(), content.Size()))
 		{
 			LOG_ERROR("Failed to send handshake");
 		}
 		else
 			m_clientStatus = WaitingOnHandshake;
-		return;
+		return false;
 	}
+
 
 	// Wait until handshake response has been received
 	if (m_clientStatus == WaitingOnHandshake)
@@ -118,52 +163,35 @@ void NetRemoteSession::Update(const float& deltaTime)
 			{
 				p.buffer.Flip();
 				if (ValidateHandshakeResponse(p))
-				{
-					LOG("Received handshake response from server");
 					break;
-				}
 			}
 		}
 
 		// Wait until handshake has been processed
 		if (m_clientStatus == WaitingOnHandshake)
-			return;
+			return false;
 	}
+
 
 	// Client has disconnected from the server
 	if (m_clientStatus == Disconnected)
 	{
 		bIsConnected = false;
-		return;
+		return false;
 	}
 
+	return true;
+}
 
-	// Regular update from this point onwards
-	std::vector<RawNetPacket> packets;
-	if (m_TcpSocket.Poll(packets))
-	{
-		ByteBuffer content;
-		for (RawNetPacket& p : packets)
-		{
-			p.buffer.Flip();
-			content.Push(p.buffer.Data(), p.buffer.Size());
-		}
+void NetRemoteSession::NetEncode(ByteBuffer& buffer, const SocketType& socketType) 
+{
+	// Encode all owned entities
+	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
+		if (entity->IsNetSynced() && entity->IsNetOwner())
+			EncodeEntityMessage(buffer, socketType, entity);
 
-		// Send to game to decode
-		m_engine->GetGame()->PerformNetDecode(content, SocketType::TCP);
-	}
 
-	packets.clear();
-	if (m_UdpSocket.Poll(packets))
-	{
-		ByteBuffer content;
-		for (RawNetPacket& p : packets)
-		{
-			p.buffer.Flip();
-			content.Push(p.buffer.Data(), p.buffer.Size());
-		}
-
-		// Send to game to decode
-		m_engine->GetGame()->PerformNetDecode(content, SocketType::UDP);
-	}
+	// Encode empty ping packet
+	if (buffer.Size() == 0)
+		Encode<uint8>(buffer, (uint8)NetMessage::Nothing);
 }

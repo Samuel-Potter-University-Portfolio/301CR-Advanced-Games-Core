@@ -33,10 +33,37 @@ void Level::DestroyLevel()
 
 void Level::AddEntity(Entity* entity) 
 {
-	m_entities.push_back(entity);
+	m_entities.emplace_back(entity);
 	entity->m_instanceId = m_entityCounter++;
 
-	// TODO - Net IDs
+	NetSession* session = GetGame()->GetSession();
+
+	// Store for faster lookup
+	if (session != nullptr)
+	{
+		if (entity->GetNetworkID() != 0)
+			m_netEntities[entity->GetNetworkID()] = entity;
+	}
+	// Give dud role, so logic still works
+	else
+		entity->m_netRole = NetRole::HostOwner;
 
 	entity->HandleSpawn(this);
+}
+
+Entity* Level::GetEntityFromNetId(const uint16& netId) const
+{
+	auto it = m_netEntities.find(netId);
+	if (it == m_netEntities.end())
+		return nullptr;
+	else
+		return it->second;
+}
+
+Entity* Level::GetEntityFromInstanceId(const uint16& id) const
+{
+	for (int i = 0; i < m_entities.size(); ++i)
+		if (m_entities[i]->GetInstanceID() == id)
+			return m_entities[i];
+	return nullptr;
 }

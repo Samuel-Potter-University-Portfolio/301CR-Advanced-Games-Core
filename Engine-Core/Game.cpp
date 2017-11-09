@@ -57,15 +57,19 @@ void Game::DisplayUpdate(const float& deltaTime)
 	if (currentLevel == nullptr)
 		return;
 
-	std::vector<Entity*> entities = currentLevel->GetEntities();
+	std::vector<Entity*>& entities = currentLevel->GetEntities();
 	sf::RenderWindow* window = m_engine->GetDisplayWindow();
 
-	for (uint8 i = 0; i < 20; ++i)
+	// Not on main thread, so foreach unsafe
+	for (uint32 layer = 0; layer < 20; ++layer)
 	{
-		for (Entity* entity : entities)
+		// Not on main thread, so foreach unsafe
+		for (uint32 i = 0; i < entities.size(); ++i)
 		{
-			if (entity->GetSortingLayer() == i)
+			Entity* entity = entities[i];
+			if (entity->GetSortingLayer() == layer)
 				entity->Draw(window, deltaTime);
+
 		}
 	}
 }
@@ -164,20 +168,7 @@ ClassFactory<Entity>* Game::GetEntityFactoryFromHash(uint32 hash)
 	return it->second;
 }
 
-void Game::PerformNetEncode(ByteBuffer& buffer, const SocketType& socketType) 
-{
-	__super::PerformNetEncode(buffer, socketType);
-
-	for (Entity* e : currentLevel->GetEntities())
-		if (e->IsNetSynced())
-			e->PerformNetEncode(buffer, socketType);
-}
-
-void Game::PerformNetDecode(ByteBuffer& buffer, const SocketType& socketType)
-{
-	__super::PerformNetDecode(buffer, socketType);
-
-	for (Entity* e : currentLevel->GetEntities())
-		if (e->IsNetSynced())
-			e->PerformNetDecode(buffer, socketType);
+NetSession* Game::GetSession() const
+{ 
+	return m_engine->GetNetController()->GetSession(); 
 }

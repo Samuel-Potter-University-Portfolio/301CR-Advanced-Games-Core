@@ -1,5 +1,6 @@
 #pragma once
 #include "NetSession.h"
+#include "NetPlayer.h"
 
 
 /**
@@ -8,8 +9,9 @@
 class NetHostSession : public NetSession
 {
 private:
-	std::map<NetIdentity, NetClient*> m_clientLookup;
-	std::vector<NetClient*> m_clients;
+	uint32 m_playerIdCounter = 1;
+	std::map<const NetIdentity, NetPlayer*> m_playerLookup;
+	std::vector<NetPlayer*> m_players;
 	uint16 maxPlayerCount = 10;
 
 public:
@@ -29,27 +31,28 @@ public:
 	*/
 	virtual void Update(const float& deltaTime);
 
-private:
-
+protected:
 	/**
-	* Fetch a specific client for a given identity
-	* @param identity				The identity we're looking for
-	* @returns Desired client or nullptr if not found/created
+	* Encode any relevant information to be sent out this net update
+	* @param buffer			Where to store all information
+	* @param socketType		The socket type this content will be sent over
 	*/
-	NetClient* GetClient(const NetIdentity& identity);
+	virtual void NetEncode(ByteBuffer& buffer, const SocketType& socketType);
 
+private:
 	/**
-	* Attempt to accept of deny the client
-	* @param client				The client we want to perform the handshake on
+	* Attempt to accept or deny the player connection to the server
+	* @param player				The player we want to perform the handshake on
 	* @param packet				The initial handshake packet passed
 	* @returns The response code that was sent to the client
 	*/
-	NetResponseCode VerifyHandshake(NetClient* client, RawNetPacket& packet, NetSocket& socket);
+	NetResponseCode VerifyHandshake(NetPlayer* player, RawNetPacket& packet, NetSocket& socket);
 
 	/**
-	* Forward a packet to a client
-	* @param packet				The net packet received
-	* @param socket				The socket that this data was received from
+	* Fetch a player's network id from their connecting identity
+	* @param identity			Where the player is connecting from
+	* @param outPlayer			Where the player will be stored
+	* @returns If id is succesfully fetched
 	*/
-	void ForwardToClient(RawNetPacket& packet, NetSocket& socket);
+	bool GetPlayerFromIdentity(const NetIdentity& identity, NetPlayer*& outPlayer) const;
 };

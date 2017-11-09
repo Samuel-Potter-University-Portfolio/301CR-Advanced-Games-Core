@@ -22,9 +22,6 @@
     <ClCompile Include="NetSocketTcp.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
-    <ClCompile Include="NetClient.cpp">
-      <Filter>Source\Net</Filter>
-    </ClCompile>
     <ClCompile Include="NetController.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
@@ -47,6 +44,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="NetSerializableBase.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlayer.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
   </ItemGroup>
@@ -110,9 +110,6 @@
     <ClInclude Include="Includes\Core\NetController.h">
       <Filter>Includes\Net</Filter>
     </ClInclude>
-    <ClInclude Include="Includes\Core\NetClient.h">
-      <Filter>Includes\Net</Filter>
-    </ClInclude>
     <ClInclude Include="Includes\Core\NetSession.h">
       <Filter>Includes\Net</Filter>
     </ClInclude>
@@ -132,6 +129,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="Includes\Core\NetSerializableBase.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\NetPlayer.h">
       <Filter>Includes\Net</Filter>
     </ClInclude>
   </ItemGroup>

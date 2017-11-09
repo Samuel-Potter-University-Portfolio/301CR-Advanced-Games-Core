@@ -18,7 +18,59 @@ enum class RPCTarget : uint8
 	Host = 2,				// Call to be executed on the host of this current session
 	ClientBroadcast = 3,	// Call to be executed on all clients, but not the server (Will only executed on server, if host is also a client)
 	GlobalBroadcast = 4,	// Call to be executed on all clients and server (Will only execute once on host, if they are a client)
+
+	This,					// Call should be executed on this client ASAP (Only to be used by server, when forcing execution on a client)
 };
+
+
+/**
+* All the different roles a net synced object can have
+*/
+enum class NetRole : uint8 
+{
+	None = 0,
+	RemotePuppet,			// Doesn't have any control over this object whatsoever
+	HostPuppet,				// Doesn't own this object, but is the host, so can edit
+	RemoteOwner,			// Owns the object, but is not the host
+	HostOwner,				// Owns the object and is the host
+};
+
+/**
+* Contains all information about a RPC call
+*/
+struct RPCRequest
+{
+	uint16		index;
+	RPCTarget	target;
+	ByteBuffer	params;
+};
+typedef std::vector<RPCRequest> RPCQueue;
+
+template<>
+inline void Encode<RPCRequest>(ByteBuffer& buffer, const RPCRequest& data)
+{
+	Encode<uint16>(buffer, data.index);
+	Encode<uint8>(buffer, (uint8)data.target);
+	Encode<uint16>(buffer, data.params.Size());
+	buffer.Push(data.params.Data(), data.params.Size());
+}
+
+template<>
+inline bool Decode<RPCRequest>(ByteBuffer& buffer, RPCRequest& out, void* context)
+{
+	uint8 target;
+	uint16 paramCount;
+
+	if (!Decode<uint16>(buffer, out.index) ||
+		!Decode<uint8>(buffer, target) ||
+		!Decode<uint16>(buffer, paramCount) 
+		) 
+		return false;
+
+	out.target = (RPCTarget)target;
+	buffer.PopBuffer(out.params, paramCount);
+	return true;
+}
 
 
 /**
@@ -35,10 +87,14 @@ enum class RPCTarget : uint8
 class CORE_API NetSerializableBase
 {
 private:
-	uint32 m_networkId = 0;
+	friend class NetSession;
+	friend class Level;
+	NetRole m_netRole = NetRole::None;
+	uint16 m_networkOwnerId = 0;
+	uint16 m_networkId = 0;
 
-	ByteBuffer m_UdpCallQueue;
-	ByteBuffer m_TcpCallQueue;
+	RPCQueue m_UdpRpcQueue;
+	RPCQueue m_TcpRpcQueue;
 
 protected:
 	bool bNetSynced = false;
@@ -73,20 +129,41 @@ protected:
 	*/
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
 
-public:
 	/**
-	* Encode all required information about this object ready to send over net
+	* Clears any net data which is currently queued
+	*/
+	void ClearQueuedNetData();
+
+
+private:
+	/**
+	* Encode all currently queued RPC calls
 	* @param buffer			The buffer to fill with all this information
 	* @param socketType		The socket type this will be sent over
 	*/
-	virtual void PerformNetEncode(ByteBuffer& buffer, const SocketType& socketType);
-
+	void EncodeRPCRequests(ByteBuffer& buffer, const SocketType& socketType);
 	/**
-	* Decode any information that has reached this object
+	* Decode all RPC calls in this queue
+	* @param buffer			The buffer to fill with all this information
+	* @param output			Where to store all calls
+	*/
+	void DecodeRPCRequests(ByteBuffer& buffer, RPCQueue& output);
+
+
+protected:
+	/**
+	* Any additional information to be encoded for this object
+	* @param buffer			The buffer to fill with all this information
+	* @param socketType		The socket type this will be sent over
+	*/
+	virtual void EncodeExtra(ByteBuffer& buffer, const SocketType& socketType) {}
+	/**
+	* Any additional information that needs to be decoded for this object (In the same format as encoding)
 	* @param buffer			The buffer to fill with all this information
 	* @param socketType		The socket type this was recieved by
 	*/
-	virtual void PerformNetDecode(ByteBuffer& buffer, const SocketType& socketType);
+	virtual void DecodeExtra(ByteBuffer& buffer, const SocketType& socketType) {}
+
 
 	/**
 	* Getters & Setters
@@ -97,7 +174,12 @@ public:
 	/**
 	* A unique ID for identifying this object over the current NetSession
 	*/
-	inline uint32 GetNetworkID() const { return m_networkId; }
+	inline const uint16& GetNetworkID() const { return m_networkId; }
+
+	inline const NetRole& GetNetRole() const { return m_netRole; }
+	inline const bool IsNetOwner() const { return m_netRole == NetRole::HostOwner || m_netRole == NetRole::RemoteOwner; }
+	inline const bool IsNetHost() const { return m_netRole == NetRole::HostOwner || m_netRole == NetRole::HostPuppet; }
+	inline const bool HasNetControl() const { return IsNetOwner() || IsNetHost(); }
 };
 
 

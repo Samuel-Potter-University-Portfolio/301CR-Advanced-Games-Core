@@ -13,11 +13,13 @@ class Entity;
 class CORE_API Level
 {
 private:
+	friend class NetSession;
 	string m_name;
 	Game* m_game;
 	uint32 m_id;
 
 	std::vector<Entity*> m_entities;
+	std::map<uint16, Entity*> m_netEntities;
 	uint32 m_entityCounter;
 
 public:
@@ -68,6 +70,20 @@ public:
 		else
 			return nullptr;
 	}
+
+	/**
+	* Retrieve an entity from it's network id
+	* @param netId			The entity's unique network id
+	* @returns Entity with id or null, if not found
+	*/
+	Entity* GetEntityFromNetId(const uint16& netId) const;
+
+	/**
+	* Retrieve an entity from it's instance id
+	* @param id				The entity's unique instance id
+	* @returns Entity with id or null, if not found
+	*/
+	Entity* GetEntityFromInstanceId(const uint16& id) const;
 
 	/**
 	* Getters and setters
