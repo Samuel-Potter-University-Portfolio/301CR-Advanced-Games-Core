@@ -73,8 +73,8 @@ void NetRemoteSession::Update(const float& deltaTime)
 	ByteBuffer tcpContent;
 	ByteBuffer udpContent;
 
-	NetEncode(tcpContent, TCP);
-	NetEncode(udpContent, UDP);
+	NetEncode(0, tcpContent, TCP);
+	NetEncode(0, udpContent, UDP);
 
 	const NetIdentity& identity = GetSessionIdentity();
 	if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
@@ -169,12 +169,15 @@ bool NetRemoteSession::EnsureConnection()
 	return true;
 }
 
-void NetRemoteSession::NetEncode(ByteBuffer& buffer, const SocketType& socketType) 
+void NetRemoteSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
 {
 	// Encode all owned entities
 	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
 		if (entity->IsNetSynced() && entity->IsNetOwner())
-			EncodeEntityMessage(buffer, socketType, entity);
+		{
+			Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
+			EncodeEntityMessage(netId, buffer, socketType, entity);
+		}
 
 
 	// Encode empty ping packet

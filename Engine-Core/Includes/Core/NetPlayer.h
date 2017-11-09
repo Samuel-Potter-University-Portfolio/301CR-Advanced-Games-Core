@@ -22,6 +22,7 @@ private:
 	NetIdentity m_identity;
 
 	uint16 m_uniqueId;
+	bool bIsFirstSync = true;
 	bool bIsLocal = false;
 
 

@@ -102,12 +102,14 @@ void NetHostSession::Update(const float& deltaTime)
 	ByteBuffer tcpContent;
 	ByteBuffer udpContent;
 
-	NetEncode(tcpContent, TCP);
-	NetEncode(udpContent, UDP);
-
 	// Send out packet update
 	for (NetPlayer* player : m_players)
 	{
+		tcpContent.Clear();
+		udpContent.Clear();
+		NetEncode(player->GetUniqueID(), tcpContent, TCP);
+		NetEncode(player->GetUniqueID(), udpContent, UDP);
+
 		const NetIdentity& identity = player->m_identity;
 		if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
 		{
@@ -129,8 +131,15 @@ bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlaye
 	return true;
 }
 
-void NetHostSession::NetEncode(ByteBuffer& buffer, const SocketType& socketType)
+void NetHostSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
 {
+	// Encode all entities
+	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
+		if (entity->IsNetSynced())
+		{
+			Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
+			EncodeEntityMessage(netId, buffer, socketType, entity);
+		}
 
 	// Encode empty ping packet
 	if (buffer.Size() == 0)

@@ -26,6 +26,7 @@ void NetSession::HandleUpdate(const float& deltaTime)
 	if (m_tickTimer < m_sleepRate )
 		return;
 
+	m_newPlayers.clear();
 	Update(m_tickTimer);
 	m_tickTimer -= m_sleepRate;
 }
@@ -89,6 +90,7 @@ NetResponseCode NetSession::DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuff
 			outNetId = m_playerIdCounter++;
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Accepted);
 			Encode<uint16>(outBuffer, outNetId);
+			m_newPlayers.emplace(outNetId); // Add to new players to make sure correct welcome packets get sent
 
 			// TODO - Fill in more session information
 			// TODO - Notify player of level and entity info
@@ -127,19 +129,25 @@ NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer, uint16& ou
 }
 
 
-void NetSession::EncodeEntityMessage(ByteBuffer& buffer, const SocketType& socketType, Entity* entity) 
+void NetSession::EncodeEntityMessage(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity)
 {
 	if ((!IsHost() && !entity->HasNetControl()) || !entity->IsNetSynced()) 
 		return;
 
+	bool newConnection = (m_newPlayers.find(netId) != m_newPlayers.end());
 
 	// If entity has no id, it must be newly spawned
-	if(entity->GetNetworkID() == 0)
+	if(entity->GetNetworkID() == 0 || newConnection)
 	{
+		// Entit changes must occur over TCP
+		if (socketType == UDP)
+			return;
+
 		// Was part of level
 		if (entity->WasLoadedWithLevel())
 		{
-			entity->m_networkId = m_entityIdCounter++; // Give a unique net id
+			if(!newConnection || entity->GetNetworkID() == 0)
+				entity->m_networkId = m_entityIdCounter++; // Give a unique net id
 
 			// TODO - Give net role
 
@@ -151,7 +159,8 @@ void NetSession::EncodeEntityMessage(ByteBuffer& buffer, const SocketType& socke
 		// Was dynamically spawned
 		else
 		{
-			entity->m_networkId = m_entityIdCounter++; // Give a unique net id
+			if (!newConnection || entity->GetNetworkID() == 0)
+				entity->m_networkId = m_entityIdCounter++; // Give a unique net id
 
 			// TODO - Give net role
 
@@ -160,6 +169,11 @@ void NetSession::EncodeEntityMessage(ByteBuffer& buffer, const SocketType& socke
 			Encode<uint16>(buffer, entity->m_networkOwnerId);
 			Encode<uint32>(buffer, entity->GetTypeID());
 		}
+	}
+
+	// Encode any changes to the entity
+	else
+	{
 	}
 }
 
@@ -243,7 +257,6 @@ void NetSession::DecodeEntityMessage(const uint16& sourceNetId, ByteBuffer& buff
 		e->m_networkOwnerId = netOwnerId;
 		e->m_netRole = (netOwnerId == GetNetworkID() ? NetRole::RemoteOwner : NetRole::RemotePuppet); // Deduce role
 		m_engine->GetGame()->GetCurrentLevel()->m_netEntities[netId] = e; // Add to lookup table
-		LOG("Control %i to net %i", instanceId, netId);
 		break;
 	}
 

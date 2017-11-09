@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include <set>
 
 #include "NetSocketTcp.h"
 #include "NetSocketUdp.h"
@@ -70,6 +71,8 @@ class CORE_API NetSession
 private:
 	const NetIdentity m_netIdentity;
 	uint16 m_entityIdCounter; 
+
+	std::set<uint16> m_newPlayers; // Players who have just been accepted
 	uint16 m_playerIdCounter;
 
 	uint32 m_tickRate = 20;
@@ -136,11 +139,12 @@ protected:
 
 	/**
 	* Encode all relevent information about this given entity
-	* @param buffer			Where to store all information
-	* @param socketType		The socket type this content will be sent over
-	* @param entity			The entity that we wish to encode
+	* @param netId			The net id of where this data will be sent to
+	* @param buffer				Where to store all information
+	* @param socketType			The socket type this content will be sent over
+	* @param entity				The entity that we wish to encode
 	*/
-	void EncodeEntityMessage(ByteBuffer& buffer, const SocketType& socketType, Entity* entity);
+	void EncodeEntityMessage(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity);
 	/**
 	* Decode information about this entity message
 	* @param netId			The net id of where this data has arrived from
@@ -152,10 +156,11 @@ protected:
 
 	/**
 	* Encode any relevant information to be sent out this net update
+	* @param netId			The net id of where this data will be sent to
 	* @param buffer			Where to store all information
 	* @param socketType		The socket type this content will be sent over
 	*/
-	virtual void NetEncode(ByteBuffer& buffer, const SocketType& socketType) = 0;
+	virtual void NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType) = 0;
 	/**
 	* Decode any information that was received this net update
 	* @param netId			The net id of where this data has arrived from

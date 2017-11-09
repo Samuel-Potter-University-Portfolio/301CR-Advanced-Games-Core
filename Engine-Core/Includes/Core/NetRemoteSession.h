@@ -49,7 +49,7 @@ protected:
 	* @param buffer			Where to store all information
 	* @param socketType		The socket type this content will be sent over
 	*/
-	virtual void NetEncode(ByteBuffer& buffer, const SocketType& socketType);
+	virtual void NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType);
 
 
 	/**
