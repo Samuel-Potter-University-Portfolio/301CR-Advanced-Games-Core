@@ -17,7 +17,6 @@ class CORE_API NetRemoteSession : public NetSession
 {
 private:
 	LocalClientStatus m_clientStatus;
-	NetResponseCode m_connectionStatus;
 
 public:
 	NetRemoteSession(const Engine* engine, const NetIdentity identity);
@@ -38,13 +37,6 @@ public:
 
 private:
 	/**
-	* Attempt to validate the response from the handshake
-	* @param packet			The response from the server
-	* @return If the handshake has been resolved (Not whether it has been accepted)
-	*/
-	bool ValidateHandshakeResponse(RawNetPacket& packet);
-
-	/**
 	* Make sure that the client is connected to the server
 	* @returns If this player is currently connected to the server
 	*/
@@ -64,6 +56,6 @@ protected:
 	* Getters and setters
 	*/
 public:
-	inline const NetResponseCode& GetConnectionStatus() const { return m_connectionStatus; }
+	inline const LocalClientStatus& GetConnectionStatus() const { return m_clientStatus; }
 };
 

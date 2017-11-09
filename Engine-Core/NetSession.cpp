@@ -10,8 +10,9 @@
 
 
 NetSession::NetSession(const Engine* engine, const NetIdentity identity) :
-	m_engine(engine), m_netIdentity(identity), m_netId(m_netIdCounter++)
+	m_engine(engine), m_netIdentity(identity), m_netId(m_playerIdCounter++)
 {
+	m_entityIdCounter = 1; // 0 - Reservered as nullptr
 }
 
 NetSession::~NetSession()
@@ -32,23 +33,97 @@ void NetSession::HandleUpdate(const float& deltaTime)
 
 void NetSession::EncodeClientHandshake(ByteBuffer& buffer) 
 {
-	ByteBuffer content;
-
 	// Build header
-	Encode<Version>(content, m_engine->GetVersionNo());
-	Encode<Version>(content, m_engine->GetGame()->GetVersionNo());
-	Encode<uint16>(content, (uint16)NetRequestType::Connect);
+	Encode<Version>(buffer, m_engine->GetVersionNo());
+	Encode<Version>(buffer, m_engine->GetGame()->GetVersionNo());
+	Encode<uint16>(buffer, (uint16)NetRequestType::Connect);
 
 	// TODO - Encode password
 	// TODO - Encode username
 }
 
-NetRequestType NetSession::DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuffer& outBuffer, uint16& outNetId) 
+NetResponseCode NetSession::DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuffer& outBuffer, uint16& outNetId)
 {
+	// Check message header
+	uint16 requestType;
+	{
+		Version engineVersion;
+		Version gameVersion;
+
+		// Invalid header
+		if (!Decode<Version>(inbuffer, engineVersion) ||
+			!Decode<Version>(inbuffer, gameVersion) ||
+			!Decode<uint16>(inbuffer, requestType))
+		{
+			Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadRequest);
+			return NetResponseCode::BadRequest;
+		}
+
+		// Invalid versions
+		if (m_engine->GetVersionNo() != engineVersion || m_engine->GetGame()->GetVersionNo() != gameVersion)
+		{
+			Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadVersions);
+			return NetResponseCode::BadVersions;
+		}
+
+		// TODO - Ban checks
+		// TODO - Password checks
+		// TODO - Whitelist checks
+		// TODO - Server is full checks
+	}
+
+
+	// Perform any additional checks/payload filling
+	NetRequestType request = (NetRequestType)requestType;
+
+	switch (request)
+	{
+		// User is just pinging the server to get a response
+		case NetRequestType::Ping:
+			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Responded);
+			return NetResponseCode::Responded;
+
+
+		// The user is attempting to connect to the server as a player
+		case NetRequestType::Connect:
+			outNetId = m_playerIdCounter++;
+			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Accepted);
+			Encode<uint16>(outBuffer, outNetId);
+
+			// TODO - Fill in more session information
+			// TODO - Notify player of level and entity info
+
+			return NetResponseCode::Accepted;
+
+
+		// The user is querying for server details
+		case NetRequestType::Query:
+		
+			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Responded);
+
+			// TODO - query stuff
+			//Encode<uint16>(outBuffer, m_players.size());		// Players connected 
+			//Encode<uint16>(outBuffer, maxPlayerCount);		// Player limit
+			//Encode<string>(outBuffer, "Unnamed Server");		// TODO - Server name
+			//Encode<uint8>(outBuffer, 0);						// TODO - Bitflags
+			return NetResponseCode::Responded;
+	}
+
+	return NetResponseCode::Unknown;
 }
 
-NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer) 
+NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer, uint16& outNetId)
 {
+	uint16 rawCode;
+	if (!Decode<uint16>(buffer, rawCode))
+		return NetResponseCode::Unknown;
+
+	const NetResponseCode response = (NetResponseCode)rawCode;
+
+	// Get net id if successful
+	if (response == NetResponseCode::Accepted)
+		Decode<uint16>(buffer, outNetId);
+	return response;
 }
 
 
@@ -64,7 +139,7 @@ void NetSession::EncodeEntityMessage(ByteBuffer& buffer, const SocketType& socke
 		// Was part of level
 		if (entity->WasLoadedWithLevel())
 		{
-			entity->m_networkId = m_netIdCounter++; // Give a unique net id
+			entity->m_networkId = m_entityIdCounter++; // Give a unique net id
 
 			// TODO - Give net role
 
@@ -76,7 +151,7 @@ void NetSession::EncodeEntityMessage(ByteBuffer& buffer, const SocketType& socke
 		// Was dynamically spawned
 		else
 		{
-			entity->m_networkId = m_netIdCounter++; // Give a unique net id
+			entity->m_networkId = m_entityIdCounter++; // Give a unique net id
 
 			// TODO - Give net role
 

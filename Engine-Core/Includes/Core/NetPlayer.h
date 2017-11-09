@@ -21,7 +21,7 @@ private:
 	/** The network identity of this player (Only retrievable by host) */
 	NetIdentity m_identity;
 
-	uint32 m_uniqueId;
+	uint16 m_uniqueId;
 	bool bIsLocal = false;
 
 

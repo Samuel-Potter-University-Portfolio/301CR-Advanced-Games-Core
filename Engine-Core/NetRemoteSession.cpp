@@ -80,58 +80,10 @@ void NetRemoteSession::Update(const float& deltaTime)
 	if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
 	{
 		// TODO - Handle disconnections 
-		LOG_ERROR("Failed to send TCP update to %s:%i", identity.ip.toString(), identity.port);
+		LOG_ERROR("Failed to send TCP update to %s:%i", identity.ip.toString().c_str(), identity.port);
 	}
 	if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
-		LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString(), identity.port); // Will never happen, as connectionless
-}
-
-bool NetRemoteSession::ValidateHandshakeResponse(RawNetPacket& packet) 
-{
-	uint16 rawCode;
-	if (!Decode<uint16>(packet.buffer, rawCode))
-		return false;
-
-	m_connectionStatus = (NetResponseCode)rawCode;
-	switch (m_connectionStatus)
-	{
-	// Unknown should never be returned, so just rubbish?
-	case NetResponseCode::Unknown:
-		LOG_ERROR("Unknown connection error");
-		return false;
-
-	case NetResponseCode::Accepted:
-		m_clientStatus = Connected;
-		LOG("Connected to server");
-		break;
-
-	case NetResponseCode::Responded:
-		LOG("Server acknowledged");
-		break;
-
-	case NetResponseCode::BadRequest:
-		LOG_ERROR("BadRequest connecting to server");
-		break;
-
-	case NetResponseCode::Banned:
-		LOG("Banned from server");
-		break;
-
-	case NetResponseCode::BadPassword:
-		LOG("Bad password provided when connecting to server");
-		break;
-
-	case NetResponseCode::BadVersions:
-		LOG("Version missmatch between client and server");
-		break;
-
-	case NetResponseCode::ServerFull:
-		LOG("Server full");
-		break;
-	}
-
-	// Received valid response
-	return true;
+		LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
 }
 
 bool NetRemoteSession::EnsureConnection() 
@@ -162,8 +114,42 @@ bool NetRemoteSession::EnsureConnection()
 			for (RawNetPacket& p : packets)
 			{
 				p.buffer.Flip();
-				if (ValidateHandshakeResponse(p))
+				switch (DecodeServerHandshake(p.buffer, m_netId))
+				{
+					// Unknown should never be returned, so just rubbish?
+				case NetResponseCode::Unknown:
+					LOG_ERROR("Unknown connection error");
 					break;
+
+				case NetResponseCode::Accepted:
+					m_clientStatus = Connected;
+					LOG("Connected to server as Player(%i)", GetNetworkID());
+					break;
+
+				case NetResponseCode::Responded:
+					LOG("Server acknowledged");
+					break;
+
+				case NetResponseCode::BadRequest:
+					LOG_ERROR("BadRequest connecting to server");
+					break;
+
+				case NetResponseCode::Banned:
+					LOG("Banned from server");
+					break;
+
+				case NetResponseCode::BadPassword:
+					LOG("Bad password provided when connecting to server");
+					break;
+
+				case NetResponseCode::BadVersions:
+					LOG("Version missmatch between client and server");
+					break;
+
+				case NetResponseCode::ServerFull:
+					LOG("Server full");
+					break;
+				}
 			}
 		}
 

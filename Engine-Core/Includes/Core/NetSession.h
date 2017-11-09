@@ -69,7 +69,8 @@ class CORE_API NetSession
 {
 private:
 	const NetIdentity m_netIdentity;
-	uint16 m_netIdCounter;
+	uint16 m_entityIdCounter; 
+	uint16 m_playerIdCounter;
 
 	uint32 m_tickRate = 20;
 	float m_sleepRate = 1.0f / (float)m_tickRate;
@@ -121,15 +122,16 @@ protected:
 	* @param inbuffer			Where read data from
 	* @param outBuffer			Where write data to (To be sent back to the client as a response)
 	* @param outNetId			The net id of the player (If accepted)
-	* @returns The handshake request type
+	* @returns The result of the handshake
 	*/
-	NetRequestType DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuffer& outBuffer, uint16& outNetId);
+	NetResponseCode DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuffer& outBuffer, uint16& outNetId);
 	/**
 	* Decode a handshake response received from the server
 	* @param buffer			Where read data from
+	* @param outNetId			The net id of the player (If accepted)
 	* @returns The result of the handshake
 	*/
-	NetResponseCode DecodeServerHandshake(ByteBuffer& buffer);
+	NetResponseCode DecodeServerHandshake(ByteBuffer& buffer, uint16& outNetId);
 
 
 	/**

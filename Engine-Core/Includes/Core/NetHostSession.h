@@ -40,13 +40,6 @@ protected:
 	virtual void NetEncode(ByteBuffer& buffer, const SocketType& socketType);
 
 private:
-	/**
-	* Attempt to accept or deny the player connection to the server
-	* @param player				The player we want to perform the handshake on
-	* @param packet				The initial handshake packet passed
-	* @returns The response code that was sent to the client
-	*/
-	NetResponseCode VerifyHandshake(NetPlayer* player, RawNetPacket& packet, NetSocket& socket);
 
 	/**
 	* Fetch a player's network id from their connecting identity

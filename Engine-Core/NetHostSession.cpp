@@ -58,7 +58,9 @@ void NetHostSession::Update(const float& deltaTime)
 			{
 				// Attempt to accept with handshake
 				player = new NetPlayer;
-				if (VerifyHandshake(player, packet, m_TcpSocket) == NetResponseCode::Accepted)
+				player->m_identity = packet.source;
+				ByteBuffer response;
+				if (DecodeClientHandshake(packet.buffer, response, player->m_uniqueId) == NetResponseCode::Accepted)
 				{
 					// Add player
 					m_players.emplace_back(player);
@@ -69,6 +71,9 @@ void NetHostSession::Update(const float& deltaTime)
 				// Failed handshake
 				else
 					delete player;
+
+				// Send handshake response
+				m_TcpSocket.SendTo(response.Data(), response.Size(), packet.source);
 			}
 
 			// Player already connected (So just attempt to decode)
@@ -107,87 +112,11 @@ void NetHostSession::Update(const float& deltaTime)
 		if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
 		{
 			// TODO - Handle disconnections 
-			LOG_ERROR("Failed to send TCP update to %s:%i", identity.ip.toString(), identity.port);
+			LOG_ERROR("Failed to send TCP update to %s:%i", identity.ip.toString().c_str(), identity.port);
 		}
 		if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
-			LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString(), identity.port); // Will never happen, as connectionless
+			LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
 	}
-}
-
-NetResponseCode NetHostSession::VerifyHandshake(NetPlayer* player, RawNetPacket& packet, NetSocket& socket)
-{
-	// Check message header
-	uint16 requestType;
-	{
-		Version engineVersion;
-		Version gameVersion;
-
-		// Invalid header
-		if (!Decode<Version>(packet.buffer, engineVersion) ||
-			!Decode<Version>(packet.buffer, gameVersion) ||
-			!Decode<uint16>(packet.buffer, requestType))
-		{
-			ByteBuffer response;
-			Encode<uint16>(response, (uint16)NetResponseCode::BadRequest);
-			socket.SendTo(response.Data(), response.Size(), packet.source);
-			return NetResponseCode::BadRequest;
-		}
-
-		// Invalid versions
-		if (m_engine->GetVersionNo() != engineVersion || m_engine->GetGame()->GetVersionNo() != gameVersion)
-		{
-			ByteBuffer response;
-			Encode<uint16>(response, (uint16)NetResponseCode::BadVersions);
-			socket.SendTo(response.Data(), response.Size(), packet.source);
-			return NetResponseCode::BadVersions;
-		}
-
-		// TODO - Ban checks
-		// TODO - Password checks
-		// TODO - Whitelist checks
-		// TODO - Server is full checks
-	}
-
-
-	// Perform any additional checks/payload filling
-	ByteBuffer response;
-	NetRequestType request = (NetRequestType)requestType;
-
-	switch (request)
-	{
-		// User is just pinging the server to get a response
-		case NetRequestType::Ping:
-			Encode<uint16>(response, (uint16)NetResponseCode::Responded);
-
-			socket.SendTo(response.Data(), response.Size(), packet.source);
-			return NetResponseCode::Responded;
-
-
-		// The user is attempting to connect to the server as a player
-		case NetRequestType::Connect:
-			Encode<uint16>(response, (uint16)NetResponseCode::Accepted);
-
-			// Set player ID information
-			player->m_identity = packet.source;
-			player->m_uniqueId = m_playerIdCounter++;
-
-			socket.SendTo(response.Data(), response.Size(), packet.source);
-			return NetResponseCode::Accepted;
-
-
-		// The user is querying for server details
-		case NetRequestType::Query:
-			Encode<uint16>(response, (uint16)NetResponseCode::Responded);
-			Encode<uint16>(response, m_players.size());		// Players connected 
-			Encode<uint16>(response, maxPlayerCount);		// Player limit
-			Encode<string>(response, "Unnamed Server");		// TODO - Server name
-			Encode<uint8>(response, 0);						// TODO - Bitflags
-
-			socket.SendTo(response.Data(), response.Size(), packet.source);
-			return NetResponseCode::Responded;
-	}
-
-	return NetResponseCode::Unknown;
 }
 
 bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlayer*& outPlayer) const
