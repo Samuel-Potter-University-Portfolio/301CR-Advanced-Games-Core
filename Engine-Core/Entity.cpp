@@ -17,9 +17,6 @@ void Entity::HandleSpawn(Level* level)
 
 void Entity::HandleMainUpdate(const float& deltaTime) 
 {
-	// Clear any net data, ready for this update
-	ClearQueuedNetData();
-
 	if (bHasStarted)
 		OnTick(deltaTime);
 	else

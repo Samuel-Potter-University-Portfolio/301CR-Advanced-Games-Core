@@ -84,6 +84,12 @@ void NetRemoteSession::Update(const float& deltaTime)
 	}
 	if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
 		LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
+
+
+	// Clear any queued net data
+	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
+		if (entity->IsNetSynced() && entity->IsNetOwner())
+			entity->ClearQueuedNetData();
 }
 
 bool NetRemoteSession::EnsureConnection() 
@@ -172,11 +178,17 @@ bool NetRemoteSession::EnsureConnection()
 void NetRemoteSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
 {
 	// Encode all owned entities
+	ByteBuffer tempBuffer;
 	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
 		if (entity->IsNetSynced() && entity->IsNetOwner())
 		{
-			Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
-			EncodeEntityMessage(netId, buffer, socketType, entity);
+			EncodeEntityMessage(netId, tempBuffer, socketType, entity);
+			if (tempBuffer.Size() != 0)
+			{
+				Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
+				buffer.Push(tempBuffer.Data(), tempBuffer.Size());
+				tempBuffer.Clear();
+			}
 		}
 
 

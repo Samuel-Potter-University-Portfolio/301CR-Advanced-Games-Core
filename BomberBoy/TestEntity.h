@@ -28,6 +28,7 @@ protected:
 	float timer;
 	void ResetPosition();
 	void MoveTo(float x, float y);
+	void PrintTime(float time, float time2);
 
 #ifdef BUILD_CLIENT
 	/**

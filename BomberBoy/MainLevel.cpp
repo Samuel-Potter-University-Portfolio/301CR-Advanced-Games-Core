@@ -14,6 +14,6 @@ void MainLevel::BuildLevel()
 {
 	SpawnEntity<Camera>();
 	SpawnEntity<TestEntity>();
-	TestEntity* e = SpawnEntity<TestEntity>();
+	TestEntity* e = SpawnEntity<TestEntity>(1);
 	e->SetLocation(sf::Vector2f(0, 100));
 }

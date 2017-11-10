@@ -129,19 +129,20 @@ NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer, uint16& ou
 }
 
 
-void NetSession::EncodeEntityMessage(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity)
+void NetSession::EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity)
 {
 	if ((!IsHost() && !entity->HasNetControl()) || !entity->IsNetSynced()) 
 		return;
 
-	bool newConnection = (m_newPlayers.find(netId) != m_newPlayers.end());
+	bool newConnection = (m_newPlayers.find(targetNetId) != m_newPlayers.end());
 
 	// If entity has no id, it must be newly spawned
 	if(entity->GetNetworkID() == 0 || newConnection)
 	{
-		// Entit changes must occur over TCP
+		// Major Entity changes must happen over TCP 
 		if (socketType == UDP)
 			return;
+
 
 		// Was part of level
 		if (entity->WasLoadedWithLevel())
@@ -149,7 +150,11 @@ void NetSession::EncodeEntityMessage(const uint16& netId, ByteBuffer& buffer, co
 			if(!newConnection || entity->GetNetworkID() == 0)
 				entity->m_networkId = m_entityIdCounter++; // Give a unique net id
 
-			// TODO - Give net role
+			// Update net role
+			if (IsHost())
+				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::HostOwner : NetRole::HostPuppet);
+			else
+				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::RemoteOwner : NetRole::RemotePuppet);
 
 			Encode<uint8>(buffer, (uint8)NetEntityMethod::ControlOverride);
 			Encode<uint16>(buffer, entity->m_networkId);
@@ -162,7 +167,11 @@ void NetSession::EncodeEntityMessage(const uint16& netId, ByteBuffer& buffer, co
 			if (!newConnection || entity->GetNetworkID() == 0)
 				entity->m_networkId = m_entityIdCounter++; // Give a unique net id
 
-			// TODO - Give net role
+			// Update net role
+			if (IsHost())
+				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::HostOwner : NetRole::HostPuppet);
+			else
+				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::RemoteOwner : NetRole::RemotePuppet);
 
 			Encode<uint8>(buffer, (uint8)NetEntityMethod::Spawn);
 			Encode<uint16>(buffer, entity->m_networkId);
@@ -174,6 +183,10 @@ void NetSession::EncodeEntityMessage(const uint16& netId, ByteBuffer& buffer, co
 	// Encode any changes to the entity
 	else
 	{
+		Encode<uint8>(buffer, (uint8)NetEntityMethod::Update);
+		Encode<uint16>(buffer, entity->m_networkId);
+		// TODO - Sync vars
+		entity->EncodeRPCRequests(targetNetId, buffer, socketType);
 	}
 }
 
@@ -261,7 +274,18 @@ void NetSession::DecodeEntityMessage(const uint16& sourceNetId, ByteBuffer& buff
 	}
 
 	case NetEntityMethod::Update:
+	{
+		uint16 netId;
+		if (!Decode(buffer, netId)) return;
+
+		Entity* entity = m_engine->GetGame()->GetCurrentLevel()->GetEntityFromNetId(netId);
+		if (entity == nullptr)
+			return;
+
+		// TODO - Sync vars;
+		entity->DecodeRPCRequests(sourceNetId, buffer, socketType);
 		break;
+	}
 
 	default:
 		break;

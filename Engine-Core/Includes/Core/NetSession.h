@@ -139,19 +139,19 @@ protected:
 
 	/**
 	* Encode all relevent information about this given entity
-	* @param netId			The net id of where this data will be sent to
+	* @param targetNetId		The net id of where this data will be sent to
 	* @param buffer				Where to store all information
 	* @param socketType			The socket type this content will be sent over
 	* @param entity				The entity that we wish to encode
 	*/
-	void EncodeEntityMessage(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity);
+	void EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity);
 	/**
 	* Decode information about this entity message
-	* @param netId			The net id of where this data has arrived from
+	* @param targetNetId	The net id of where this data has arrived from
 	* @param buffer			Where read data from
 	* @param socketType		The socket type this content will be sent over
 	*/
-	void DecodeEntityMessage(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType);
+	void DecodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType);
 
 
 	/**

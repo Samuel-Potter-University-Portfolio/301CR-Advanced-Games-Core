@@ -18,8 +18,6 @@ enum class RPCTarget : uint8
 	Host = 2,				// Call to be executed on the host of this current session
 	ClientBroadcast = 3,	// Call to be executed on all clients, but not the server (Will only executed on server, if host is also a client)
 	GlobalBroadcast = 4,	// Call to be executed on all clients and server (Will only execute once on host, if they are a client)
-
-	This,					// Call should be executed on this client ASAP (Only to be used by server, when forcing execution on a client)
 };
 
 
@@ -119,6 +117,11 @@ public:
 	*/
 	void RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType);
 
+	/**
+	* Clears any net data which is currently queued
+	*/
+	void ClearQueuedNetData();
+
 protected:
 	/**
 	* Call a given function fromt it's RPC id
@@ -129,40 +132,39 @@ protected:
 	*/
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
 
-	/**
-	* Clears any net data which is currently queued
-	*/
-	void ClearQueuedNetData();
-
 
 private:
 	/**
 	* Encode all currently queued RPC calls
+	* @param targetNetId	The net id of where this data will be sent to
 	* @param buffer			The buffer to fill with all this information
 	* @param socketType		The socket type this will be sent over
 	*/
-	void EncodeRPCRequests(ByteBuffer& buffer, const SocketType& socketType);
+	void EncodeRPCRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType);
 	/**
 	* Decode all RPC calls in this queue
+	* @param sourceNetId	The net id of where this data came from
 	* @param buffer			The buffer to fill with all this information
-	* @param output			Where to store all calls
+	* @param socketType		The socket type this was sent over
 	*/
-	void DecodeRPCRequests(ByteBuffer& buffer, RPCQueue& output);
+	void DecodeRPCRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType);
 
 
 protected:
 	/**
 	* Any additional information to be encoded for this object
+	* @param targetNetId	The net id of where this data will be sent to
 	* @param buffer			The buffer to fill with all this information
 	* @param socketType		The socket type this will be sent over
 	*/
-	virtual void EncodeExtra(ByteBuffer& buffer, const SocketType& socketType) {}
+	virtual void EncodeExtra(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType) {}
 	/**
 	* Any additional information that needs to be decoded for this object (In the same format as encoding)
+	* @param targetNetId	The net id of where this data will be sent to
 	* @param buffer			The buffer to fill with all this information
 	* @param socketType		The socket type this was recieved by
 	*/
-	virtual void DecodeExtra(ByteBuffer& buffer, const SocketType& socketType) {}
+	virtual void DecodeExtra(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType) {}
 
 
 	/**
@@ -175,6 +177,7 @@ public:
 	* A unique ID for identifying this object over the current NetSession
 	*/
 	inline const uint16& GetNetworkID() const { return m_networkId; }
+	inline const uint16& GetNetworkOwnerID() const { return m_networkOwnerId; }
 
 	inline const NetRole& GetNetRole() const { return m_netRole; }
 	inline const bool IsNetOwner() const { return m_netRole == NetRole::HostOwner || m_netRole == NetRole::RemoteOwner; }
@@ -336,7 +339,14 @@ public:
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
 	{ \
 		ByteBuffer __TEMP_BUFFER; \
-		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+		if(IsNetOwner() && mode == RPCTarget::Owner) \
+			func(); \
+		else if (HasNetControl()) \
+		{ \
+			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
+				func(); \
+		} \
 	} \
 	else \
 		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
@@ -353,7 +363,14 @@ public:
 	{ \
 		ByteBuffer __TEMP_BUFFER; \
 		Encode(__TEMP_BUFFER, paramA);\
-		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+		if(IsNetOwner() && mode == RPCTarget::Owner) \
+			func(paramA); \
+		else if (HasNetControl()) \
+		{ \
+			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
+				func(paramA); \
+		} \
 	} \
 	else \
 		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
@@ -371,7 +388,14 @@ public:
 		ByteBuffer __TEMP_BUFFER; \
 		Encode(__TEMP_BUFFER, paramA);\
 		Encode(__TEMP_BUFFER, paramB);\
-		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+		if(IsNetOwner() && mode == RPCTarget::Owner) \
+			func(paramA, paramB); \
+		else if (HasNetControl()) \
+		{ \
+			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
+				func(paramA, paramB); \
+		} \
 	} \
 	else \
 		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
@@ -390,7 +414,14 @@ public:
 		Encode(__TEMP_BUFFER, paramA);\
 		Encode(__TEMP_BUFFER, paramB);\
 		Encode(__TEMP_BUFFER, paramC);\
-		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+		if(IsNetOwner() && mode == RPCTarget::Owner) \
+			func(paramA, paramB, paramC); \
+		else if (HasNetControl()) \
+		{ \
+			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
+				func(paramA, paramB, paramC); \
+		} \
 	} \
 	else \
 		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
@@ -410,7 +441,14 @@ public:
 		Encode(__TEMP_BUFFER, paramB);\
 		Encode(__TEMP_BUFFER, paramC);\
 		Encode(__TEMP_BUFFER, paramD);\
-		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+		if(IsNetOwner() && mode == RPCTarget::Owner) \
+			func(paramA, paramB, paramC, paramD); \
+		else if (HasNetControl()) \
+		{ \
+			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
+				func(paramA, paramB, paramC, paramD); \
+		} \
 	} \
 	else \
 		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
@@ -431,7 +469,14 @@ public:
 		Encode(__TEMP_BUFFER, paramC);\
 		Encode(__TEMP_BUFFER, paramD);\
 		Encode(__TEMP_BUFFER, paramE);\
-		__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+		if(IsNetOwner() && mode == RPCTarget::Owner) \
+			func(paramA, paramB, paramC, paramD, paramE); \
+		else if (HasNetControl()) \
+		{ \
+			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
+			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
+				func(paramA, paramB, paramC, paramD, paramE); \
+		} \
 	} \
 	else \
 		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \

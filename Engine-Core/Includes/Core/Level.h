@@ -57,13 +57,14 @@ public:
 	* @returns The new entity that has spawned into the world
 	*/
 	template<class Type>
-	Type* SpawnEntity()
+	Type* SpawnEntity(uint16 ownerId = 0)
 	{
 		ClassFactory<Entity>* factory = m_game->GetEntityFactoryFromHash(typeid(Type).hash_code());
 		if (factory != nullptr)
 		{
 			Type* e = factory->New<Type>();
 			e->m_typeId = factory->GetID();
+			e->m_networkOwnerId = ownerId;
 			AddEntity(e);
 			return e;
 		}

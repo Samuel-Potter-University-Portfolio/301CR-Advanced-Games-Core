@@ -9,9 +9,8 @@ void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& para
 		LOG_ERROR("Cannot call RPCs for a non-net synced class");
 		return;
 	}
-	
-	// TODO - Check target is valid
 
+	// TODO - Check if valid target
 
 	// Insert into appropriate queue
 	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
@@ -20,18 +19,6 @@ void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& para
 	request.target = target;
 	request.params.Push(params.Data(), params.Size());
 	queue.emplace_back(request);
-
-
-	// TODO - Move into macro call, as this is really inefficient (It will also help validate params, as macro will not compile otherwise)
-	if (target == RPCTarget::GlobalBroadcast)
-	{
-		uint16 tempId = id;
-		ByteBuffer tempBuffer(params);
-		tempBuffer.Flip();
-		ExecuteRPC(tempId, tempBuffer);
-	}
-
-	// TODO - Checks to see if need to be executed here? Is host?
 }
 
 bool NetSerializableBase::FetchRPCIndex(const char* funcName, uint16& outID) const
@@ -45,27 +32,83 @@ bool NetSerializableBase::ExecuteRPC(uint16& id, ByteBuffer& params)
 	return false;
 }
 
-void NetSerializableBase::EncodeRPCRequests(ByteBuffer& buffer, const SocketType& socketType)
+void NetSerializableBase::EncodeRPCRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType)
 {
-	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
-
-	Encode<uint16>(buffer, queue.size()); // Encode number of calls
-	for (const RPCRequest& request : queue) // Encode each call
-		Encode<RPCRequest>(buffer, request);
-}
-
-void NetSerializableBase::DecodeRPCRequests(ByteBuffer& buffer, RPCQueue& output)
-{
-	uint16 count;
-	if (!Decode(buffer, count))
+	// Doesn't have control, so shouldn't even be here
+	if (!HasNetControl())
 		return;
 
+	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
+	uint16 callCount = 0;
+	ByteBuffer tempBuffer;
+
+	// Decide which calls need to be encoded
+	for (const RPCRequest& request : queue)		
+	{
+		// Server, so send to correct clients
+		if (IsNetHost())
+		{
+			if (request.target == RPCTarget::ClientBroadcast || request.target == RPCTarget::GlobalBroadcast || (targetNetId == m_networkOwnerId && request.target == RPCTarget::Owner))
+			{
+				Encode<RPCRequest>(tempBuffer, request);
+				++callCount;
+			}
+		}
+
+		// Client, so only allow valid calls to go through to the server
+		else if (request.target == RPCTarget::ClientBroadcast || request.target == RPCTarget::GlobalBroadcast || request.target == RPCTarget::Host)
+		{
+			Encode<RPCRequest>(tempBuffer, request);
+			++callCount;
+		}
+	}
+
+	Encode<uint16>(buffer, callCount);
+	if(callCount != 0)
+		buffer.Push(tempBuffer.Data(), tempBuffer.Size());
+}
+
+void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType)
+{
+	uint16 count;
+	if (!Decode(buffer, count) || count == 0)
+		return;
+
+
+	// Doesn't have permission to call RPC, so get rid of excess and ignore
+	if (sourceNetId != 0 && sourceNetId != m_networkOwnerId && !IsNetHost())
+	{
+		ByteBuffer bin;
+		buffer.PopBuffer(bin, count);
+		return;
+	}
+
+	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
+
+
+	// Execute all RPCs or re-en
 	for (uint32 i = 0; i < count; ++i)
 	{
 		RPCRequest call;
 		if (!Decode(buffer, call))
 			continue;
-		output.emplace_back(call);
+
+
+		// Encode or push to outgoing queue
+		if (IsNetHost())
+		{
+			// Execute function on host, if desired
+			if (call.target == RPCTarget::Host || call.target == RPCTarget::GlobalBroadcast || (IsNetOwner() && call.target == RPCTarget::Owner))
+				ExecuteRPC(call.index, call.params);
+
+			// Broadcast to other clients
+			if (call.target == RPCTarget::GlobalBroadcast || call.target == RPCTarget::ClientBroadcast || (!IsNetOwner() && call.target == RPCTarget::Owner))
+				queue.emplace_back(call);
+		}
+
+		// Execute the call, as it's come from the host, so must be meant for this client
+		else
+			ExecuteRPC(call.index, call.params);
 	}
 }
 

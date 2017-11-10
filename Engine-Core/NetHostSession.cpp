@@ -119,6 +119,12 @@ void NetHostSession::Update(const float& deltaTime)
 		if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
 			LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
 	}
+
+
+	// Clear any queued net data
+	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
+		if (entity->IsNetSynced())
+			entity->ClearQueuedNetData();
 }
 
 bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlayer*& outPlayer) const
@@ -134,11 +140,17 @@ bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlaye
 void NetHostSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
 {
 	// Encode all entities
+	ByteBuffer tempBuffer;
 	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
 		if (entity->IsNetSynced())
 		{
-			Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
-			EncodeEntityMessage(netId, buffer, socketType, entity);
+			EncodeEntityMessage(netId, tempBuffer, socketType, entity);
+			if (tempBuffer.Size() != 0)
+			{
+				Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
+				buffer.Push(tempBuffer.Data(), tempBuffer.Size());
+				tempBuffer.Clear();
+			}
 		}
 
 	// Encode empty ping packet

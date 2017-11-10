@@ -8,6 +8,7 @@
 NetController::NetController(const Engine* engine) :
 	m_engine(engine)
 {
+	m_activeSession = nullptr;
 }
 
 
