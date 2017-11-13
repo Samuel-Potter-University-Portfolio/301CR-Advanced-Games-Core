@@ -6,7 +6,7 @@
 * Generic factory for creating objects with an empty constructor
 */
 template<class Type>
-class CORE_API ClassFactory
+class ClassFactory
 {
 private:
 	/// Create 1 element per factory to get default set variables
@@ -77,7 +77,7 @@ public:
 * Create a generic factory for a given class
 */
 template<class Parent, class Child>
-class CORE_API ChildFactory : public ClassFactory<Parent>
+class ChildFactory : public ClassFactory<Parent>
 {
 public:
 	/**

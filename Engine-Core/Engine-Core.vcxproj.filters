@@ -49,6 +49,9 @@
     <ClCompile Include="NetPlayer.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
+    <ClCompile Include="ManagedClass.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -133,6 +136,9 @@
     </ClInclude>
     <ClInclude Include="Includes\Core\NetPlayer.h">
       <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\ManagedClass.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

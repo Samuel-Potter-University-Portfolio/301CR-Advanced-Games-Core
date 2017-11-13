@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "Types.h"
+#include "ManagedClass.h"
 #include "ClassFactory.h"
 #include "NetSerializableBase.h"
 #include <SFML/Graphics.hpp>
