@@ -1,17 +1,38 @@
 #include "Includes\Core\NetSerializableBase.h"
+#include "Includes\Core\NetSession.h"
 #include <cstring>
 
 
+void NetSerializableBase::UpdateRole(const NetSession* session, const bool& assignOwner)
+{
+	if (assignOwner)
+		m_networkOwnerId = session != nullptr ? session->GetNetworkID() : 0;
+
+	// Doesn't sync, so don't care
+	if (!IsNetSynced())
+		m_netRole = NetRole::None;
+
+	// Is local playing
+	else if (session == nullptr)
+		m_netRole = NetRole::HostOwner;
+
+	// Hosting server
+	else if (session->IsHost())
+		m_netRole = m_networkOwnerId == session->GetNetworkID() ? NetRole::HostOwner : NetRole::HostPuppet;
+
+	// Connected to server
+	else
+		m_netRole = m_networkOwnerId == session->GetNetworkID() ? NetRole::RemoteOwner : NetRole::RemotePuppet;
+}
+
 void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType)
 {
-	if (!bNetSynced)
+	if (!IsNetSynced())
 	{
 		LOG_ERROR("Cannot call RPCs for a non-net synced class");
 		return;
 	}
-
-	// TODO - Check if valid target
-
+	
 	// Insert into appropriate queue
 	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
 	RPCRequest request;
@@ -110,10 +131,4 @@ void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffe
 		else
 			ExecuteRPC(call.index, call.params);
 	}
-}
-
-void NetSerializableBase::ClearQueuedNetData()
-{
-	m_UdpRpcQueue.clear();
-	m_TcpRpcQueue.clear();
 }

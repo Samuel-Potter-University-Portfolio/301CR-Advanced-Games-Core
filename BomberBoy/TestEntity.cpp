@@ -4,7 +4,7 @@
 
 TestEntity::TestEntity()
 {
-	bNetSynced = true;
+	bIsNetSynced = true;
 }
 
 bool TestEntity::FetchRPCIndex(const char* funcName, uint16& outID) const
@@ -32,17 +32,17 @@ void TestEntity::OnBegin()
 
 void TestEntity::OnTick(const float& deltaTime) 
 {
-#ifdef BUILD_SERVER
+#ifdef BUILD_CLIENT
 	timer += deltaTime;
 	
-	if (timer >= 10.0f)
-	{
-		timer = 0.0f;
-		CallRPC(TCP, RPCTarget::Owner, this, ResetPosition);
-		return;
-	}
+	//if (timer >= 10.0f)
+	//{
+	//	timer = 0.0f;
+	//	CallRPC(TCP, RPCTarget::Owner, this, ResetPosition);
+	//	return;
+	//}
 
-	CallRPC_TwoParam(UDP, RPCTarget::ClientBroadcast, this, PrintTime, timer, 10.0f - timer);
+	CallRPC_TwoParam(UDP, RPCTarget::Host, this, PrintTime, timer, 10.0f - timer);
 
 	//sf::Vector2f dl = GetLocation() + sf::Vector2f(30, 0) * deltaTime;
 	//CallRPC_TwoParam(TCP, RPCTarget::Owner, this, MoveTo, dl.x, dl.y);

@@ -90,6 +90,7 @@ NetResponseCode NetSession::DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuff
 			outNetId = m_playerIdCounter++;
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Accepted);
 			Encode<uint16>(outBuffer, outNetId);
+			Encode<string>(outBuffer, m_engine->GetGame()->GetCurrentLevel()->GetName());
 			m_newPlayers.emplace(outNetId); // Add to new players to make sure correct welcome packets get sent
 
 			// TODO - Fill in more session information
@@ -124,7 +125,14 @@ NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer, uint16& ou
 
 	// Get net id if successful
 	if (response == NetResponseCode::Accepted)
+	{
+		string levelName;
 		Decode<uint16>(buffer, outNetId);
+		if (Decode(buffer, levelName))
+			m_engine->GetGame()->SwitchLevel(levelName);
+		else
+			LOG_WARNING("Cannot load onto same level as server '%s'", levelName.c_str());
+	}
 	return response;
 }
 

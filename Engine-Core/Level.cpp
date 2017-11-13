@@ -44,9 +44,6 @@ void Level::AddEntity(Entity* entity)
 		if (entity->GetNetworkID() != 0)
 			m_netEntities[entity->GetNetworkID()] = entity;
 	}
-	// Give dud role, so logic still works
-	else
-		entity->m_netRole = NetRole::HostOwner;
 
 	entity->HandleSpawn(this);
 }

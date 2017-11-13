@@ -71,6 +71,9 @@ inline bool Decode<RPCRequest>(ByteBuffer& buffer, RPCRequest& out, void* contex
 }
 
 
+class NetSession;
+
+
 /**
 * Lets child classes register RPCs and synced variables
 * O-------------------------O
@@ -85,8 +88,7 @@ inline bool Decode<RPCRequest>(ByteBuffer& buffer, RPCRequest& out, void* contex
 class CORE_API NetSerializableBase
 {
 private:
-	friend class NetSession;
-	friend class Level;
+	friend NetSession;
 	NetRole m_netRole = NetRole::None;
 	uint16 m_networkOwnerId = 0;
 	uint16 m_networkId = 0;
@@ -95,9 +97,16 @@ private:
 	RPCQueue m_TcpRpcQueue;
 
 protected:
-	bool bNetSynced = false;
+	bool bIsNetSynced = false;
 
 public:
+	/**
+	* Update this object's role, based on the current session information
+	* @param session			The session which is currently active
+	* @param assignOwner		Should this object assume the session as it's owner
+	*/
+	void UpdateRole(const NetSession* session, const bool& assignOwner = false);
+
 	/**
 	* Fetch the function's ID from the RPC table
 	* NOTE: macro order between FetchRPCIndex and ExecuteRPC must align
@@ -120,7 +129,11 @@ public:
 	/**
 	* Clears any net data which is currently queued
 	*/
-	void ClearQueuedNetData();
+	inline void ClearQueuedNetData() 
+	{
+		m_UdpRpcQueue.clear();
+		m_TcpRpcQueue.clear();
+	}
 
 protected:
 	/**
@@ -148,30 +161,13 @@ private:
 	* @param socketType		The socket type this was sent over
 	*/
 	void DecodeRPCRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType);
-
-
-protected:
-	/**
-	* Any additional information to be encoded for this object
-	* @param targetNetId	The net id of where this data will be sent to
-	* @param buffer			The buffer to fill with all this information
-	* @param socketType		The socket type this will be sent over
-	*/
-	virtual void EncodeExtra(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType) {}
-	/**
-	* Any additional information that needs to be decoded for this object (In the same format as encoding)
-	* @param targetNetId	The net id of where this data will be sent to
-	* @param buffer			The buffer to fill with all this information
-	* @param socketType		The socket type this was recieved by
-	*/
-	virtual void DecodeExtra(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType) {}
-
+	
 
 	/**
 	* Getters & Setters
 	*/
 public:
-	inline const bool& IsNetSynced() const { return bNetSynced; }
+	inline const bool& IsNetSynced() const { return bIsNetSynced; }
 
 	/**
 	* A unique ID for identifying this object over the current NetSession
@@ -339,7 +335,7 @@ public:
 	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
 	{ \
 		ByteBuffer __TEMP_BUFFER; \
-		if(IsNetOwner() && mode == RPCTarget::Owner) \
+		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
 			func(); \
 		else if (HasNetControl()) \
 		{ \
@@ -363,7 +359,7 @@ public:
 	{ \
 		ByteBuffer __TEMP_BUFFER; \
 		Encode(__TEMP_BUFFER, paramA);\
-		if(IsNetOwner() && mode == RPCTarget::Owner) \
+		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
 			func(paramA); \
 		else if (HasNetControl()) \
 		{ \
@@ -388,7 +384,7 @@ public:
 		ByteBuffer __TEMP_BUFFER; \
 		Encode(__TEMP_BUFFER, paramA);\
 		Encode(__TEMP_BUFFER, paramB);\
-		if(IsNetOwner() && mode == RPCTarget::Owner) \
+		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
 			func(paramA, paramB); \
 		else if (HasNetControl()) \
 		{ \
@@ -414,7 +410,7 @@ public:
 		Encode(__TEMP_BUFFER, paramA);\
 		Encode(__TEMP_BUFFER, paramB);\
 		Encode(__TEMP_BUFFER, paramC);\
-		if(IsNetOwner() && mode == RPCTarget::Owner) \
+		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
 			func(paramA, paramB, paramC); \
 		else if (HasNetControl()) \
 		{ \
@@ -441,7 +437,7 @@ public:
 		Encode(__TEMP_BUFFER, paramB);\
 		Encode(__TEMP_BUFFER, paramC);\
 		Encode(__TEMP_BUFFER, paramD);\
-		if(IsNetOwner() && mode == RPCTarget::Owner) \
+		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
 			func(paramA, paramB, paramC, paramD); \
 		else if (HasNetControl()) \
 		{ \
@@ -469,7 +465,7 @@ public:
 		Encode(__TEMP_BUFFER, paramC);\
 		Encode(__TEMP_BUFFER, paramD);\
 		Encode(__TEMP_BUFFER, paramE);\
-		if(IsNetOwner() && mode == RPCTarget::Owner) \
+		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
 			func(paramA, paramB, paramC, paramD, paramE); \
 		else if (HasNetControl()) \
 		{ \

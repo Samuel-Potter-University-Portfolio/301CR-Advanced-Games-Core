@@ -64,7 +64,6 @@ public:
 		{
 			Type* e = factory->New<Type>();
 			e->m_typeId = factory->GetID();
-			e->m_networkOwnerId = ownerId;
 			AddEntity(e);
 			return e;
 		}
