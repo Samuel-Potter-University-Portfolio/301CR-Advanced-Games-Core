@@ -2,19 +2,20 @@
 #include "Common.h"
 #include "Version.h"
 
-#include "ClassFactory.h"
-#include "Entity.h"
+#include "Level.h"
+#include "Actor.h"
+#include "Object.h"
 
 #include <vector>
 #include <unordered_map>
 
 
 class Engine;
-class Level;
+
 
 /**
 * Contains any relevent information about a given game
-* e.g. Assets to load, Supported entity types, Supported levels etc.
+* e.g. Assets to load, Supported actor types, Supported levels etc.
 */
 class CORE_API Game
 {
@@ -23,18 +24,16 @@ private:
 	Engine* m_engine = nullptr;
 	Version m_version;
 
+	SubClassOf<LLevel> m_defaultLevel;
+	SubClassOf<LLevel> m_defaultNetLevel;
+	LLevel* m_currentLevel = nullptr;
 
-	/** Map of all supported levels that can be loaded */
-	std::unordered_map<string, Level*> m_levels;
-	std::vector<Level*> m_levelLookup;
+	std::unordered_map<uint16, SubClassOf<LLevel>> m_registeredLevels;
+	std::unordered_map<uint16, SubClassOf<OObject>> m_registeredObjectTypes;
+	std::unordered_map<uint16, SubClassOf<AActor>> m_registeredActorTypes;
 
-	/** Map using class hashes to link to factories	*/
-	std::unordered_map<uint32, ClassFactory<Entity>*> m_entityTypes;
-	std::vector<ClassFactory<Entity>*> m_entityTypeLookup;
-
-	string defaultLevel = "Main";
-	Level* currentLevel = nullptr;
-
+	std::vector<OObject*> m_activeObjects;
+	std::unordered_map<uint16, OObject*> m_netObjectLookup;
 
 public:
 	Game(string name, Version version);
@@ -44,10 +43,10 @@ public:
 	* Callback for when the engine prepares to launch the game
 	* @param engine		Engine in question
 	*/
-	void HookEngine(Engine* engine);
+	void OnGameHooked(Engine* engine);
 
 	/**
-	* Callback from engine for every tick by main
+	* Callback from engine for every tick by main loop
 	* @param deltaTime		Time since last update (In seconds)
 	*/
 	void MainUpdate(const float& deltaTime);
@@ -61,40 +60,65 @@ public:
 #endif
 
 	/**
-	* Registers a given level, so it may be loaded by the game
-	* (Memory management goes to the game)
-	* @param level		The level in question
+	* Registers a given class, so it may be loaded by the game
+	* Usage should be with subclasses of Objects, Actors or Levels
+	* @param classType			The class of the type to register
 	*/
-	void RegisterLevel(Level* level);
+	void RegisterClass(const MClass* classType);
 
 	/**
-	* Switch to level with this registered name
-	* @param levelName		The name of the level
-	* @returns If switch was successful
+	* Is there a registered object with this id
+	* @param id				The id to lookup
+	* @returns If the game has a registered object type using that id
 	*/
-	bool SwitchLevel(string levelName);
+	inline bool IsRegisteredObject(const uint16& id) const { return m_registeredObjectTypes.find(id) != m_registeredObjectTypes.end(); }
+	/**
+	* Is there a registered actor with this id
+	* @param id				The id to lookup
+	* @returns If the game has a registered actor type using that id
+	*/
+	inline bool IsRegisteredActor(const uint16& id) const { return m_registeredActorTypes.find(id) != m_registeredActorTypes.end(); }
+	/**
+	* Is there a registered level with this id
+	* @param id				The id to lookup
+	* @returns If the game has a registered level using that id
+	*/
+	inline bool IsRegisteredLevel(const uint16& id) const { return m_registeredLevels.find(id) != m_registeredLevels.end(); }
+
 
 	/**
-	* Registers a given entity type, so that it may be spawned later into the level
-	* (Memory management goes to the game)
-	* @param entityType		Factory to create the given entity
+	* Switch level to this class (If registered)
+	* @param levelType			The class of the level to switch to
+	* @returns True if the level switches
 	*/
-	void RegisterEntity(ClassFactory<Entity>* entityType);
+	bool SwitchLevel(const SubClassOf<LLevel>& levelType);
+	/**
+	* Switch level to this id (If registered)
+	* @param levelId			The class of the level to switch to
+	* @returns True if the level switches
+	*/
+	bool SwitchLevel(const uint16& levelId);
 
 
 	/**
-	* Fetch the factory for a given entity from its name
-	* @param id			The id that the type is registered with
-	* @return The factory that can be used to build the entity
+	* Add an object to the game (Forfeits memory rights to level)
+	* @param object		The object to add
 	*/
-	ClassFactory<Entity>* GetEntityFactoryFromID(uint32 id);
+	void AddObject(OObject* object);
 
 	/**
-	* Fetch the factory for a given entity from its name
-	* @param hash		The hash of the entity type
-	* @return The factory that can be used to build the entity
+	* Spawns an object of the given type
+	* @param objectClass		The class of the object to spawn
+	* @returns New object or nullptr, if invalid
 	*/
-	ClassFactory<Entity>* GetEntityFactoryFromHash(uint32 hash);
+	OObject* SpawnObject(const SubClassOf<OObject>& objectClass);
+	/**
+	* Spawns an object of the given type
+	* @param objectClass		The class of the object to spawn
+	* @returns New actor object or nullptr, if invalid
+	*/
+	template<class ObjectType>
+	ObjectType* SpawnObject(const SubClassOf<ObjectType>& objectClass = ObjectType::StaticClass()) { return static_cast<ObjectType*>(SpawnObject(objectClass)) }
 
 
 	/**
@@ -102,13 +126,49 @@ public:
 	*/
 public:
 	inline Engine* GetEngine() const  { return m_engine; }
-	inline Level* GetCurrentLevel() const { return currentLevel; }
+	inline LLevel* GetCurrentLevel() const { return m_currentLevel; }
 
 	inline string GetName() const { return m_name; }
 	inline const Version& GetVersionNo() const { return m_version; }
 
-	inline string GetDefaultLevelName() const { return defaultLevel; }
-	inline void SetDefaultLevelName(string levelName) { defaultLevel = levelName; }
+	inline const SubClassOf<LLevel>& GetDefaultLevel() const { return m_defaultLevel; }
+	inline void SetDefaultLevel(const SubClassOf<LLevel>& level) { m_defaultLevel = level; }
+	inline const SubClassOf<LLevel>& GetDefaultNetLevel() const { return m_defaultNetLevel; }
+	inline void SetDefaultNetLevel(const SubClassOf<LLevel>& level) { m_defaultNetLevel = level; }
 
 	NetSession* GetSession() const;
+
+	/**
+	* Returns all active objects
+	*/
+	inline const std::vector<OObject*>& GetActiveObjects() const { return m_activeObjects; }
+
+	/**
+	* Return all active objects of this class
+	* @param type			The class type to query for
+	*/
+	inline const std::vector<OObject*> GetActiveObjects(const MClass* type) const
+	{
+		std::vector<OObject*> output;
+		for (uint32 i = 0; i < m_activeObjects.size(); ++i)
+			if (m_activeObjects[i]->GetClass()->IsChildOf(type))
+				output.emplace_back(m_activeObjects[i]);
+		return output;
+	}
+
+	/**
+	* Return all active objects of this class type
+	*/
+	template<class ObjectType>
+	inline const std::vector<ObjectType*> GetActiveObjects() const
+	{
+		std::vector<ObjectType*> output;
+		for (uint32 i = 0; i < m_activeObjects.size(); ++i)
+		{
+			ObjectType* casted = dynamic_cast<ObjectType*>(m_activeObjects[i]);
+			if (casted != nullptr)
+				output.emplace_back(casted);
+		}
+		return output;
+	}
 };

@@ -122,9 +122,10 @@ void NetHostSession::Update(const float& deltaTime)
 
 
 	// Clear any queued net data
-	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
-		if (entity->IsNetSynced())
-			entity->ClearQueuedNetData();
+	// TODO - UPDATE
+	//for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
+	//	if (entity->IsNetSynced())
+	//		entity->ClearQueuedNetData();
 }
 
 bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlayer*& outPlayer) const
@@ -140,6 +141,8 @@ bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlaye
 void NetHostSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
 {
 	// Encode all entities
+	// TODO - UPDATE
+	/*
 	ByteBuffer tempBuffer;
 	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
 		if (entity->IsNetSynced())
@@ -152,6 +155,7 @@ void NetHostSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const So
 				tempBuffer.Clear();
 			}
 		}
+		*/
 
 	// Encode empty ping packet
 	if (buffer.Size() == 0)

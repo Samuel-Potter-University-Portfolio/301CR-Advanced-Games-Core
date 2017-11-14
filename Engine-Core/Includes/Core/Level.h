@@ -1,99 +1,138 @@
 #pragma once
-#include "Common.h"
-#include "Game.h"
-#include "Engine.h"
+#include "ManagedClass.h"
+#include "Actor.h"
+#include <vector>
+#include <unordered_map>
 
 
-class Entity;
+class Game;
 
 
 /**
-* Represents a collections of entities which all form a level
+* Represents a collection of actors and provides an way to receive and propagate engine callbacks
+* All children of this class should append an L to the beginning of their name
 */
-class CORE_API Level
+class CORE_API LLevel : public ManagedObject
 {
+	CLASS_BODY()
 private:
-	friend class NetSession;
-	string m_name;
-	Game* m_game;
-	uint32 m_id;
+	static uint32 s_instanceCounter;
+	const uint32 m_instanceId;
+	Game* m_game = nullptr;
 
-	std::vector<Entity*> m_entities;
-	std::map<uint16, Entity*> m_netEntities;
-	uint32 m_entityCounter;
+	bool bIsBuilding = false;
+	bool bIsDestroying = false;
+
+	std::vector<AActor*> m_activeActors;
+	std::unordered_map<uint16, AActor*> m_netActorLookup;
 
 public:
-	Level(string name);
-	~Level();
+	LLevel();
+	~LLevel();
+
 
 	/**
-	* Callback for when the game registers this level
-	* @param game		Game in question
+	* Callback for when the level becomes active
+	* @param game		The game that the level has been registered under
 	*/
-	void HookGame(Game* game);
+	void OnLevelActive(Game* game);
 
 	/**
-	* Called when this level comes into usage
+	* Callback from engine for every tick by main loop
+	* @param deltaTime		Time since last update (In seconds)
 	*/
-	virtual void BuildLevel() = 0;
+	void MainUpdate(const float& deltaTime);
+
+#ifdef BUILD_CLIENT
 	/**
-	* Called when this level is about to go out of usage
+	* Callback from engine for every tick by display
+	* @param window			The window to draw to
+	* @param deltaTime		Time since last update (In seconds)
 	*/
-	virtual void DestroyLevel();
-	/**
-	* Callback for after the level is successfully built and loaded
-	*/
-	void OnPostLoad();
+	void DisplayUpdate(sf::RenderWindow* window, const float& deltaTime);
+#endif
+
+	/** Builds the level by adding any actors */
+	void Build();
+	/** Cleans up the level */
+	void Destroy();
 
 	/**
-	* Called when an entity should be added to a level
-	* @param entity			Desired entity
+	* Add an actor to the level (Forfeits memory rights to level)
+	* @param actor		The actor to add
 	*/
-	void AddEntity(Entity* entity);
+	void AddActor(AActor* actor);
 
 	/**
-	* Spawn an entity into this level from it's name
-	* @param name			The name that the entity was registered under
-	* @returns The new entity that has spawned into the world
+	* Spawns an actor into the level of the given type
+	* @param actorClass			The class of the actor to spawn
+	* @param location			Location to spawn the actor at
+	* @returns New actor object or nullptr, if invalid
 	*/
-	template<class Type>
-	Type* SpawnEntity(uint16 ownerId = 0)
+	AActor* SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location = vec2(0, 0));
+	/**
+	* Spawns an actor into the level of the given type
+	* @param actorClass			The class of the actor to spawn
+	* @param location			Location to spawn the actor at
+	* @returns New actor object or nullptr, if invalid
+	*/
+	template<class ActorType>
+	ActorType* SpawnActor(const vec2& location = vec2(0, 0)) { return static_cast<ActorType*>(SpawnActor(ActorType::StaticClass(), location)); }
+
+protected:
+	/**
+	* Callback for when this level is being built
+	* Actors should be spawned here
+	*/
+	virtual void OnBuildLevel() {}
+	/**
+	* Callback for when this level is being destroyed
+	* Actors will automatically be destroyed, but additional cleanup should occur here
+	*/
+	virtual void OnDestroyLevel() {}
+
+
+	/**
+	* Getters & Setters
+	*/
+public:
+	/** A unique id applied to each instance of a level */
+	inline const uint32& GetInstanceID() const { return m_instanceId; }
+
+	inline Game* GetGame() const { return m_game; }
+
+
+	/** 
+	* Returns all active actors 
+	*/
+	inline const std::vector<AActor*>& GetActiveActors() const { return m_activeActors; }
+
+	/**
+	* Return all active actors of this class
+	* @param type			The class type to query for
+	*/
+	inline const std::vector<AActor*> GetActiveActors(const MClass* type) const 
 	{
-		ClassFactory<Entity>* factory = m_game->GetEntityFactoryFromHash(typeid(Type).hash_code());
-		if (factory != nullptr)
-		{
-			Type* e = factory->New<Type>();
-			e->m_typeId = factory->GetID();
-			AddEntity(e);
-			return e;
-		}
-		else
-			return nullptr;
+		std::vector<AActor*> output;
+		for (uint32 i = 0; i < m_activeActors.size(); ++i)
+			if (m_activeActors[i]->GetClass()->IsChildOf(type))
+				output.emplace_back(m_activeActors[i]);
+		return output;
 	}
 
 	/**
-	* Retrieve an entity from it's network id
-	* @param netId			The entity's unique network id
-	* @returns Entity with id or null, if not found
+	* Return all active actors of this class type
 	*/
-	Entity* GetEntityFromNetId(const uint16& netId) const;
-
-	/**
-	* Retrieve an entity from it's instance id
-	* @param id				The entity's unique instance id
-	* @returns Entity with id or null, if not found
-	*/
-	Entity* GetEntityFromInstanceId(const uint16& id) const;
-
-	/**
-	* Getters and setters
-	*/
-public:
-	inline string GetName() const { return m_name; }
-	inline Game* GetGame() const { return m_game; }
-
-	inline std::vector<Entity*>& GetEntities() { return m_entities; }
-	inline std::vector<Entity*> GetEntities() const { return m_entities; }
-
-	inline uint32 GetID() { return m_id; }
+	template<class ActorType>
+	inline const std::vector<ActorType*> GetActiveActors() const 
+	{
+		std::vector<ActorType*> output;
+		for (uint32 i = 0; i < m_activeActors.size(); ++i)
+		{
+			ActorType* casted = dynamic_cast<ActorType*>(m_activeActors[i]);
+			if (casted != nullptr)
+				output.emplace_back(casted);
+		}
+		return output;
+	}
 };

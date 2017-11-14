@@ -17,19 +17,24 @@ const MClass* MClass::GetParentClass() const
 	return nullptr;
 }
 
-bool MClass::IsChildOf(const MClass* other) const 
+bool MClass::IsChildOf(const MClass* other, const bool& trueIfIdentical) const
 {
 	if (this == other)
-		return true;
+		return trueIfIdentical;
 
 	const MClass* parent = GetParentClass();
 	if (parent == nullptr)
 		return false;
 	else
-		return parent->IsChildOf(other);
+		return parent->IsChildOf(other, true);
 }
 
 const MClass* ManagedObject::StaticClass()
+{
+	return nullptr;
+}
+
+const MClass* ManagedObject::ParentStaticClass()
 {
 	return nullptr;
 }

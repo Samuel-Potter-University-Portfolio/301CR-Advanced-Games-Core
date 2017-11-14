@@ -1,13 +1,13 @@
 #include "Includes\Core\Camera.h"
+CLASS_SOURCE(ACamera, CORE_API)
 
 
-Camera::Camera()
+ACamera::ACamera()
 {
-	SetName("Camera");
 }
 
 #ifdef BUILD_CLIENT
-void Camera::Draw(sf::RenderWindow* window, const float& deltaTime) 
+void ACamera::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 {
 	sf::View view = window->getView();
 	view.setCenter(GetLocation());

@@ -7,7 +7,6 @@
 
 
 class Engine;
-class Entity;
 
 
 /**
@@ -144,7 +143,7 @@ protected:
 	* @param socketType			The socket type this content will be sent over
 	* @param entity				The entity that we wish to encode
 	*/
-	void EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity);
+	void EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, class Entity* entity);
 	/**
 	* Decode information about this entity message
 	* @param targetNetId	The net id of where this data has arrived from

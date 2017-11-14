@@ -22,9 +22,9 @@ class NetController
 {
 private:
 	std::list<NetSocket*> m_activeSockets;
-	const Engine* m_engine;
+	const Engine* m_engine = nullptr;
 
-	NetSession* m_activeSession;
+	NetSession* m_activeSession = nullptr;
 
 public:
 	NetController(const Engine* engine);

@@ -1,11 +1,12 @@
 #pragma once
-#include "Core\Entity.h"
+#include "Core\Actor.h"
 
 
-class TestEntity : public Entity
+class ATestEntity : public AActor
 {
+	CLASS_BODY()
 public:
-	TestEntity();
+	ATestEntity();
 
 
 protected:
@@ -17,6 +18,8 @@ protected:
 	* Callback for entity's level first tick
 	*/
 	virtual void OnBegin();
+
+	virtual void OnDestroy();
 
 	/**
 	* Callback for level first tick
@@ -36,7 +39,7 @@ protected:
 	* @param window			The window to draw to
 	* @param deltaTime		Time since last draw in seconds)
 	*/
-	virtual void Draw(sf::RenderWindow* window, const float& deltaTime);
+	virtual void OnDraw(sf::RenderWindow* window, const float& deltaTime) override;
 #endif
 };
 

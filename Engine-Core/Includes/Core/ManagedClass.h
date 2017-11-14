@@ -5,13 +5,13 @@
 
 /**
 * Store start id (Used to get compile time unique ids)
-* 0-9,999		Reserved for engine (lib)
-* 10,000-xyz	Reserved for game application (exe)
+* 0-29,999		Reserved for engine (lib)
+* 30,000-xyz	Reserved for game application (exe)
 */
 #ifdef BUILD_CORE
 #define __ID_START__ 0
 #else
-#define __ID_START__ 10000
+#define __ID_START__ 30000
 #endif
 #define __UNIQUE_ID__ (__ID_START__ + __COUNTER__)
 
@@ -25,7 +25,7 @@
 class CORE_API MClass
 {
 private:
-	const char* m_name;
+	string m_name;
 	const uint16 m_id;
 
 public:
@@ -55,18 +55,19 @@ public:
 	virtual const MClass* GetParentClass() const;
 
 	/**
-	* Is this class a child of the the other class (Returns true if the same class)
-	* @param other				The class we want to check if they are our parent
-	* @returns True, if the other class is us or a parent
+	* Is this class a child of the the other class
+	* @param other					The class we want to check if they are our parent
+	* @param trueIfIdentical		Should return true, if this class is the same as other
+	* @returns If the other class is the parent of this class (Or the same, if trueIfIdentical=true)
 	*/
-	bool IsChildOf(const MClass* other) const;
+	bool IsChildOf(const MClass* other, const bool& trueIfIdentical = true) const;
 
 
 	/**
 	* Getters & Setters
 	*/
 public:
-	inline const char* GetName() const { return m_name; }
+	inline const string& GetName() const { return m_name; }
 	inline const uint16& GetID() const { return m_id; }
 };
 
@@ -81,6 +82,9 @@ class SubClassOf
 private:
 	const MClass* m_type = Type::StaticClass();
 public:
+	SubClassOf() { }
+	SubClassOf(const MClass* type) { operator=(type); }
+
 	inline SubClassOf<Type>& operator=(const MClass* value)
 	{
 		if (value->IsChildOf(Type::StaticClass()))
@@ -98,6 +102,7 @@ public:
 
 	inline bool operator==(const MClass* other) const { return m_type == other; }
 	inline bool operator!=(const MClass* other) const { return m_type != other; }
+	inline bool IsBaseClass() const { return m_type == Type::StaticClass(); }
 
 	inline const MClass* operator*() const { return m_type; }
 	inline const MClass* operator->() const { return m_type; }
@@ -115,7 +120,10 @@ class CORE_API ManagedObject
 {
 public:
 	/** Return single class instance used by this class type */
-	inline static const MClass* StaticClass();
+	static const MClass* StaticClass();
+
+	/** Return single class instance used by this class' parent type */
+	static const MClass* ParentStaticClass();
 
 	/** Return single class instance used by this class	*/
 	virtual const MClass* GetClass() = 0;
@@ -128,8 +136,10 @@ public:
 * Generates required function signatures for managed objects
 */
 #define CLASS_BODY() \
+	friend class ClassName ## _Class; \
 public: \
 	static const MClass* StaticClass(); \
+	static const MClass* ParentStaticClass(); \
 	virtual const MClass* GetClass(); \
 private:
 
@@ -137,7 +147,7 @@ private:
 /**
 * Generates the required MClass and function content for Managed objects
 */
-#define CLASS_SOURCE(ClassName, ParentName, API) \
+#define CLASS_SOURCE(ClassName, API) \
 class API ClassName ## _Class : public MClass \
 { \
 private: \
@@ -148,10 +158,11 @@ private: \
 \
 	virtual ManagedObject* NewObject(void* dst = nullptr) const { return dst == nullptr ? new ClassName : new(dst) ClassName; } \
 \
-	virtual const MClass* GetParentClass() const { return ParentName::StaticClass(); } \
+	virtual const MClass* GetParentClass() const { return ClassName::ParentStaticClass(); } \
 public: \
 	const ClassName* GetReferenceObject() const { return &m_refObj; } \
 }; \
 \
 const MClass* ClassName::StaticClass() { static ClassName ## _Class sc; return &sc; } \
+const MClass* ClassName::ParentStaticClass() { return __super::StaticClass(); } \
 const MClass* ClassName::GetClass() { return ClassName::StaticClass(); } 

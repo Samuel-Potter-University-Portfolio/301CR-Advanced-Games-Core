@@ -1,14 +1,15 @@
 #pragma once
 #include "Core\Level.h"
 
-class MainLevel : public Level
+class LMainLevel : public LLevel
 {
+	CLASS_BODY()
 public:
-	MainLevel();
+	LMainLevel();
 	
 	/**
 	* Called when this level comes into usage
 	*/
-	virtual void BuildLevel();
+	virtual void OnBuildLevel() override;
 };
 

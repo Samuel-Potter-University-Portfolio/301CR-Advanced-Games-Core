@@ -1,7 +1,6 @@
 #include "Includes\Core\NetSession.h"
 #include "Includes\Core\NetController.h"
 
-#include "Includes\Core\Entity.h"
 #include "Includes\Core\Engine.h"
 #include "Includes\Core\Game.h"
 #include "Includes\Core\Level.h"
@@ -90,7 +89,6 @@ NetResponseCode NetSession::DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuff
 			outNetId = m_playerIdCounter++;
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Accepted);
 			Encode<uint16>(outBuffer, outNetId);
-			Encode<string>(outBuffer, m_engine->GetGame()->GetCurrentLevel()->GetName());
 			m_newPlayers.emplace(outNetId); // Add to new players to make sure correct welcome packets get sent
 
 			// TODO - Fill in more session information
@@ -126,12 +124,7 @@ NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer, uint16& ou
 	// Get net id if successful
 	if (response == NetResponseCode::Accepted)
 	{
-		string levelName;
 		Decode<uint16>(buffer, outNetId);
-		if (Decode(buffer, levelName))
-			m_engine->GetGame()->SwitchLevel(levelName);
-		else
-			LOG_WARNING("Cannot load onto same level as server '%s'", levelName.c_str());
 	}
 	return response;
 }
@@ -139,6 +132,8 @@ NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer, uint16& ou
 
 void NetSession::EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity)
 {
+	// TODO - UPDATE
+	/*
 	if ((!IsHost() && !entity->HasNetControl()) || !entity->IsNetSynced()) 
 		return;
 
@@ -196,10 +191,13 @@ void NetSession::EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buff
 		// TODO - Sync vars
 		entity->EncodeRPCRequests(targetNetId, buffer, socketType);
 	}
+	*/
 }
 
 void NetSession::DecodeEntityMessage(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType)
 {
+	// TODO - UPDATE
+	/*
 	uint8 rawMethod;
 	Decode(buffer, rawMethod);
 	NetEntityMethod method = (NetEntityMethod)rawMethod;
@@ -298,6 +296,7 @@ void NetSession::DecodeEntityMessage(const uint16& sourceNetId, ByteBuffer& buff
 	default:
 		break;
 	}
+	*/
 }
 
 void NetSession::NetDecode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)

@@ -1,19 +1,19 @@
 #include "MainLevel.h"
+CLASS_SOURCE(LMainLevel)
 
 #include "Core\Camera.h"
 #include "TestEntity.h"
 
 
-MainLevel::MainLevel() : Level("Main")
+LMainLevel::LMainLevel()
 {
 
 
 }
 
-void MainLevel::BuildLevel() 
+void LMainLevel::OnBuildLevel()
 {
-	SpawnEntity<Camera>();
-	SpawnEntity<TestEntity>();
-	TestEntity* e = SpawnEntity<TestEntity>(1);
-	e->SetLocation(sf::Vector2f(0, 100));
+	SpawnActor<ACamera>();
+	SpawnActor<ATestEntity>();
+	SpawnActor<ATestEntity>(vec2(0, 100));
 }

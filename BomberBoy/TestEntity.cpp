@@ -1,13 +1,14 @@
 #include "TestEntity.h"
+CLASS_SOURCE(ATestEntity)
 
 
-
-TestEntity::TestEntity()
+ATestEntity::ATestEntity()
 {
 	bIsNetSynced = true;
+	bIsTickable = true;
 }
 
-bool TestEntity::FetchRPCIndex(const char* funcName, uint16& outID) const
+bool ATestEntity::FetchRPCIndex(const char* funcName, uint16& outID) const
 {
 	RPC_INDEX_HEADER(funcName, outID);
 	RPC_INDEX(ResetPosition);
@@ -16,7 +17,7 @@ bool TestEntity::FetchRPCIndex(const char* funcName, uint16& outID) const
 	return false;
 }
 
-bool TestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
+bool ATestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
 {
 	RPC_EXEC_HEADER(id, params);
 	RPC_EXEC(ResetPosition);
@@ -25,12 +26,18 @@ bool TestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
 	return false;
 }
 
-void TestEntity::OnBegin() 
+void ATestEntity::OnBegin()
 {
 	startPos = GetLocation();
+	timer = 0;
 }
 
-void TestEntity::OnTick(const float& deltaTime) 
+void ATestEntity::OnDestroy() 
+{
+	LOG("Ded");
+}
+
+void ATestEntity::OnTick(const float& deltaTime)
 {
 #ifdef BUILD_CLIENT
 	timer += deltaTime;
@@ -42,7 +49,7 @@ void TestEntity::OnTick(const float& deltaTime)
 	//	return;
 	//}
 
-	CallRPC_TwoParam(UDP, RPCTarget::Host, this, PrintTime, timer, 10.0f - timer);
+	CallRPC_TwoParam(UDP, RPCTarget::GlobalBroadcast, this, PrintTime, timer, 10.0f - timer);
 
 	//sf::Vector2f dl = GetLocation() + sf::Vector2f(30, 0) * deltaTime;
 	//CallRPC_TwoParam(TCP, RPCTarget::Owner, this, MoveTo, dl.x, dl.y);
@@ -50,26 +57,31 @@ void TestEntity::OnTick(const float& deltaTime)
 }
 
 #ifdef BUILD_CLIENT
-void TestEntity::Draw(sf::RenderWindow* window, const float& deltaTime) 
+void ATestEntity::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 {
 	sf::CircleShape shape(50);
 	shape.setPosition(GetLocation());
-	shape.setFillColor(sf::Color(100, 255, 50));
+	shape.setFillColor(sf::Color(255, 100, 50));
 	window->draw(shape);
+
+	//sf::CircleShape shape(50);
+	//shape.setPosition(GetLocation());
+	//shape.setFillColor(sf::Color(100, 255, 50));
+	//window->draw(shape);
 }
 #endif
 
-void TestEntity::PrintTime(float time, float time2)
+void ATestEntity::PrintTime(float time, float time2)
 {
-	SetLocation(sf::Vector2f(time, time2) * 30.0f);
+	SetLocation(startPos + vec2(time, -time) * 20.0f);
 }
 
-void TestEntity::ResetPosition() 
+void ATestEntity::ResetPosition()
 {
 	SetLocation(startPos);
 }
 
-void TestEntity::MoveTo(float x, float y) 
+void ATestEntity::MoveTo(float x, float y)
 {
 	SetLocation(sf::Vector2f(x, y));
 }

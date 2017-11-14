@@ -176,7 +176,7 @@ public:
 	inline const uint16& GetNetworkOwnerID() const { return m_networkOwnerId; }
 
 	inline const NetRole& GetNetRole() const { return m_netRole; }
-	inline const bool IsNetOwner() const { return m_netRole == NetRole::HostOwner || m_netRole == NetRole::RemoteOwner; }
+	inline const bool IsNetOwner() const { return m_netRole == NetRole::None || m_netRole == NetRole::HostOwner || m_netRole == NetRole::RemoteOwner; }
 	inline const bool IsNetHost() const { return m_netRole == NetRole::HostOwner || m_netRole == NetRole::HostPuppet; }
 	inline const bool HasNetControl() const { return IsNetOwner() || IsNetHost(); }
 };

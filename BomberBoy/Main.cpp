@@ -17,19 +17,20 @@ static inline int entry(std::vector<string>& args)
 
 
 	// Setup engine
-	EngineInfo engineInfo(args);
-	Engine engine(&engineInfo);
+	Engine engine(args);
 
 	// Setup game
 	Game game("Bomber Boy", Version(0,1,0));
 	{
 		// Add levels
-		game.SetDefaultLevelName("Main");
-		game.RegisterLevel(new MainLevel);
+		game.RegisterClass(LMainLevel::StaticClass());
 
-		// Register entities
-		game.RegisterEntity(new EntityFactory<Camera>());
-		game.RegisterEntity(new EntityFactory<TestEntity>());
+		game.SetDefaultLevel(LMainLevel::StaticClass());
+		game.SetDefaultNetLevel(LMainLevel::StaticClass());
+
+		// Register actors
+		game.RegisterClass(ACamera::StaticClass());
+		game.RegisterClass(ATestEntity::StaticClass());
 
 		// Register assets
 	}

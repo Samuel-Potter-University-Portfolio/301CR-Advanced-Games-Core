@@ -1,66 +1,123 @@
 #include "Includes\Core\Level.h"
+#include "Includes\Core\Game.h"
 
 
-Level::Level(string name)
+CLASS_SOURCE(LLevel, CORE_API)
+uint32 LLevel::s_instanceCounter = 0;
+
+
+LLevel::LLevel() :
+	m_instanceId(s_instanceCounter++)
 {
-	m_name = name;
 }
 
-Level::~Level()
+LLevel::~LLevel()
 {
-	for (Entity* e : m_entities)
-		delete e;
 }
 
-void Level::HookGame(Game* game) 
+void LLevel::OnLevelActive(Game* game)
 {
-	static uint32 counter = 0;
 	m_game = game;
-	m_id = ++counter; // Give each level a unique id
 }
 
-void Level::OnPostLoad() 
+void LLevel::MainUpdate(const float& deltaTime) 
 {
-	// Flag all entitys that were loaded in during level build
-	for (Entity* e : m_entities)
-		e->bWasLoadedWithLevel = true;
-}
+	if (bIsDestroying)
+		return;
 
-void Level::DestroyLevel()
-{
-
-}
-
-void Level::AddEntity(Entity* entity) 
-{
-	m_entities.emplace_back(entity);
-	entity->m_instanceId = m_entityCounter++;
-
-	NetSession* session = GetGame()->GetSession();
-
-	// Store for faster lookup
-	if (session != nullptr)
+	for (AActor* actor : m_activeActors)
 	{
-		if (entity->GetNetworkID() != 0)
-			m_netEntities[entity->GetNetworkID()] = entity;
+		if (actor->IsTickable())
+			actor->OnTick(deltaTime);
 	}
 
-	entity->HandleSpawn(this);
+
+	// Perform cleanup
+	for (uint32 i = 0; i < m_activeActors.size(); ++i)
+	{
+		AActor*& actor = m_activeActors[i];
+		if (!actor->IsDestroyed())
+			continue;
+
+		// Remove object
+		m_activeActors.erase(m_activeActors.begin() + i);
+		--i;
+
+		// Remove networking reference
+		if (actor->GetNetworkID() != 0)
+		{
+			m_netActorLookup.erase(actor->GetNetworkID());
+			// TODO - Active Session callback
+		}
+
+		delete actor;
+	}
 }
 
-Entity* Level::GetEntityFromNetId(const uint16& netId) const
+#ifdef BUILD_CLIENT
+void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 {
-	auto it = m_netEntities.find(netId);
-	if (it == m_netEntities.end())
+	if (bIsDestroying)
+		return;
+
+	for (uint32 layer = 0; layer <= 10; ++layer)
+	{
+		for (uint32 i = 0; i < m_activeActors.size(); ++i)
+		{
+			AActor* actor = m_activeActors[i]; // TODO - Better safety with memory destruction
+
+			if (actor->GetDrawingLayer() == layer && !actor->IsDestroyed() && actor->IsVisible())
+				actor->OnDraw(window, deltaTime);
+		}
+	}
+}
+#endif
+
+
+void LLevel::Build()
+{
+	AActor::s_instanceCounter = 0;
+	bIsBuilding = true;
+	OnBuildLevel();
+	bIsBuilding = false;
+}
+
+void LLevel::Destroy()
+{
+	bIsDestroying = true;
+	OnDestroyLevel();
+	for (AActor* actor : m_activeActors)
+	{
+		actor->OnDestroy();
+		delete actor;
+	}
+}
+
+void LLevel::AddActor(AActor* actor)
+{
+#if BUILD_DEBUG
+	// Check class is registered (Assume this is not needed for release)
+	if (!GetGame()->IsRegisteredActor(actor->GetClass()->GetID()))
+		LOG_WARNING("Adding actor of class '%s' that is not registered!", actor->GetClass()->GetName().c_str());
+#endif
+
+	// Add to level
+	m_activeActors.emplace_back(actor);
+	actor->OnLevelLoaded(this);
+
+	// Add to look up table, if net synced
+	NetSession* session = GetGame()->GetSession();
+	if (session != nullptr && actor->GetNetworkID() != 0)
+		m_netActorLookup[actor->GetNetworkID()] = actor;
+}
+
+AActor* LLevel::SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location)
+{
+	AActor* actor = actorClass->New<AActor>();
+	if (actor == nullptr)
 		return nullptr;
-	else
-		return it->second;
-}
-
-Entity* Level::GetEntityFromInstanceId(const uint16& id) const
-{
-	for (int i = 0; i < m_entities.size(); ++i)
-		if (m_entities[i]->GetInstanceID() == id)
-			return m_entities[i];
-	return nullptr;
+	actor->m_location = location;
+	actor->bWasSpawnedWithLevel = bIsBuilding;
+	AddActor(actor);
+	return actor;
 }

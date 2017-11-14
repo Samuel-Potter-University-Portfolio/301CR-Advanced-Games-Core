@@ -1,12 +1,13 @@
 #pragma once
 #include "Common.h"
-#include "Entity.h"
+#include "Actor.h"
 
 
-class CORE_API Camera : public Entity 
+class CORE_API ACamera : public AActor
 {
+	CLASS_BODY()
 public:
-	Camera();
+	ACamera();
 
 #ifdef BUILD_CLIENT
 	/**
@@ -14,6 +15,6 @@ public:
 	* @param window			The window to draw to
 	* @param deltaTime		Time since last draw in seconds)
 	*/
-	virtual void Draw(sf::RenderWindow* window, const float& deltaTime);
+	virtual void OnDraw(sf::RenderWindow* window, const float& deltaTime) override;
 #endif
 };

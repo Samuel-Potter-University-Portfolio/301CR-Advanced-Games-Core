@@ -2,18 +2,15 @@
 #include "Includes\Core\Game.h"
 
 
-EngineInfo::EngineInfo(std::vector<string>& args) 
-{
-	// TODO - Parse args
-}
 
-
-Engine::Engine(EngineInfo* info) : 
-	m_initInfo(*info), m_version(0,1,0)
+Engine::Engine(std::vector<string>& args) :
+	m_version(0,1,1)
 {
 	LOG("Engine Initializing");
 	LOG("\t-Engine Version (%i.%i.%i)", m_version.major, m_version.minor, m_version.patch);
+
 	m_netController = new NetController(this);
+	m_desiredResolution = uvec2(800, 600);
 }
 
 Engine::~Engine()
@@ -31,7 +28,7 @@ void Engine::Launch(Game* game)
 
 	// Setup game
 	m_game = game;
-	m_game->HookEngine(this);
+	m_game->OnGameHooked(this);
 
 	
 #ifdef BUILD_CLIENT
@@ -107,9 +104,15 @@ void Engine::DisplayLoop()
 	// Open Window
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 4;
-	m_renderWindow = new sf::RenderWindow(sf::VideoMode(m_initInfo.windowWidth, m_initInfo.windowHeight), m_game->GetName(), sf::Style::Default, settings);
 
-	LOG("Opening window (%s, %ix%i)", m_game->GetName().c_str(), m_initInfo.windowWidth, m_initInfo.windowHeight);
+	m_renderWindow = new sf::RenderWindow(
+		sf::VideoMode(m_desiredResolution.x, m_desiredResolution.y),
+		m_game->GetName(), 
+		sf::Style::Default, 
+		settings
+	);
+
+	LOG("Opening window (%s, %ix%i)", m_game->GetName().c_str(), m_desiredResolution.x, m_desiredResolution.y);
 
 
 	// Launch into main loop
@@ -121,9 +124,9 @@ void Engine::DisplayLoop()
 			HandleDisplayEvent(event);
 
 
-
 		// Clear window
 		m_renderWindow->clear();
+
 
 		// Tick rendering 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;

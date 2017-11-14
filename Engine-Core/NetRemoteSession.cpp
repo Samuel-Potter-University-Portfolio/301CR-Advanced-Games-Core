@@ -2,7 +2,6 @@
 #include "Includes\Core\Engine.h"
 #include "Includes\Core\Game.h"
 #include "Includes\Core\Level.h"
-#include "Includes\Core\Entity.h"
 
 
 
@@ -87,9 +86,10 @@ void NetRemoteSession::Update(const float& deltaTime)
 
 
 	// Clear any queued net data
-	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
-		if (entity->IsNetSynced() && entity->IsNetOwner())
-			entity->ClearQueuedNetData();
+	// TODO - UPDATE
+	//for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
+	//	if (entity->IsNetSynced() && entity->IsNetOwner())
+	//		entity->ClearQueuedNetData();
 }
 
 bool NetRemoteSession::EnsureConnection() 
@@ -178,6 +178,8 @@ bool NetRemoteSession::EnsureConnection()
 void NetRemoteSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
 {
 	// Encode all owned entities
+	// TODO - UPDATE
+	/*
 	ByteBuffer tempBuffer;
 	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
 		if (entity->IsNetSynced() && entity->IsNetOwner())
@@ -190,6 +192,7 @@ void NetRemoteSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const 
 				tempBuffer.Clear();
 			}
 		}
+		*/
 
 
 	// Encode empty ping packet

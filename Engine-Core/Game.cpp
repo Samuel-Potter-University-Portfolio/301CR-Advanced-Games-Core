@@ -1,171 +1,215 @@
 #include "Includes\Core\Game.h"
-#include "Includes\Core\Level.h"
-#include "Includes\Core\Entity.h"
+#include "Includes\Core\Engine.h"
 
 
 Game::Game(string name, Version version) :
 	m_name(name),
 	m_version(version)
 {
-	// Reserve 0 ids as null
-	m_entityTypeLookup.push_back(nullptr);
-	m_levelLookup.push_back(nullptr);
 }
 
 Game::~Game()
 {
 	// Close current level
-	if (currentLevel != nullptr)
+	if (m_currentLevel != nullptr)
 	{
-		LOG("Closing level '%s'", currentLevel->GetName().c_str());
-		currentLevel->DestroyLevel();
-		currentLevel = nullptr;
+		LOG("Closing level '%s'", m_currentLevel->GetClass()->GetName().c_str());
+		m_currentLevel->Destroy();
+		delete m_currentLevel;
+		m_currentLevel = nullptr;
 	}
-
-	// Delete all entities
-	for (auto& pair : m_entityTypes)
-		delete pair.second;
-
-	// Delete all levels
-	for (auto& pair : m_levels)
-		delete pair.second;
 
 	LOG("Closed game '%s'", m_name.c_str());
 }
 
 
-void Game::HookEngine(Engine* engine)
+void Game::MainUpdate(const float& deltaTime)
 {
-	m_engine = engine;
-	SwitchLevel(defaultLevel);
-}
+	if (m_currentLevel != nullptr)
+		m_currentLevel->MainUpdate(deltaTime);
 
 
-void Game::MainUpdate(const float& deltaTime) 
-{
-	if (currentLevel == nullptr)
-		return;
+	// Perform cleanup
+	for (uint32 i = 0; i < m_activeObjects.size(); ++i)
+	{
+		OObject*& object = m_activeObjects[i];
+		if (!object->IsDestroyed())
+			continue;
 
-	std::vector<Entity*> entities = currentLevel->GetEntities();
-	for (Entity* entity : entities)
-		entity->HandleMainUpdate(deltaTime);
+		// Remove object
+		m_activeObjects.erase(m_activeObjects.begin() + i);
+		--i;
+
+		// Remove networking reference
+		if (object->GetNetworkID() != 0)
+		{
+			m_netObjectLookup.erase(object->GetNetworkID());
+			// TODO - Active Session callback
+		}
+
+		delete object;
+	}
 }
 
 #ifdef BUILD_CLIENT
-void Game::DisplayUpdate(const float& deltaTime) 
+void Game::DisplayUpdate(const float& deltaTime)
 {
-	if (currentLevel == nullptr)
-		return;
-
-	std::vector<Entity*>& entities = currentLevel->GetEntities();
-	sf::RenderWindow* window = m_engine->GetDisplayWindow();
-
-	// Not on main thread, so foreach unsafe
-	for (uint32 layer = 0; layer < 20; ++layer)
-	{
-		// Not on main thread, so foreach unsafe
-		for (uint32 i = 0; i < entities.size(); ++i)
-		{
-			Entity* entity = entities[i];
-			if (entity->GetSortingLayer() == layer)
-				entity->Draw(window, deltaTime);
-
-		}
-	}
+	if (m_currentLevel != nullptr)
+		m_currentLevel->DisplayUpdate(m_engine->GetDisplayWindow(), deltaTime);
 }
 #endif
 
-
-void Game::RegisterLevel(Level* level) 
+void Game::OnGameHooked(Engine* engine)
 {
-	if (m_levels.find(level->GetName()) != m_levels.end())
-	{
-		LOG_ERROR("Cannot register multiple levels with name '%s'", level->GetName().c_str());
-	}
+	m_engine = engine;
 
-	m_levels[level->GetName()] = level;
-	level->HookGame(this);
-	m_levelLookup.push_back(level);
+	// Switch to correct level
+	NetSession* session = GetSession();
+	if(session == nullptr || !session->IsHost())
+		SwitchLevel(m_defaultLevel);
+	else
+		SwitchLevel(m_defaultNetLevel);
 }
 
-bool Game::SwitchLevel(string levelName)
+
+void Game::RegisterClass(const MClass* classType) 
 {
-	// Close current level
-	if (currentLevel != nullptr)
+	// Register level
+	if (classType->IsChildOf(LLevel::StaticClass()))
 	{
-		LOG("Closing level '%s'", currentLevel->GetName().c_str());
-		currentLevel->DestroyLevel();
-		currentLevel = nullptr;
+		if (classType == LLevel::StaticClass())
+		{
+			LOG_ERROR("Cannot register class, as it is base class LLevel!");
+			return;
+		}
+		m_registeredLevels[classType->GetID()] = classType;
 	}
 
-	// Recentre camera
+	// Register actor
+	else if (classType->IsChildOf(AActor::StaticClass()))
+	{
+		if (classType == AActor::StaticClass())
+		{
+			LOG_ERROR("Cannot register class, as it is base class AActor!");
+			return;
+		}
+		m_registeredActorTypes[classType->GetID()] = classType;
+	}
+
+	// Register object
+	else if (classType->IsChildOf(OObject::StaticClass()))
+	{
+		if (classType == OObject::StaticClass())
+		{
+			LOG_ERROR("Cannot register class, as it is base class OObject!");
+			return;
+		}
+		m_registeredObjectTypes[classType->GetID()] = classType;
+	}
+
+	// Unsupported class type
+	else
+	{
+		LOG_ERROR("Cannot register class '%s', as unknown class type", classType->GetName().c_str());
+	}
+}
+
+
+bool Game::SwitchLevel(const SubClassOf<LLevel>& levelType) 
+{
+	// Close current level
+	if (m_currentLevel != nullptr)
+	{
+		LOG("Closing level '%s'", m_currentLevel->GetClass()->GetName().c_str());
+		m_currentLevel->Destroy();
+		delete m_currentLevel;
+		m_currentLevel = nullptr;
+	}
+
+#ifdef BUILD_DEBUG
+	// Check level is supported
+	if (!IsRegisteredLevel(levelType->GetID()))
+	{
+		LOG_ERROR("Cannot switch to level '%s', as it is not registered to the game", levelType->GetName().c_str());
+		return false;
+	}
+#endif
+
 #ifdef BUILD_CLIENT
+	// Recentre camera
 	sf::RenderWindow* window = m_engine->GetDisplayWindow();
-	if(window != nullptr)
+	if (window != nullptr)
 		window->setView(window->getDefaultView());
 #endif
 
-	// Attempt to load level with given name
-	Level* level = m_levels[levelName];
+	// Attempt to load desired level
+	LOG("Loading level '%s'", levelType->GetName().c_str());
+	m_currentLevel = levelType->New<LLevel>();
+	m_currentLevel->OnLevelActive(this);
+	m_currentLevel->Build();
+	return true;
+}
 
-	// Load new level
-	if (level != nullptr) 
+bool Game::SwitchLevel(const uint16& levelId) 
+{
+	// Close current level
+	if (m_currentLevel != nullptr)
 	{
-		LOG("Loading level '%s'", levelName.c_str());
-		currentLevel = level;
-		currentLevel->BuildLevel();
-		currentLevel->OnPostLoad();
-		return true;
+		LOG("Closing level '%s'", m_currentLevel->GetClass()->GetName().c_str());
+		m_currentLevel->Destroy();
+		delete m_currentLevel;
+		m_currentLevel = nullptr;
 	}
 
+#ifdef BUILD_CLIENT
+	// Recentre camera
+	sf::RenderWindow* window = m_engine->GetDisplayWindow();
+	if (window != nullptr)
+		window->setView(window->getDefaultView());
+#endif
+
+	// Level not registered
+	if (!IsRegisteredLevel(levelId))
+	{
+		LOG_ERROR("Cannot switch to level to id %i, as it is not registered to the game", levelId);
+		return false;
+	}
+
+	// Attempt to load desired level
+	SubClassOf<LLevel>& levelType = m_registeredLevels[levelId];
+	LOG("Loading level '%s'", levelType->GetName().c_str());
+	m_currentLevel = levelType->New<LLevel>();
+	m_currentLevel->OnLevelActive(this);
+	m_currentLevel->Build();
+	return true;
+}
+
+void Game::AddObject(OObject* object)
+{
+#if BUILD_DEBUG
+	// Check class is registered (Assume this is not needed for release)
+	if (!IsRegisteredObject(object->GetClass()->GetID()))
+		LOG_WARNING("Adding object of class '%s' that is not registered!", object->GetClass()->GetName().c_str());
+#endif
+
+	// Add object
+	m_activeObjects.emplace_back(object);
+	object->OnGameLoaded(this);
 	
-	// Attempt to load into default level
-	if (levelName == defaultLevel)
-	{
-		LOG_ERROR("Unable to load level default level '%s'", defaultLevel.c_str());
-	}
-	else
-	{
-		LOG_ERROR("Unable to load level '%s' (Attempting to load default)", levelName.c_str());
-		SwitchLevel(defaultLevel);
-	}
 
-	return false;
+	// Add to look up table, if net synced
+	NetSession* session = GetSession();
+	if (session != nullptr && object->GetNetworkID() != 0)
+		m_netObjectLookup[object->GetNetworkID()] = object;
 }
 
-void Game::RegisterEntity(ClassFactory<Entity>* entityType) 
+OObject* Game::SpawnObject(const SubClassOf<OObject>& objectClass)
 {
-	if (m_entityTypes.find(entityType->GetHash()) != m_entityTypes.end())
-	{
-		LOG_ERROR("Cannot register multiple entities with name '%s'", entityType->GetName());
-	}
-
-	// Give type a unique id
-	m_entityTypes[entityType->GetHash()] = entityType;
-	m_entityTypeLookup.push_back(entityType);
-	entityType->SetID(m_entityTypeLookup.size() - 1);
-}
-
-ClassFactory<Entity>* Game::GetEntityFactoryFromID(uint32 id) 
-{
-	if (id >= m_entityTypeLookup.size())
-	{
-		LOG_ERROR("Cannot find registered entity of type id '%i'", id);
+	OObject* object = objectClass->New<OObject>();
+	if (object == nullptr)
 		return nullptr;
-	}
-	return m_entityTypeLookup[id];
-}
-
-ClassFactory<Entity>* Game::GetEntityFactoryFromHash(uint32 hash)
-{
-	auto it = m_entityTypes.find(hash);
-	if (it == m_entityTypes.end())
-	{
-		LOG_ERROR("Cannot find registered entity of hash '%i'", hash);
-		return nullptr;
-	}
-
-	return it->second;
+	AddObject(object);
+	return object;
 }
 
 NetSession* Game::GetSession() const

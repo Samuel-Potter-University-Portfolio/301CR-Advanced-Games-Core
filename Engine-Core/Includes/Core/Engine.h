@@ -9,22 +9,7 @@
 #include <SFML/Graphics.hpp>
 
 
-
 class Game;
-
-
-/**
-* Initialization settings used by the engine
-*/
-struct CORE_API EngineInfo
-{
-	uint32 windowWidth = 800;
-	uint32 windowHeight = 600;
-
-	NetIdentity defaultNetIdentity = NetIdentity(sf::IpAddress::LocalHost, 20010);
-
-	EngineInfo(std::vector<string>& args);
-};
 
 
 /**
@@ -33,21 +18,21 @@ struct CORE_API EngineInfo
 class CORE_API Engine
 {
 private:
-	EngineInfo m_initInfo;
 	Version m_version;
-	Game* m_game;
 
-	NetController* m_netController;
+	Game* m_game = nullptr;
+	NetController* m_netController = nullptr;
 
+	uvec2 m_desiredResolution;
 	bool bUpdateMain;
 	bool bUpdateDisplay;
 
 #ifdef BUILD_CLIENT
-	sf::RenderWindow* m_renderWindow;
+	sf::RenderWindow* m_renderWindow = nullptr;
 #endif
 
 public:
-	Engine(EngineInfo* info);
+	Engine(std::vector<string>& args);
 	~Engine();
 
 	/**
@@ -79,6 +64,7 @@ private:
 	*/
 	void HandleDisplayEvent(sf::Event& event);
 #endif
+
 
 	/**
 	* Getters and setters
