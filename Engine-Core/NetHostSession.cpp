@@ -38,6 +38,20 @@ bool NetHostSession::Start()
 
 void NetHostSession::NetUpdate(const float& deltaTime)
 {
+	// Update for any timed out connection
+	for (auto& it = m_connectionLookup.begin(); it != m_connectionLookup.end();)
+	{
+		if ((it->second.inactivityTimer += deltaTime) >= m_maxInactivityTime)
+		{
+			LOG("%s:%i timed out..", it->second.identity.ip.toString().c_str(), it->second.identity.port);
+			OObject::Destroy(it->second.controller);
+			m_connectionLookup.erase(it++);
+		}
+		else
+			++it;
+	}
+
+
 	////
 	// Read and attempt to connect/decode any data retrieved from clients
 	////
@@ -70,7 +84,10 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 
 			// Player already connected (So just attempt to decode)
 			else
+			{
 				NetDecode(playerConnection.controller, packet.buffer, TCP);
+				playerConnection.inactivityTimer = 0;
+			}
 		}
 
 	// Fetch UDP packets
@@ -83,7 +100,10 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 			// Player connected (Only perform handshake on TCP)
 			NetPlayerConnection playerConnection;
 			if (GetPlayerFromIdentity(packet.source, playerConnection))
+			{
 				NetDecode(playerConnection.controller, packet.buffer, UDP);
+				playerConnection.inactivityTimer = 0;
+			}
 		}
 
 	
@@ -103,13 +123,8 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 		NetEncode(it.second.controller, udpContent, UDP);
 
 		const NetIdentity& identity = it.first;
-		if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
-		{
-			// TODO - Handle disconnections 
-			LOG_ERROR("Failed to send TCP update to %s:%i", identity.ip.toString().c_str(), identity.port);
-		}
-		if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
-			LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
+		m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity); // Will return false in event of disconnect, so could use this?
+		m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity);
 	}
 }
 

@@ -18,6 +18,8 @@ class CORE_API NetRemoteSession : public NetSession
 private:
 	LocalClientStatus m_clientStatus;
 	OPlayerController* m_localController;
+	float m_inactivityTimer = 0;
+	const float m_maxInactivityTime = 15.0f;
 
 public:
 	NetRemoteSession(Game* game, const NetIdentity identity);

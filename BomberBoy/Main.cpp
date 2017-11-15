@@ -25,8 +25,8 @@ static inline int entry(std::vector<string>& args)
 		// Add levels
 		game.RegisterClass(LMainLevel::StaticClass());
 
-		game.SetDefaultLevel(LMainLevel::StaticClass());
-		game.SetDefaultNetLevel(LMainLevel::StaticClass());
+		game.defaultLevel = LMainLevel::StaticClass();
+		game.defaultNetLevel = LMainLevel::StaticClass();
 
 		// Register actors
 		game.RegisterClass(ACamera::StaticClass());

@@ -6,6 +6,8 @@
 #include "Actor.h"
 #include "Object.h"
 
+#include "PlayerController.h"
+
 #include <vector>
 #include <unordered_map>
 
@@ -24,8 +26,6 @@ private:
 	Engine* m_engine = nullptr;
 	Version m_version;
 
-	SubClassOf<LLevel> m_defaultLevel;
-	SubClassOf<LLevel> m_defaultNetLevel;
 	LLevel* m_currentLevel = nullptr;
 
 	std::unordered_map<uint16, SubClassOf<LLevel>> m_registeredLevels;
@@ -36,6 +36,11 @@ private:
 	std::unordered_map<uint16, OObject*> m_netObjectLookup;
 
 public:
+	/// Level to load at start (For client)
+	SubClassOf<LLevel> defaultLevel;
+	/// Level to load at start (For server)
+	SubClassOf<LLevel> defaultNetLevel;
+	/// Class type to use for any player connections
 	SubClassOf<OPlayerController> playerControllerClass;
 
 public:
@@ -163,11 +168,6 @@ public:
 
 	inline string GetName() const { return m_name; }
 	inline const Version& GetVersionNo() const { return m_version; }
-
-	inline const SubClassOf<LLevel>& GetDefaultLevel() const { return m_defaultLevel; }
-	inline void SetDefaultLevel(const SubClassOf<LLevel>& level) { m_defaultLevel = level; }
-	inline const SubClassOf<LLevel>& GetDefaultNetLevel() const { return m_defaultNetLevel; }
-	inline void SetDefaultNetLevel(const SubClassOf<LLevel>& level) { m_defaultNetLevel = level; }
 
 	NetSession* GetSession() const;
 

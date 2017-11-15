@@ -9,6 +9,7 @@ struct NetPlayerConnection
 {
 	NetIdentity			identity;
 	OPlayerController*	controller = nullptr;
+	float				inactivityTimer = 0;
 };
 
 
@@ -19,6 +20,7 @@ class NetHostSession : public NetSession
 {
 private:
 	std::map<const NetIdentity, NetPlayerConnection> m_connectionLookup;
+	const float m_maxInactivityTime = 15.0f;
 
 public:
 	NetHostSession(Game* game, const NetIdentity identity);

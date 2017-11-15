@@ -68,9 +68,9 @@ void Game::OnGameHooked(Engine* engine)
 	// Switch to correct level
 	NetSession* session = GetSession();
 	if(session == nullptr || !session->IsHost())
-		SwitchLevel(m_defaultLevel);
+		SwitchLevel(defaultLevel);
 	else
-		SwitchLevel(m_defaultNetLevel);
+		SwitchLevel(defaultNetLevel);
 }
 
 

@@ -43,6 +43,17 @@ void NetRemoteSession::NetUpdate(const float& deltaTime)
 	if (!EnsureConnection())
 		return;
 
+
+	// Check to see if timed out
+	if ((m_inactivityTimer += deltaTime) >= m_maxInactivityTime)
+	{
+		LOG("Server connection timed out..");
+		OObject::Destroy(m_localController);
+		bIsConnected = false;
+		GetGame()->SwitchLevel(GetGame()->defaultLevel);
+	}
+
+
 	////
 	// Read and attempt to connect/decode any data retrieved from server
 	////
@@ -54,6 +65,7 @@ void NetRemoteSession::NetUpdate(const float& deltaTime)
 		{
 			packet.buffer.Flip();
 			NetDecode(nullptr, packet.buffer, TCP);
+			m_inactivityTimer = 0;
 		}
 
 	// Fetch UDP packets
@@ -63,6 +75,7 @@ void NetRemoteSession::NetUpdate(const float& deltaTime)
 		{
 			packet.buffer.Flip();
 			NetDecode(nullptr, packet.buffer, UDP);
+			m_inactivityTimer = 0;
 		}
 
 
@@ -77,13 +90,8 @@ void NetRemoteSession::NetUpdate(const float& deltaTime)
 	NetEncode(nullptr, udpContent, UDP);
 
 	const NetIdentity& identity = GetSessionIdentity();
-	if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
-	{
-		// TODO - Handle disconnections 
-		LOG_ERROR("Failed to send TCP update to %s:%i", identity.ip.toString().c_str(), identity.port);
-	}
-	if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
-		LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
+	m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity); // Will return false in event of disconnect, so could use this?
+	m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity);
 }
 
 bool NetRemoteSession::EnsureConnection() 

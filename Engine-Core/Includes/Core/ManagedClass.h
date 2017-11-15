@@ -80,14 +80,14 @@ template<class Type>
 class SubClassOf 
 {
 private:
-	const MClass* m_type = Type::StaticClass();
+	const MClass* m_type;
 public:
-	SubClassOf() { }
-	SubClassOf(const MClass* type) { operator=(type); }
+	SubClassOf() : m_type(Type::StaticClass()) { }
+	SubClassOf(const MClass* type) : SubClassOf() { operator=(type); }
 
 	inline SubClassOf<Type>& operator=(const MClass* value)
 	{
-		if (value->IsChildOf(Type::StaticClass()))
+		if (value != nullptr && value->IsChildOf(Type::StaticClass()))
 			m_type = value;
 		return *this;
 	}
