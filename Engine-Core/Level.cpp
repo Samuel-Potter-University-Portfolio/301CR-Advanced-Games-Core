@@ -111,13 +111,15 @@ void LLevel::AddActor(AActor* actor)
 		m_netActorLookup[actor->GetNetworkID()] = actor;
 }
 
-AActor* LLevel::SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location)
+AActor* LLevel::SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location, const OObject* owner)
 {
 	AActor* actor = actorClass->New<AActor>();
 	if (actor == nullptr)
 		return nullptr;
 	actor->m_location = location;
 	actor->bWasSpawnedWithLevel = bIsBuilding;
+	if (owner != nullptr)
+		actor->m_networkOwnerId = owner->m_networkOwnerId;
 	AddActor(actor);
 	return actor;
 }

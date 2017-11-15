@@ -137,16 +137,18 @@ public:
 	/**
 	* Spawns an object of the given type
 	* @param objectClass		The class of the object to spawn
+	* @param owner				The object who is seen as this object's owner
 	* @returns New object or nullptr, if invalid
 	*/
-	OObject* SpawnObject(const SubClassOf<OObject>& objectClass);
+	OObject* SpawnObject(const SubClassOf<OObject>& objectClass, const OObject* owner = nullptr);
 	/**
 	* Spawns an object of the given type
 	* @param objectClass		The class of the object to spawn
+	* @param owner				The object who is seen as this object's owner
 	* @returns New actor object or nullptr, if invalid
 	*/
 	template<class ObjectType>
-	ObjectType* SpawnObject(const SubClassOf<ObjectType>& objectClass = ObjectType::StaticClass()) { return static_cast<ObjectType*>(SpawnObject(objectClass)) }
+	ObjectType* SpawnObject(const SubClassOf<ObjectType>& objectClass = ObjectType::StaticClass(), const OObject* owner = nullptr) { return static_cast<ObjectType*>(SpawnObject(objectClass, owner)) }
 
 
 	/**

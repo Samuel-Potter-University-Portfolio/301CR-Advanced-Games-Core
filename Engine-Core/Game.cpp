@@ -205,11 +205,13 @@ void Game::AddObject(OObject* object)
 		m_netObjectLookup[object->GetNetworkID()] = object;
 }
 
-OObject* Game::SpawnObject(const SubClassOf<OObject>& objectClass)
+OObject* Game::SpawnObject(const SubClassOf<OObject>& objectClass, const OObject* owner)
 {
 	OObject* object = objectClass->New<OObject>();
 	if (object == nullptr)
 		return nullptr;
+	if (owner != nullptr)
+		object->m_networkOwnerId = owner->m_networkOwnerId;
 	AddObject(object);
 	return object;
 }

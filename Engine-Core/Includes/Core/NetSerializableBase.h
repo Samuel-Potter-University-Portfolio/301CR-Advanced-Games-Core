@@ -82,10 +82,6 @@ enum class NetRole : uint8
 
 
 
-class NetSession;
-
-
-
 /**
 * Lets child classes register RPCs and synced variables
 * O-------------------------O
@@ -100,7 +96,9 @@ class NetSession;
 class CORE_API NetSerializableBase
 {
 private:
-	friend NetSession;
+	friend class NetSession;
+	friend class Game;
+	friend class LLevel;
 
 	NetRole m_netRole = NetRole::None;
 	uint16 m_networkOwnerId = 0;

@@ -68,17 +68,19 @@ public:
 	* Spawns an actor into the level of the given type
 	* @param actorClass			The class of the actor to spawn
 	* @param location			Location to spawn the actor at
+	* @param owner				The object who is seen as this object's owner
 	* @returns New actor object or nullptr, if invalid
 	*/
-	AActor* SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location = vec2(0, 0));
+	AActor* SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location = vec2(0, 0), const OObject* owner = nullptr);
 	/**
 	* Spawns an actor into the level of the given type
 	* @param actorClass			The class of the actor to spawn
 	* @param location			Location to spawn the actor at
+	* @param owner				The object who is seen as this object's owner
 	* @returns New actor object or nullptr, if invalid
 	*/
 	template<class ActorType>
-	ActorType* SpawnActor(const vec2& location = vec2(0, 0)) { return static_cast<ActorType*>(SpawnActor(ActorType::StaticClass(), location)); }
+	ActorType* SpawnActor(const vec2& location = vec2(0, 0), const OObject* owner = nullptr) { return static_cast<ActorType*>(SpawnActor(ActorType::StaticClass(), location, owner)); }
 
 protected:
 	/**
