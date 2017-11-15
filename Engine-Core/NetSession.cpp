@@ -394,6 +394,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 						actor->m_networkId = netId;
 						actor->m_networkOwnerId = ownerNetId;
 						actor->UpdateRole(this);
+						GetGame()->GetCurrentLevel()->m_netActorLookup[actor->m_networkId] = actor;
 						return;
 					}
 					// If null, just create a new actor

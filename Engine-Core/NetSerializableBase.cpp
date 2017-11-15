@@ -25,7 +25,20 @@ void NetSerializableBase::UpdateRole(const NetSession* session, const bool& assi
 		m_netRole = m_networkOwnerId == session->GetSessionNetID() ? NetRole::RemoteOwner : NetRole::RemotePuppet;
 }
 
-void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType)
+
+
+bool NetSerializableBase::RegisterRPCs(const char* func, RPCInfo& outInfo) const 
+{
+	outInfo.index = 0;
+	return false;
+}
+
+bool NetSerializableBase::ExecuteRPC(uint16& id, ByteBuffer& params) 
+{
+	return false;
+}
+
+void NetSerializableBase::RemoteCallRPC(const RPCInfo& rpcInfo, const ByteBuffer& params) 
 {
 	if (!IsNetSynced())
 	{
@@ -34,24 +47,14 @@ void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& para
 	}
 	
 	// Insert into appropriate queue
-	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
+	RPCQueue& queue = (rpcInfo.socket == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
 	RPCRequest request;
-	request.index = id;
-	request.target = target;
-	request.params.Push(params.Data(), params.Size());
+	request.function = rpcInfo;
+	request.params = params;
 	queue.emplace_back(request);
 }
 
-bool NetSerializableBase::FetchRPCIndex(const char* funcName, uint16& outID) const
-{
-	outID = 0;
-	return false;
-}
 
-bool NetSerializableBase::ExecuteRPC(uint16& id, ByteBuffer& params)
-{
-	return false;
-}
 
 void NetSerializableBase::EncodeRPCRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType)
 {
@@ -61,32 +64,32 @@ void NetSerializableBase::EncodeRPCRequests(const uint16& targetNetId, ByteBuffe
 
 	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
 	uint16 callCount = 0;
-	ByteBuffer tempBuffer;
+	ByteBuffer callBuffer;
+
 
 	// Decide which calls need to be encoded
 	for (const RPCRequest& request : queue)		
 	{
-		// Server, so send to correct clients
-		if (IsNetHost())
-		{
-			if (request.target == RPCTarget::ClientBroadcast || request.target == RPCTarget::GlobalBroadcast || (targetNetId == m_networkOwnerId && request.target == RPCTarget::Owner))
-			{
-				Encode<RPCRequest>(tempBuffer, request);
-				++callCount;
-			}
-		}
+		// Only encode relevent calls
+		if (
+			// Client, so just queue request
+			!IsNetHost() ||
 
-		// Client, so only allow valid calls to go through to the server
-		else if (request.target == RPCTarget::ClientBroadcast || request.target == RPCTarget::GlobalBroadcast || request.target == RPCTarget::Host)
+			// Server, so send to correct clients
+			(request.function.callingMode == RPCCallingMode::Owner && targetNetId == m_networkOwnerId) ||
+			(request.function.callingMode == RPCCallingMode::Broadcast)
+		)
 		{
-			Encode<RPCRequest>(tempBuffer, request);
+			Encode<RPCRequest>(callBuffer, request);
 			++callCount;
 		}
 	}
 	
+
+	// Encode calls into main buffer
 	Encode<uint16>(buffer, callCount);
 	if(callCount != 0)
-		buffer.Push(tempBuffer.Data(), tempBuffer.Size());
+		buffer.Push(callBuffer.Data(), callBuffer.Size());
 }
 
 void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType)
@@ -97,38 +100,31 @@ void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffe
 
 
 	// Doesn't have permission to call RPC, so get rid of excess and ignore
-	if (sourceNetId != 0 && sourceNetId != m_networkOwnerId && !IsNetHost())
-	{
-		ByteBuffer bin;
-		buffer.PopBuffer(bin, count);
-		return;
-	}
-
+	const bool skipExecution = (sourceNetId != 0 && sourceNetId != m_networkOwnerId && !IsNetHost());
 	RPCQueue& queue = (socketType == SocketType::TCP ? m_TcpRpcQueue : m_UdpRpcQueue);
 
 
-	// Execute all RPCs or re-en
+	// Execute all RPCs or add them to output (If server) for relaying
 	for (uint32 i = 0; i < count; ++i)
 	{
-		RPCRequest call;
-		if (!Decode(buffer, call))
+		RPCRequest request;
+		if (!Decode<RPCRequest>(buffer, request))
+			return;
+		if (skipExecution)
 			continue;
 
-
-		// Encode or push to outgoing queue
 		if (IsNetHost())
 		{
-			// Execute function on host, if desired
-			if (call.target == RPCTarget::Host || call.target == RPCTarget::GlobalBroadcast || (IsNetOwner() && call.target == RPCTarget::Owner))
-				ExecuteRPC(call.index, call.params);
+			if (request.function.callingMode == RPCCallingMode::Host)
+				ExecuteRPC(request.function.index, request.params);
 
-			// Broadcast to other clients
-			if (call.target == RPCTarget::GlobalBroadcast || call.target == RPCTarget::ClientBroadcast || (!IsNetOwner() && call.target == RPCTarget::Owner))
-				queue.emplace_back(call);
+			else if (request.function.callingMode == RPCCallingMode::Broadcast)
+				queue.emplace_back(request);
 		}
-
-		// Execute the call, as it's come from the host, so must be meant for this client
-		else
-			ExecuteRPC(call.index, call.params);
+		else 
+		{
+			if(request.function.callingMode != RPCCallingMode::Host)
+				ExecuteRPC(request.function.index, request.params);
+		}
 	}
 }

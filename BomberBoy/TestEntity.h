@@ -10,8 +10,8 @@ public:
 
 
 protected:
-	virtual bool FetchRPCIndex(const char* funcName, uint16& outID) const;
-	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
+	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
+	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
 
 protected:
 	/**

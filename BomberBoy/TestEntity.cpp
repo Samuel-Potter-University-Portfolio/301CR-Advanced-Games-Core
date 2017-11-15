@@ -10,13 +10,12 @@ ATestEntity::ATestEntity()
 	bIsNetSynced = true;
 	bIsTickable = true;
 }
-
-bool ATestEntity::FetchRPCIndex(const char* funcName, uint16& outID) const
+bool ATestEntity::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
-	RPC_INDEX_HEADER(funcName, outID);
-	RPC_INDEX(ResetPosition);
-	RPC_INDEX(MoveTo);
-	RPC_INDEX(PrintTime);
+	RPC_INDEX_HEADER(func, outInfo);
+	RPC_INDEX(TCP, RPCCallingMode::Broadcast, ResetPosition);
+	RPC_INDEX(UDP, RPCCallingMode::Broadcast, MoveTo);
+	RPC_INDEX(UDP, RPCCallingMode::Broadcast, PrintTime);
 	return false;
 }
 
@@ -43,40 +42,15 @@ void ATestEntity::OnDestroy()
 void ATestEntity::OnTick(const float& deltaTime)
 {
 #ifdef BUILD_SERVER
-	timer += deltaTime;
-	
-	//if (timer < 3.0f)
-	//	return;
+	timer += deltaTime; 
+	CallRPC_TwoParam(this, MoveTo, timer * 20.0f, 0);
 
-	//timer = 0.0f;
+	if (timer < 5.0f)
+		return;
+	timer = 0.0f;
 
-
-	/*
-	LOG("m netid %i", GetNetworkID());
-	LOG("m ownerid %i", GetNetworkOwnerID());
-
-	std::vector<OPlayerController*> controllers = GetLevel()->GetGame()->GetActiveObjects<OPlayerController>();
-	LOG("%i players", controllers.size());
-	for (auto ply : controllers)
-	{
-		LOG("\t id:%i %i", ply->GetNetworkOwnerID(), ply->IsNetOwner());
-	}
-	*/
-
-
-	//if (timer >= 10.0f)
-	//{
-	//	timer = 0.0f;
-	//	CallRPC(TCP, RPCTarget::Owner, this, ResetPosition);
-	//	return;
-	//}
-
-	CallRPC_TwoParam(UDP, RPCTarget::ClientBroadcast, this, PrintTime, 13.234f, 10.0f);
-
-	//CallRPC_TwoParam(UDP, RPCTarget::GlobalBroadcast, this, PrintTime, timer, 10.0f - timer);
-
-	//sf::Vector2f dl = GetLocation() + sf::Vector2f(30, 0) * deltaTime;
-	//CallRPC_TwoParam(TCP, RPCTarget::Owner, this, MoveTo, dl.x, dl.y);
+	PrintTime(13.234f, 10.0f);
+	CallRPC_TwoParam(this, PrintTime, 13.234f, 10.0f);
 #endif
 }
 
@@ -97,7 +71,7 @@ void ATestEntity::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 
 void ATestEntity::PrintTime(float time, float time2)
 {
-	LOG("Hello, %f, %f", time, time2);
+	LOG("Time, %f, %f", time, time2);
 	//SetLocation(startPos + vec2(time, -time) * 20.0f);
 }
 
@@ -108,5 +82,5 @@ void ATestEntity::ResetPosition()
 
 void ATestEntity::MoveTo(float x, float y)
 {
-	SetLocation(sf::Vector2f(x, y));
+	SetLocation(startPos + sf::Vector2f(x, y));
 }

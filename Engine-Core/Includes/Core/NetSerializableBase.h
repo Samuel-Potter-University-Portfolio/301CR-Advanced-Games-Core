@@ -9,36 +9,42 @@
 
 
 /**
-* All the different possible ways to execute RPCs
+* The different calling modes avaliable when calling an RPC
 */
-enum class RPCTarget : uint8
+enum class RPCCallingMode : uint8 
 {
-	Unknown = 0,
-	Owner = 1,				// Call to be executed on the client of whoever owns this object
-	Host = 2,				// Call to be executed on the host of this current session
-	ClientBroadcast = 3,	// Call to be executed on all clients, but not the server (Will only executed on server, if host is also a client)
-	GlobalBroadcast = 4,	// Call to be executed on all clients and server (Will only execute once on host, if they are a client)
+	Unknown		= 0,		
+	Host		= 1,	// Execute RPC on host
+	Owner		= 2,	// Execute RPC on owning client
+	Broadcast	= 3,	// Execute RPC on all clients (Only valid when called by server)
 };
 
+/**
+* Describes a registered RPC and how to call it
+*/
+struct RPCInfo 
+{
+	uint16			index;			// Registered index of this RPC
+	RPCCallingMode	callingMode;	// Calling mode of this RPC
+	SocketType		socket;			// What socket the RPC call should be sent over
+};
 
 
 /**
-* Contains all information about a RPC call
+* Describes a call request for an RPC
 */
-struct RPCRequest
+struct RPCRequest 
 {
-	uint16		index;
-	RPCTarget	target;
-	ByteBuffer	params;
+	RPCInfo		function;	// Registered RPC information
+	ByteBuffer	params;		// Params to call the function using
 };
 typedef std::vector<RPCRequest> RPCQueue;
-
 
 template<>
 inline void Encode<RPCRequest>(ByteBuffer& buffer, const RPCRequest& data)
 {
-	Encode<uint16>(buffer, data.index);
-	Encode<uint8>(buffer, (uint8)data.target);
+	Encode<uint16>(buffer, data.function.index);
+	Encode<uint8>(buffer, (uint8)data.function.callingMode);
 	Encode<uint16>(buffer, data.params.Size());
 	buffer.Push(data.params.Data(), data.params.Size());
 }
@@ -49,13 +55,13 @@ inline bool Decode<RPCRequest>(ByteBuffer& buffer, RPCRequest& out, void* contex
 	uint8 target;
 	uint16 paramCount;
 
-	if (!Decode<uint16>(buffer, out.index) ||
+	if (!Decode<uint16>(buffer, out.function.index) ||
 		!Decode<uint8>(buffer, target) ||
-		!Decode<uint16>(buffer, paramCount) 
-		) 
+		!Decode<uint16>(buffer, paramCount)
+		)
 		return false;
 
-	out.target = (RPCTarget)target;
+	out.function.callingMode = (RPCCallingMode)target;
 	buffer.PopBuffer(out.params, paramCount);
 	return true;
 }
@@ -116,25 +122,35 @@ public:
 	void UpdateRole(const NetSession* session, const bool& assignOwner = false);
 
 
-
 	/**
-	* Fetch the function's ID from the RPC table
-	* NOTE: macro order between FetchRPCIndex and ExecuteRPC must align
-	* @param funcName			The name of the function
-	* @param outID				The functions index in the RPC table
-	* @returns If the function is registered in the table
+	* RPC Override pair
 	*/
-	virtual bool FetchRPCIndex(const char* funcName, uint16& outID) const;
+public:
+	/**
+	* Register RPCs in this function
+	* @param func			The name of the function
+	* @param outInfo		Information about the RPC
+	* @returns If the function is registered or not
+	*/
+	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const;
+protected:
+	/**
+	* Call a given function from it's RPC id
+	* NOTE: macro order between RegisterRPCs and ExecuteRPC must align
+	* @param id				The RPC id of the function
+	* @param params			The raw parameters for the function to use
+	* @returns If call succeeds
+	*/
+	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
+public:
 
 	/**
 	* Enqueue an RPC to be executed by the server, client
 	* (If no session is active, they will just execute normally)
-	* @param id				The function's RPC index
+	* @param rpcInfo		The RPC to call
 	* @param params			Encoded parameters to call the function using
-	* @param target			The target mode of calling to use for this RPC
-	* @param socketType		The socket type for this call to be made over
 	*/
-	void RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType);
+	void RemoteCallRPC(const RPCInfo& rpcInfo, const ByteBuffer& params);
 
 
 
@@ -153,22 +169,12 @@ public:
 	/**
 	* Clears any net data which is currently queued
 	*/
-	inline void ClearQueuedNetData() 
+	inline void ClearQueuedNetData()
 	{
 		m_UdpRpcQueue.clear();
 		m_TcpRpcQueue.clear();
 	}
 
-
-protected:
-	/**
-	* Call a given function fromt it's RPC id
-	* NOTE: macro order between FetchRPCIndex and ExecuteRPC must align
-	* @param id				The RPC id of the function
-	* @param params			The raw parameters for the function to use
-	* @returns If call succeeds
-	*/
-	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
 
 
 private:
@@ -212,19 +218,23 @@ public:
 * Placed at the start of FetchRPCIndex to create temporary vars (To avoid naming problems)
 * and to handle parent calls correctly
 */
-#define RPC_INDEX_HEADER(func, id) \
+#define RPC_INDEX_HEADER(func, outInfo) \
 	const char*& __TEMP_NAME = func; \
-	uint16& __TEMP_ID = outID; \
-	if(__super::FetchRPCIndex(__TEMP_NAME, __TEMP_ID)) return true; 
+	RPCInfo& __TEMP_INFO = outInfo; \
+	if(__super::RegisterRPCs(__TEMP_NAME, __TEMP_INFO)) return true; 
 
 /**
 * Placed after RPC_INDEX_HEADER in FetchRPCIndex to create an entry for a function
 */
-#define RPC_INDEX(func) \
+#define RPC_INDEX(socketType, mode, func) \
 	if (std::strcmp(__TEMP_NAME, #func) == 0) \
+	{ \
+		__TEMP_INFO.callingMode = mode; \
+		__TEMP_INFO.socket = socketType; \
 		return true; \
+	} \
 	else \
-		++__TEMP_ID;
+		++__TEMP_INFO.index;
 
 
 
@@ -349,156 +359,62 @@ public:
 
 
 
+#define __CallRPC(object, func, funcCall, funcEncode) \
+{ \
+	NetSerializableBase* __TEMP_NSB = static_cast<NetSerializableBase*>(object); \
+	RPCInfo __TEMP_INFO; \
+	if (__TEMP_NSB->RegisterRPCs(#func, __TEMP_INFO)) \
+	{ \
+		if(GetNetworkID() != 0) \
+		{ \
+			if ((__TEMP_NSB->IsNetHost() && __TEMP_INFO.callingMode == RPCCallingMode::Host) || (__TEMP_NSB->IsNetOwner() && __TEMP_INFO.callingMode == RPCCallingMode::Owner)) \
+				object->funcCall; \
+			else if (__TEMP_NSB->IsNetHost() || __TEMP_INFO.callingMode != RPCCallingMode::Broadcast) \
+			{ \
+				ByteBuffer __TEMP_BUFFER; \
+				funcEncode \
+				__TEMP_NSB->RemoteCallRPC(__TEMP_INFO, __TEMP_BUFFER); \
+			} \
+			else \
+				LOG_ERROR("Invalid rights to call function '" #func "'"); \
+		} \
+	} \
+	else \
+		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
+}
 
 /**
 * Execute RPC with given settings
 * Containing 0 parameters
 */
-#define CallRPC(socket, mode, object, func) {\
-	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
-	uint16 __TEMP_ID; \
-	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
-	{ \
-		ByteBuffer __TEMP_BUFFER; \
-		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
-			func(); \
-		else if (HasNetControl()) \
-		{ \
-			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
-			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
-				func(); \
-		} \
-	} \
-	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
-}
+#define CallRPC(object, func) __CallRPC(object, func, func(),)
 
 /**
 * Execute RPC with given settings
 * Containing 1 parameters
 */
-#define CallRPC_OneParam(socket, mode, object, func, paramA) {\
-	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
-	uint16 __TEMP_ID; \
-	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
-	{ \
-		ByteBuffer __TEMP_BUFFER; \
-		Encode(__TEMP_BUFFER, paramA);\
-		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
-			func(paramA); \
-		else if (HasNetControl()) \
-		{ \
-			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
-			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
-				func(paramA); \
-		} \
-	} \
-	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
-}
+#define CallRPC_OneParam(object, func, paramA) __CallRPC(object, func, func(paramA), Encode(__TEMP_BUFFER,paramA);)
 
 /**
 * Execute RPC with given settings
 * Containing 2 parameters
 */
-#define CallRPC_TwoParam(socket, mode, object, func, paramA, paramB) {\
-	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
-	uint16 __TEMP_ID; \
-	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
-	{ \
-		ByteBuffer __TEMP_BUFFER; \
-		Encode(__TEMP_BUFFER, paramA);\
-		Encode(__TEMP_BUFFER, paramB);\
-		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
-			func(paramA, paramB); \
-		else if (HasNetControl()) \
-		{ \
-			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
-			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
-				func(paramA, paramB); \
-		} \
-	} \
-	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
-}
+#define CallRPC_TwoParam(object, func, paramA, paramB) __CallRPC(object, func, func(paramA, paramB), Encode(__TEMP_BUFFER,paramA);Encode(__TEMP_BUFFER,paramB);)
 
 /**
 * Execute RPC with given settings
 * Containing 3 parameters
 */
-#define CallRPC_ThreeParam(socket, mode, object, func, paramA, paramB, paramC) {\
-	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
-	uint16 __TEMP_ID; \
-	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
-	{ \
-		ByteBuffer __TEMP_BUFFER; \
-		Encode(__TEMP_BUFFER, paramA);\
-		Encode(__TEMP_BUFFER, paramB);\
-		Encode(__TEMP_BUFFER, paramC);\
-		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
-			func(paramA, paramB, paramC); \
-		else if (HasNetControl()) \
-		{ \
-			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
-			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
-				func(paramA, paramB, paramC); \
-		} \
-	} \
-	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
-}
+#define CallRPC_ThreeParam(object, func, paramA, paramB, paramC) __CallRPC(object, func, func(paramA, paramB, paramC), Encode(__TEMP_BUFFER,paramA);Encode(__TEMP_BUFFER,paramB);Encode(__TEMP_BUFFER,paramC);)
 
 /**
 * Execute RPC with given settings
 * Containing 4 parameters
 */
-#define CallRPC_FourParam(socket, mode, object, func, paramA, paramB, paramC, paramD) {\
-	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
-	uint16 __TEMP_ID; \
-	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
-	{ \
-		ByteBuffer __TEMP_BUFFER; \
-		Encode(__TEMP_BUFFER, paramA);\
-		Encode(__TEMP_BUFFER, paramB);\
-		Encode(__TEMP_BUFFER, paramC);\
-		Encode(__TEMP_BUFFER, paramD);\
-		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
-			func(paramA, paramB, paramC, paramD); \
-		else if (HasNetControl()) \
-		{ \
-			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
-			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
-				func(paramA, paramB, paramC, paramD); \
-		} \
-	} \
-	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
-}
+#define CallRPC_FourParam(object, func, paramA, paramB, paramC, paramD) __CallRPC(object, func, func(paramA, paramB, paramC, paramD), Encode(__TEMP_BUFFER,paramA);Encode(__TEMP_BUFFER,paramB);Encode(__TEMP_BUFFER,paramC);Encode(__TEMP_BUFFER,paramD);)
 
 /**
 * Execute RPC with given settings
 * Containing 5 parameters
 */
-#define CallRPC_FiveParam(socket, mode, object, func, paramA, paramB, paramC, paramD, paramE) {\
-	NetSerializableBase* __TEMP_NSB = (NetSerializableBase*)object; \
-	uint16 __TEMP_ID; \
-	if(__TEMP_NSB->FetchRPCIndex(#func, __TEMP_ID)) \
-	{ \
-		ByteBuffer __TEMP_BUFFER; \
-		Encode(__TEMP_BUFFER, paramA);\
-		Encode(__TEMP_BUFFER, paramB);\
-		Encode(__TEMP_BUFFER, paramC);\
-		Encode(__TEMP_BUFFER, paramD);\
-		Encode(__TEMP_BUFFER, paramE);\
-		if((IsNetOwner() && mode == RPCTarget::Owner) || (IsNetHost() && mode == RPCTarget::Host)) \
-			func(paramA, paramB, paramC, paramD, paramE); \
-		else if (HasNetControl()) \
-		{ \
-			__TEMP_NSB->RemoteCallRPC(__TEMP_ID, __TEMP_BUFFER, mode, socket); \
-			if (mode == RPCTarget::GlobalBroadcast || (mode == RPCTarget::ClientBroadcast && !IsNetHost())) \
-				func(paramA, paramB, paramC, paramD, paramE); \
-		} \
-	} \
-	else \
-		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \
-}
+#define CallRPC_FiveParam(object, func, paramA, paramB, paramC, paramD, paramE) __CallRPC(object, func, func(paramA, paramB, paramC, paramD, paramE), Encode(__TEMP_BUFFER,paramA);Encode(__TEMP_BUFFER,paramB);Encode(__TEMP_BUFFER,paramC);Encode(__TEMP_BUFFER,paramD);Encode(__TEMP_BUFFER,paramE);)
