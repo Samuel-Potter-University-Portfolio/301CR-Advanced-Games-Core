@@ -36,21 +36,18 @@ void ATestEntity::OnBegin()
 
 void ATestEntity::OnDestroy() 
 {
-	LOG("Ded");
+	LOG("Is Ded");
 }
 
 void ATestEntity::OnTick(const float& deltaTime)
 {
 #ifdef BUILD_SERVER
 	timer += deltaTime; 
-	CallRPC_TwoParam(this, MoveTo, timer * 20.0f, 0);
+	//CallRPC_TwoParam(this, MoveTo, timer * 20.0f, 0);
 
-	if (timer < 5.0f)
+	if (timer < 10.0f)
 		return;
-	timer = 0.0f;
-
-	PrintTime(13.234f, 10.0f);
-	CallRPC_TwoParam(this, PrintTime, 13.234f, 10.0f);
+	Destroy(this);
 #endif
 }
 

@@ -19,7 +19,7 @@ protected:
 	*/
 	virtual void OnBegin();
 
-	virtual void OnDestroy();
+	virtual void OnDestroy() override;
 
 	/**
 	* Callback for level first tick

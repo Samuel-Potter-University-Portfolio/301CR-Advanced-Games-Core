@@ -72,6 +72,14 @@ enum class NetObjectMethod : uint8
 };
 
 
+/** Holds information about an object that has been destroyed */
+struct NetObjectDeletion 
+{
+	bool		bIsActor;
+	uint16		netId;
+};
+
+
 /**
 * Represents the connection between a player and a server or a server and players
 */
@@ -100,6 +108,8 @@ protected:
 	std::vector<OPlayerController*> m_playerControllers;
 	uint16 m_maxPlayerCount = 10;
 
+	std::vector<NetObjectDeletion> m_deletionQueue;
+
 public:
 	NetSession(Game* game, const NetIdentity identity);
 	virtual ~NetSession();
@@ -115,6 +125,12 @@ public:
 	* @param deltaTime		Time since last update (In seconds)
 	*/
 	void MainUpdate(const float& deltaTime);
+
+	/**
+	* Callback for when an object gets destroyed
+	* @param object			Pointer to object (Only safe for duration of function call)
+	*/
+	void OnNetObjectDestroy(const OObject* object);
 
 protected:
 	/**
