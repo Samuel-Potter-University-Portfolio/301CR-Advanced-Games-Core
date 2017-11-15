@@ -3,7 +3,7 @@
 
 
 CLASS_SOURCE(AActor, CORE_API)
-uint32 AActor::s_instanceCounter = 0;
+uint32 AActor::s_instanceCounter = 1;
 
 
 AActor::AActor() :

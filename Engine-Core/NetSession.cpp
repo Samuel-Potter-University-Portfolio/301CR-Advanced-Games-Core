@@ -285,16 +285,17 @@ NetResponseCode NetSession::DecodeHandshake_ServerToClient(ByteBuffer& inBuffer,
 
 
 
-void NetSession::EncodeObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType)
+void NetSession::EncodeNetObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType)
 {
-	bool newOutConnection = (target != nullptr && target->bFirstNetUpdate);
+	bool newConnection = (target != nullptr && target->bFirstNetUpdate);
 
 	// New object
-	if (object->bFirstNetUpdate || newOutConnection)
+	if (object->bFirstNetUpdate || newConnection)
 	{
 		// Ignore if client (Server has to create entities)
 		if (!IsHost())
 			return;
+
 
 		// Target already knows about itself
 		if (object == target)
@@ -304,16 +305,24 @@ void NetSession::EncodeObject(const OPlayerController* target, OObject* object, 
 		if (socketType == UDP)
 			return;
 
+
 		// Encode new object information
 		Encode<uint8>(buffer, (uint8)NetObjectMethod::New);	
 		Encode<uint16>(buffer, object->GetNetworkID());	
 		Encode<uint16>(buffer, object->GetNetworkOwnerID());
 		Encode<uint16>(buffer, object->GetClass()->GetID());
+		
+		// Attempt to encode unique instance id for actors built in level load
+		AActor* actor = dynamic_cast<AActor*>(object);
+		if(actor == nullptr || !actor->WasSpawnedWithLevel())
+			Encode<uint32>(buffer, 0);
+		else
+			Encode<uint32>(buffer, actor->GetInstanceID());
 	}
 
 }
 
-void NetSession::DecodeObject(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType)
+void NetSession::DecodeNetObject(const OPlayerController* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType, const bool& justCleanUp)
 {
 	uint8 rawMethod;
 	Decode(buffer, rawMethod);
@@ -333,13 +342,20 @@ void NetSession::DecodeObject(const OPlayerController* source, ByteBuffer& buffe
 			uint16 netId;
 			uint16 ownerNetId;
 			uint16 classId;
+			uint32 instanceId;
 			if (!Decode(buffer, netId) ||
 				!Decode(buffer, ownerNetId) ||
-				!Decode(buffer, classId))
+				!Decode(buffer, classId) ||
+				!Decode(buffer, instanceId))
 			{
 				LOG_ERROR("Received invalid object new method");
 				return;
 			}
+
+			// Cleared buffer, so leave
+			if (justCleanUp)
+				return;
+
 
 			// Ignore if host
 			if (IsHost())
@@ -349,21 +365,48 @@ void NetSession::DecodeObject(const OPlayerController* source, ByteBuffer& buffe
 			}
 
 			// Fetch and check class is correct
-			const MClass* typeClass = GetGame()->GetObjectClass(classId);
+			const MClass* typeClass = isActor ? GetGame()->GetActorClass(classId) : GetGame()->GetObjectClass(classId);
 			if (typeClass == nullptr)
 			{
-				LOG_ERROR("Received unidentified object class id:%i", classId);
+				LOG_ERROR("Received unidentified class for NetObjectMethdo::New id:%i", classId);
 				return;
 			}
 
 
+			if (isActor)
+			{
+				// This message was just syncing an actor which existed during level load
+				if (instanceId != 0)
+				{
+					AActor* actor = GetGame()->GetCurrentLevel()->GetActorByInstance(instanceId);
+					if (actor != nullptr)
+					{
+						actor->m_networkId = netId;
+						actor->m_networkOwnerId = ownerNetId;
+						actor->UpdateRole(this);
+						return;
+					}
+					// If null, just create a new actor
+				}
+
+				// Create actor
+				AActor* actor = typeClass->New<AActor>();
+				actor->m_networkId = netId;
+				actor->m_networkOwnerId = ownerNetId;
+				actor->UpdateRole(this);
+				GetGame()->GetCurrentLevel()->AddActor(dynamic_cast<AActor*>(actor));
+			}
+
 			// Create object
-			OObject* object = typeClass->New<OObject>();
-			object->m_networkId = netId;
-			object->m_networkOwnerId = ownerNetId;
-			object->UpdateRole(this);
-			GetGame()->AddObject(object);
-			break;
+			else
+			{
+				OObject* object = typeClass->New<OObject>();
+				object->m_networkId = netId;
+				object->m_networkOwnerId = ownerNetId;
+				object->UpdateRole(this);
+				GetGame()->AddObject(object);
+			}
+			return;
 		}
 
 
@@ -378,15 +421,6 @@ void NetSession::DecodeObject(const OPlayerController* source, ByteBuffer& buffe
 			break;
 		}
 	}
-}
-
-
-void NetSession::EncodeActor(AActor* actor, ByteBuffer& buffer, const SocketType& socketType) 
-{
-}
-
-void NetSession::DecodeActor(ByteBuffer& buffer, const SocketType& socketType) 
-{
 }
 
 
@@ -417,7 +451,7 @@ void NetSession::NetEncode(const OPlayerController* target, ByteBuffer& buffer, 
 			Encode<uint8>(messageBuffer, 0); // 0 - Object
 
 			const uint32 startSize = messageBuffer.Size();
-			EncodeObject(target, object, messageBuffer, socketType);
+			EncodeNetObject(target, object, messageBuffer, socketType);
 
 			// Nothing changed, so just revert
 			if (messageBuffer.Size() == startSize)
@@ -437,7 +471,7 @@ void NetSession::NetEncode(const OPlayerController* target, ByteBuffer& buffer, 
 			Encode<uint8>(messageBuffer, 1); // 1 - Actor
 
 			const uint32 startSize = messageBuffer.Size();
-			EncodeActor(actor, messageBuffer, socketType);
+			EncodeNetObject(target, actor, messageBuffer, socketType);
 
 			// Nothing changed, so just revert
 			if (messageBuffer.Size() == startSize)
@@ -481,16 +515,12 @@ void NetSession::NetDecode(const OPlayerController* source, ByteBuffer& buffer, 
 			// Decode any net object information
 			case NetMessage::NetObjectMessage:
 			{
-				uint8 isActor;
-				Decode(buffer, isActor);
-
-				if (isActor == true)
+				uint8 isActor = 0;
+				if (Decode(buffer, isActor))
 				{
-					if(levelIsValid)
-						DecodeActor(buffer, socketType);
+					const bool justCleanBuffer = isActor && !levelIsValid; // i.e. Ignore this message
+					DecodeNetObject(source, isActor, buffer, socketType, justCleanBuffer);
 				}
-				else
-					DecodeObject(source, buffer, socketType);
 				break;
 			}
 

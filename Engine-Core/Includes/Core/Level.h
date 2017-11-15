@@ -136,4 +136,11 @@ public:
 		}
 		return output;
 	}
+
+	/**
+	* Retrieve an actor from it's instance id (Not safe unless id is known to be unique)
+	* @param id			Instance id of this actor
+	* @returns The actor of this id or nullptr, if not found
+	*/
+	AActor* GetActorByInstance(const uint32& id) const;
 };

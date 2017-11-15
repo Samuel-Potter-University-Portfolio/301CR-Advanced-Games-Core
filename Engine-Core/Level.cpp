@@ -76,7 +76,7 @@ void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 
 void LLevel::Build()
 {
-	AActor::s_instanceCounter = 0;
+	AActor::s_instanceCounter = 1;
 	bIsBuilding = true;
 	OnBuildLevel();
 	bIsBuilding = false;
@@ -120,4 +120,14 @@ AActor* LLevel::SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& loc
 	actor->bWasSpawnedWithLevel = bIsBuilding;
 	AddActor(actor);
 	return actor;
+}
+
+AActor* LLevel::GetActorByInstance(const uint32& id) const 
+{
+	// For each not guaranteed to be safe
+	for (uint32 i = 0; i < m_activeActors.size(); ++i)
+		if (m_activeActors[i]->GetInstanceID() == id)
+			return m_activeActors[i];
+	return nullptr;
+
 }

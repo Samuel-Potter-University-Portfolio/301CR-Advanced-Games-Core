@@ -49,6 +49,8 @@ void ATestEntity::OnTick(const float& deltaTime)
 		return;
 
 	timer = 0.0f;
+	LOG("m netid %i", GetNetworkID());
+	LOG("m ownerid %i", GetNetworkOwnerID());
 
 	std::vector<OPlayerController*> controllers = GetLevel()->GetGame()->GetActiveObjects<OPlayerController>();
 	LOG("%i players", controllers.size());

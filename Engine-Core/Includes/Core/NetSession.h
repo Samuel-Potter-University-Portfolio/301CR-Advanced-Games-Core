@@ -163,29 +163,16 @@ protected:
 	* @param buffer				Where to store all information
 	* @param socketType			The socket type this content will be sent over
 	*/
-	void EncodeObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType);
+	void EncodeNetObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType);
 	/**
 	* Decode information received about an object
 	* @param source				The player who is the source of this data (or nullptr, if from the server)
+	* @param isActor			Is this message refering to an actor (If false it refers to an object)
 	* @param buffer				Where to store all information
 	* @param socketType			The socket type this content will be sent over
+	* @param justCleanUp		The buffer will be read, however no actors/objects will be updated (Used to skip messages)
 	*/
-	void DecodeObject(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType);
-
-	/**
-	* Encode any information to be sent out, for this actor
-	* @param actor				The actor to encode
-	* @param buffer				Where to store all information
-	* @param socketType			The socket type this content will be sent over
-	*/
-	void EncodeActor(AActor* actor, ByteBuffer& buffer, const SocketType& socketType);
-	/**
-	* Decode information received about an actor
-	* @param buffer				Where to store all information
-	* @param socketType			The socket type this content will be sent over
-	*/
-	void DecodeActor(ByteBuffer& buffer, const SocketType& socketType);
-
+	void DecodeNetObject(const OPlayerController* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType, const bool& justCleanUp);
 
 	/**
 	* Encode any relevant information to be sent out this net update
