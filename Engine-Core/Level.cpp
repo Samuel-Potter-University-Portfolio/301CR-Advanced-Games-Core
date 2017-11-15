@@ -131,3 +131,11 @@ AActor* LLevel::GetActorByInstance(const uint32& id) const
 	return nullptr;
 
 }
+
+AActor* LLevel::GetActorByNetID(const uint32& id) const 
+{
+	auto it = m_netActorLookup.find(id);
+	if (it == m_netActorLookup.end())
+		return nullptr;
+	return it->second;
+}

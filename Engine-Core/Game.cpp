@@ -218,3 +218,11 @@ NetSession* Game::GetSession() const
 { 
 	return m_engine->GetNetController()->GetSession(); 
 }
+
+OObject* Game::GetObjectByNetID(const uint32& id) const
+{
+	auto it = m_netObjectLookup.find(id);
+	if (it == m_netObjectLookup.end())
+		return nullptr;
+	return it->second;
+}

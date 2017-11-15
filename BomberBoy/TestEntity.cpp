@@ -42,13 +42,16 @@ void ATestEntity::OnDestroy()
 
 void ATestEntity::OnTick(const float& deltaTime)
 {
-#ifdef BUILD_CLIENT
+#ifdef BUILD_SERVER
 	timer += deltaTime;
 	
-	if (timer < 3.0f)
-		return;
+	//if (timer < 3.0f)
+	//	return;
 
-	timer = 0.0f;
+	//timer = 0.0f;
+
+
+	/*
 	LOG("m netid %i", GetNetworkID());
 	LOG("m ownerid %i", GetNetworkOwnerID());
 
@@ -58,6 +61,7 @@ void ATestEntity::OnTick(const float& deltaTime)
 	{
 		LOG("\t id:%i %i", ply->GetNetworkOwnerID(), ply->IsNetOwner());
 	}
+	*/
 
 
 	//if (timer >= 10.0f)
@@ -66,6 +70,8 @@ void ATestEntity::OnTick(const float& deltaTime)
 	//	CallRPC(TCP, RPCTarget::Owner, this, ResetPosition);
 	//	return;
 	//}
+
+	CallRPC_TwoParam(UDP, RPCTarget::ClientBroadcast, this, PrintTime, 13.234f, 10.0f);
 
 	//CallRPC_TwoParam(UDP, RPCTarget::GlobalBroadcast, this, PrintTime, timer, 10.0f - timer);
 
@@ -91,7 +97,8 @@ void ATestEntity::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 
 void ATestEntity::PrintTime(float time, float time2)
 {
-	SetLocation(startPos + vec2(time, -time) * 20.0f);
+	LOG("Hello, %f, %f", time, time2);
+	//SetLocation(startPos + vec2(time, -time) * 20.0f);
 }
 
 void ATestEntity::ResetPosition()

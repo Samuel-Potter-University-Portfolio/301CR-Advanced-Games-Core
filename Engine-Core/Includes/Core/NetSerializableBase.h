@@ -115,6 +115,8 @@ public:
 	*/
 	void UpdateRole(const NetSession* session, const bool& assignOwner = false);
 
+
+
 	/**
 	* Fetch the function's ID from the RPC table
 	* NOTE: macro order between FetchRPCIndex and ExecuteRPC must align
@@ -134,6 +136,20 @@ public:
 	*/
 	void RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType);
 
+
+
+	/**
+	* Has this object got any data to encode
+	* @param socketType			The socket type the data will be sent over
+	* @returns True if there is pending data
+	*/
+	inline bool HasQueuedNetData(const SocketType& socketType) const
+	{
+		if (socketType == TCP)
+			return m_TcpRpcQueue.size() != 0;
+		else
+			return m_UdpRpcQueue.size() != 0;
+	}
 	/**
 	* Clears any net data which is currently queued
 	*/
@@ -142,6 +158,7 @@ public:
 		m_UdpRpcQueue.clear();
 		m_TcpRpcQueue.clear();
 	}
+
 
 protected:
 	/**

@@ -199,4 +199,12 @@ public:
 		}
 		return output;
 	}
+
+
+	/**
+	* Retrieve an object from it's network id
+	* @param id			Network id of this object
+	* @returns The object of this id or nullptr, if not found
+	*/
+	OObject* GetObjectByNetID(const uint32& id) const;
 };

@@ -83,7 +83,7 @@ void NetSerializableBase::EncodeRPCRequests(const uint16& targetNetId, ByteBuffe
 			++callCount;
 		}
 	}
-
+	
 	Encode<uint16>(buffer, callCount);
 	if(callCount != 0)
 		buffer.Push(tempBuffer.Data(), tempBuffer.Size());

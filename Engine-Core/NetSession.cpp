@@ -318,8 +318,18 @@ void NetSession::EncodeNetObject(const OPlayerController* target, OObject* objec
 			Encode<uint32>(buffer, 0);
 		else
 			Encode<uint32>(buffer, actor->GetInstanceID());
+		return;
 	}
 
+	// Don't update if object has no data to send
+	if (!object->HasQueuedNetData(socketType))
+		return;
+	Encode<uint8>(buffer, (uint8)NetObjectMethod::Update);
+
+	// Encode sync vars and rpcs
+	Encode<uint16>(buffer, object->GetNetworkID());
+	// TODO - Encode sync vars
+	object->EncodeRPCRequests(target == nullptr ? 0 : target->GetNetworkOwnerID(), buffer, socketType);
 }
 
 void NetSession::DecodeNetObject(const OPlayerController* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType, const bool& justCleanUp)
@@ -360,7 +370,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 			// Ignore if host
 			if (IsHost())
 			{
-				LOG_ERROR("Received new object method from client");
+				LOG_ERROR("Received NetObjectMethod::New from client");
 				return;
 			}
 
@@ -368,7 +378,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 			const MClass* typeClass = isActor ? GetGame()->GetActorClass(classId) : GetGame()->GetObjectClass(classId);
 			if (typeClass == nullptr)
 			{
-				LOG_ERROR("Received unidentified class for NetObjectMethdo::New id:%i", classId);
+				LOG_ERROR("Received unidentified class for NetObjectMethod::New id:%i", classId);
 				return;
 			}
 
@@ -418,7 +428,21 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 
 		case NetObjectMethod::Update:
 		{
-			break;
+			// Decode and check values
+			uint16 netId;
+			if (!Decode(buffer, netId))
+			{
+				LOG_ERROR("Received invalid object NetObjectMethod::Update");
+				return;
+			}
+
+			OObject* object = isActor ? GetGame()->GetCurrentLevel()->GetActorByNetID(netId) : GetGame()->GetObjectByNetID(netId);
+			if (object != nullptr)
+			{
+				// TODO - Decode sync vars
+				object->DecodeRPCRequests(source == nullptr ? 0 : source->GetNetworkOwnerID(), buffer, socketType);
+			}
+			return;
 		}
 	}
 }
