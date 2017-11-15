@@ -28,6 +28,9 @@ private:
 	bool bUpdateMain;
 	bool bUpdateDisplay;
 
+	uint32 m_mainTickRate = 50;
+	uint32 m_mainSleepRate = 1000 / m_mainTickRate;
+
 #ifdef BUILD_CLIENT
 	sf::RenderWindow* m_renderWindow = nullptr;
 #endif
@@ -79,4 +82,7 @@ public:
 	inline const Version& GetVersionNo() const { return m_version; }
 
 	inline NetController* GetNetController() { return m_netController; }
+
+	inline const uint32& GetMainTickRate() const { return m_mainTickRate; }
+	inline void SetMainTickRate(const uint32& v) { m_mainTickRate = (v == 0 ? 1 : v); m_mainSleepRate = 1000 / m_mainTickRate; }
 };

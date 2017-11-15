@@ -85,7 +85,8 @@ void Engine::MainLoop()
 
 
 		// Sleep a little
-		sf::sleep(sf::milliseconds(1));
+		// TODO - More elegant checks to compensate for large loops
+		sf::sleep(sf::milliseconds(m_mainSleepRate));
 	}
 
 
@@ -113,6 +114,7 @@ void Engine::DisplayLoop()
 		sf::Style::Default, 
 		settings
 	);
+	m_renderWindow->setFramerateLimit(200);
 
 	LOG("Opening window (%s, %ix%i)", m_game->GetName().c_str(), m_desiredResolution.x, m_desiredResolution.y);
 
