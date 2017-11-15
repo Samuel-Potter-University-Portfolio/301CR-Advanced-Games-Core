@@ -29,7 +29,7 @@ private:
 	const uint16 m_id;
 
 public:
-	MClass(const char* name, const uint16& id);
+	MClass(const char* name);
 
 	/**
 	* Generates a new object of this class type
@@ -154,7 +154,7 @@ private: \
 	friend class ClassName; \
 	ClassName m_refObj; \
 	\
-	ClassName ## _Class() : MClass(#ClassName, __UNIQUE_ID__) {} \
+	ClassName ## _Class() : MClass(#ClassName) {} \
 \
 	virtual ManagedObject* NewObject(void* dst = nullptr) const { return dst == nullptr ? new ClassName : new(dst) ClassName; } \
 \

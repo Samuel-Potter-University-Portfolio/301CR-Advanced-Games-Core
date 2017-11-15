@@ -47,11 +47,6 @@ void Engine::Launch(Game* game)
 	}
 
 #endif
-	
-	// TEEESSSSSTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-#ifdef BUILD_CLIENT
-	GetNetController()->JoinSession(m_defaultNetIdentity);
-#endif
 
 
 	// Launch into main loop

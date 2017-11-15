@@ -394,6 +394,7 @@
     <ClInclude Include="Includes\Core\ByteBuffer.h" />
     <ClInclude Include="Includes\Core\Camera.h" />
     <ClInclude Include="Includes\Core\Common.h" />
+    <ClInclude Include="Includes\Core\Core-Common.h" />
     <ClInclude Include="Includes\Core\CoreDefs.h" />
     <ClInclude Include="Includes\Core\Encoding.h" />
     <ClInclude Include="Includes\Core\Engine.h" />

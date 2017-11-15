@@ -149,5 +149,8 @@
     <ClInclude Include="Includes\Core\PlayerController.h">
       <Filter>Includes\Net</Filter>
     </ClInclude>
+    <ClInclude Include="Includes\Core\Core-Common.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

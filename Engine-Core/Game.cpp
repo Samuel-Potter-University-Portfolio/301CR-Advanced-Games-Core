@@ -3,6 +3,7 @@
 
 #include "Includes\Core\PlayerController.h"
 
+
 Game::Game(string name, Version version) :
 	m_name(name),
 	m_version(version)
@@ -34,7 +35,7 @@ void Game::MainUpdate(const float& deltaTime)
 	// Perform cleanup
 	for (uint32 i = 0; i < m_activeObjects.size(); ++i)
 	{
-		OObject*& object = m_activeObjects[i];
+		OObject* object = m_activeObjects[i];
 		if (!object->IsDestroyed())
 			continue;
 
@@ -44,10 +45,7 @@ void Game::MainUpdate(const float& deltaTime)
 
 		// Remove networking reference
 		if (object->GetNetworkID() != 0)
-		{
 			m_netObjectLookup.erase(object->GetNetworkID());
-			// TODO - Active Session callback
-		}
 
 		delete object;
 	}
@@ -65,12 +63,16 @@ void Game::OnGameHooked(Engine* engine)
 {
 	m_engine = engine;
 
+#if BUILD_CLIENT
 	// Switch to correct level
 	NetSession* session = GetSession();
 	if(session == nullptr || !session->IsHost())
 		SwitchLevel(defaultLevel);
 	else
 		SwitchLevel(defaultNetLevel);
+#else
+	SwitchLevel(defaultNetLevel);
+#endif
 }
 
 

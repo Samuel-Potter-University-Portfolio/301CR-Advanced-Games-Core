@@ -18,7 +18,7 @@ class Engine;
 /**
 * Vendor for sockets (Ensures all sockets leaving this controller will be cleaned up correctly)
 */
-class NetController
+class CORE_API NetController
 {
 private:
 	std::list<NetSocket*> m_activeSockets;

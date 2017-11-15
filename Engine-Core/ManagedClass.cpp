@@ -1,8 +1,11 @@
 #include "Includes\Core\ManagedClass.h"
 
 
-MClass::MClass(const char* name, const uint16& id) :
-	m_name(name), m_id(id)
+static uint16 g_classIdCounter = 0;
+
+
+MClass::MClass(const char* name) :
+	m_name(name), m_id(g_classIdCounter++)
 {
 
 }

@@ -9,12 +9,16 @@
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="TestEntity.cpp" />
+    <ClCompile Include="ConnDudLevel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="TestEntity.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="ConnDudLevel.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
