@@ -191,7 +191,7 @@ NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer,
 			}
 
 			// Create new player
-			outPlayer = OPlayerController::StaticClass()->New<OPlayerController>();
+			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
 			outPlayer->m_networkOwnerId = NewPlayerID();
 			outPlayer->m_networkId = NewObjectID();
 			outPlayer->bFirstNetUpdate = true;
@@ -265,13 +265,13 @@ NetResponseCode NetSession::DecodeHandshake_ServerToClient(ByteBuffer& inBuffer,
 		}
 
 
-
 		// Cleanup any already existing controllers
 		for (OPlayerController* player : GetGame()->GetActiveObjects<OPlayerController>())
 			OObject::Destroy(player);
 
+
 		// Setup new player controller
-		outPlayer = OPlayerController::StaticClass()->New<OPlayerController>();
+		outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
 		m_sessionNetId = netId;
 		outPlayer->m_networkOwnerId = netId;
 		outPlayer->m_networkId = controllerId;

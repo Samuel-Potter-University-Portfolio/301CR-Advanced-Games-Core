@@ -220,6 +220,8 @@ public:
 	inline const bool& IsHost() const { return bIsHost; }
 	inline const bool& IsRemote() const { return !bIsHost; }
 	inline const bool& IsConnected() const { return bIsConnected; }
+
+	inline void SetMaxPlayerCount(const uint16& count) { m_maxPlayerCount = count; }
 	inline const uint16& GetMaxPlayerCount() const { return m_maxPlayerCount; }
 
 	inline const NetIdentity& GetSessionIdentity() const { return m_netIdentity; }

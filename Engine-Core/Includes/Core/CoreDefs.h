@@ -8,3 +8,5 @@
 #else
 #define CORE_API __declspec(dllimport)
 #endif
+
+#define Super __super

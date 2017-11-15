@@ -36,6 +36,9 @@ private:
 	std::unordered_map<uint16, OObject*> m_netObjectLookup;
 
 public:
+	SubClassOf<OPlayerController> playerControllerClass;
+
+public:
 	Game(string name, Version version);
 	~Game();
 

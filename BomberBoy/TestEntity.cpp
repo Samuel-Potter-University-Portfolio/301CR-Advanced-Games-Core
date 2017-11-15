@@ -30,12 +30,14 @@ bool ATestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
 
 void ATestEntity::OnBegin()
 {
+	Super::OnBegin();
 	startPos = GetLocation();
 	timer = 0;
 }
 
 void ATestEntity::OnDestroy() 
 {
+	Super::OnDestroy();
 	LOG("Is Ded");
 }
 
