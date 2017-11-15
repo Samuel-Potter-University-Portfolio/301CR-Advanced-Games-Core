@@ -40,7 +40,7 @@ void NetController::HandleUpdate(const float& deltaTime)
 	if (m_activeSession != nullptr)
 	{
 		if(m_activeSession->IsConnected())
-			m_activeSession->HandleUpdate(deltaTime);
+			m_activeSession->MainUpdate(deltaTime);
 		else
 		{
 			// Close session
@@ -58,7 +58,7 @@ bool NetController::HostSession(const NetIdentity& host)
 		return false;
 	}
 
-	NetHostSession* session = new NetHostSession(m_engine, host);
+	NetHostSession* session = new NetHostSession(m_engine->GetGame(), host);
 	if (!session->Start())
 	{
 		delete session;
@@ -77,7 +77,7 @@ bool NetController::JoinSession(const NetIdentity& remote)
 		return false;
 	}
 
-	NetRemoteSession* session = new NetRemoteSession(m_engine, remote);
+	NetRemoteSession* session = new NetRemoteSession(m_engine->GetGame(), remote);
 	if (!session->Start())
 	{
 		delete session;

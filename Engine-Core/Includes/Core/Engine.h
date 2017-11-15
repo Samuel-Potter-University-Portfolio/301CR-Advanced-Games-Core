@@ -19,6 +19,7 @@ class CORE_API Engine
 {
 private:
 	Version m_version;
+	NetIdentity m_defaultNetIdentity;
 
 	Game* m_game = nullptr;
 	NetController* m_netController = nullptr;

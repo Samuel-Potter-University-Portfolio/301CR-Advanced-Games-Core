@@ -6,7 +6,7 @@
 void NetSerializableBase::UpdateRole(const NetSession* session, const bool& assignOwner)
 {
 	if (assignOwner)
-		m_networkOwnerId = session != nullptr ? session->GetNetworkID() : 0;
+		m_networkOwnerId = session != nullptr ? session->GetSessionNetID() : 0;
 
 	// Doesn't sync, so don't care
 	if (!IsNetSynced())
@@ -18,11 +18,11 @@ void NetSerializableBase::UpdateRole(const NetSession* session, const bool& assi
 
 	// Hosting server
 	else if (session->IsHost())
-		m_netRole = m_networkOwnerId == session->GetNetworkID() ? NetRole::HostOwner : NetRole::HostPuppet;
+		m_netRole = m_networkOwnerId == session->GetSessionNetID() ? NetRole::HostOwner : NetRole::HostPuppet;
 
 	// Connected to server
 	else
-		m_netRole = m_networkOwnerId == session->GetNetworkID() ? NetRole::RemoteOwner : NetRole::RemotePuppet;
+		m_netRole = m_networkOwnerId == session->GetSessionNetID() ? NetRole::RemoteOwner : NetRole::RemotePuppet;
 }
 
 void NetSerializableBase::RemoteCallRPC(const uint16& id, const ByteBuffer& params, const RPCTarget& target, const SocketType& socketType)

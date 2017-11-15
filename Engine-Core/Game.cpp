@@ -1,11 +1,13 @@
 #include "Includes\Core\Game.h"
 #include "Includes\Core\Engine.h"
 
+#include "Includes\Core\PlayerController.h"
 
 Game::Game(string name, Version version) :
 	m_name(name),
 	m_version(version)
 {
+	RegisterClass(OPlayerController::StaticClass());
 }
 
 Game::~Game()

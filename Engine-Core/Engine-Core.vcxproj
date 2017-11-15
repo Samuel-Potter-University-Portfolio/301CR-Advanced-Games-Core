@@ -371,7 +371,6 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="ManagedClass.cpp" />
     <ClCompile Include="NetHostSession.cpp" />
-    <ClCompile Include="NetPlayer.cpp" />
     <ClCompile Include="NetRemoteSession.cpp" />
     <ClCompile Include="NetSerializableBase.cpp" />
     <ClCompile Include="NetSession.cpp" />
@@ -380,6 +379,7 @@
     <ClCompile Include="NetSocketUdp.cpp" />
     <ClCompile Include="NetController.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PlayerController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Includes\Core\Actor.h" />
@@ -395,7 +395,6 @@
     <ClInclude Include="Includes\Core\Logger.h" />
     <ClInclude Include="Includes\Core\ManagedClass.h" />
     <ClInclude Include="Includes\Core\NetHostSession.h" />
-    <ClInclude Include="Includes\Core\NetPlayer.h" />
     <ClInclude Include="Includes\Core\NetRemoteSession.h" />
     <ClInclude Include="Includes\Core\NetSerializableBase.h" />
     <ClInclude Include="Includes\Core\NetSession.h" />
@@ -404,6 +403,7 @@
     <ClInclude Include="Includes\Core\NetSocketUdp.h" />
     <ClInclude Include="Includes\Core\NetController.h" />
     <ClInclude Include="Includes\Core\Object.h" />
+    <ClInclude Include="Includes\Core\PlayerController.h" />
     <ClInclude Include="Includes\Core\Types.h" />
     <ClInclude Include="Includes\Core\Version.h" />
   </ItemGroup>

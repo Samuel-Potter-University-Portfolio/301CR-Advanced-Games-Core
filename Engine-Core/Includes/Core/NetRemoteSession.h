@@ -17,23 +17,23 @@ class CORE_API NetRemoteSession : public NetSession
 {
 private:
 	LocalClientStatus m_clientStatus;
+	OPlayerController* m_localController;
 
 public:
-	NetRemoteSession(const Engine* engine, const NetIdentity identity);
+	NetRemoteSession(Game* game, const NetIdentity identity);
 	virtual ~NetRemoteSession();
 
 	/**
 	* Attempt to start up the session at/on this identity
 	* @returns If setup correctly
 	*/
-	virtual bool Start();
+	virtual bool Start() override;
 
 	/**
-	* Called from handle update, at desired tickrate (Previously set)
-	* @param engine			The engine + game to update using
+	* Callback every time there should be a network update (IO to be polled/pushed)
 	* @param deltaTime		Time since last update (In seconds)
 	*/
-	virtual void Update(const float& deltaTime);
+	virtual void NetUpdate(const float& deltaTime) override;
 
 private:
 	/**
@@ -41,15 +41,6 @@ private:
 	* @returns If this player is currently connected to the server
 	*/
 	bool EnsureConnection();
-
-
-protected:
-	/**
-	* Encode any relevant information to be sent out this net update
-	* @param buffer			Where to store all information
-	* @param socketType		The socket type this content will be sent over
-	*/
-	virtual void NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType);
 
 
 	/**

@@ -40,9 +40,6 @@
     <ClCompile Include="NetSerializableBase.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
-    <ClCompile Include="NetPlayer.cpp">
-      <Filter>Source\Net</Filter>
-    </ClCompile>
     <ClCompile Include="Actor.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -54,6 +51,9 @@
     </ClCompile>
     <ClCompile Include="ManagedClass.cpp">
       <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerController.cpp">
+      <Filter>Source\Net</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,9 +116,6 @@
     <ClInclude Include="Includes\Core\NetSerializableBase.h">
       <Filter>Includes\Net</Filter>
     </ClInclude>
-    <ClInclude Include="Includes\Core\NetPlayer.h">
-      <Filter>Includes\Net</Filter>
-    </ClInclude>
     <ClInclude Include="Includes\Core\Actor.h">
       <Filter>Includes</Filter>
     </ClInclude>
@@ -148,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="Includes\Core\ByteBuffer.h">
       <Filter>Includes\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\PlayerController.h">
+      <Filter>Includes\Net</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

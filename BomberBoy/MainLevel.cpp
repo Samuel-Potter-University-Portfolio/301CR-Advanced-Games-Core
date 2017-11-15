@@ -15,5 +15,5 @@ void LMainLevel::OnBuildLevel()
 {
 	SpawnActor<ACamera>();
 	SpawnActor<ATestEntity>();
-	SpawnActor<ATestEntity>(vec2(0, 100));
+	//SpawnActor<ATestEntity>(vec2(0, 100));
 }

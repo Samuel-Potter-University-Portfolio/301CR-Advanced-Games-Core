@@ -1,12 +1,15 @@
 #pragma once
 #include "Common.h"
-#include <set>
 
 #include "NetSocketTcp.h"
 #include "NetSocketUdp.h"
 
+#include "Object.h"
+#include "Actor.h"
+#include "PlayerController.h"
 
-class Engine;
+
+class Game;
 
 
 /**
@@ -44,35 +47,43 @@ enum class NetResponseCode : uint16
 */
 enum class NetMessage : uint8 
 {
-	Nothing				= 0,
-	EntityMessage		= 1,
+	Nothing					= 0,
+	/// Net serialized base encoded message
+	NetObjectMessage		= 1,
 };
 
 /**
-* What this current entity message doing
+* Used to identify what a NetObjectMessage is refering to
 */
-enum class NetEntityMethod : uint8
+enum class NetObjectReferenceType : uint8
 {
-	Nothing				= 0,
-	Spawn				= 1,
-	Despawn				= 2,
-	ControlOverride		= 3,
-	Update				= 4,
+	Object		= 0,
+	Actor		= 1
+};
+/**
+* Describes what a NetObjectMessage is describing
+*/
+enum class NetObjectMethod : uint8
+{
+	Empty		= 0,
+	New			= 1,
+	Delete		= 2,
+	Update		= 3,
 };
 
 
-
 /**
-* Abstract class represents the current connection between player(s) and a server
+* Represents the connection between a player and a server or a server and players
 */
-class CORE_API NetSession
+class CORE_API NetSession 
 {
 private:
 	const NetIdentity m_netIdentity;
-	uint16 m_entityIdCounter; 
+	Game* m_game;
 
-	std::set<uint16> m_newPlayers; // Players who have just been accepted
 	uint16 m_playerIdCounter;
+	uint16 m_objectNetIdCounter;
+	uint16 m_actorNetIdCounter;
 
 	uint32 m_tickRate = 20;
 	float m_sleepRate = 1.0f / (float)m_tickRate;
@@ -81,104 +92,135 @@ private:
 protected:
 	NetSocketTcp m_TcpSocket;
 	NetSocketUdp m_UdpSocket;
-	const Engine* m_engine;
 
-	/// Used to tell host session apart from remote
-	uint16 m_netId;
+	uint16 m_sessionNetId;
 	bool bIsHost = false;
 	bool bIsConnected = false;
 
+	std::vector<OPlayerController*> m_playerControllers;
+	uint16 m_maxPlayerCount = 10;
+
 public:
-	NetSession(const Engine* engine, const NetIdentity identity);
+	NetSession(Game* game, const NetIdentity identity);
 	virtual ~NetSession();
 
 	/**
 	* Attempt to start up the session at/on this identity
 	* @returns If setup correctly
 	*/
-	virtual bool Start() = 0;
+	virtual bool Start() { return false; }
 
 	/**
-	* Callback from engine for every tick by main
-	* @param engine			The engine + game to update using
+	* Callback from engine for every tick by main loop
 	* @param deltaTime		Time since last update (In seconds)
 	*/
-	void HandleUpdate(const float& deltaTime);
+	void MainUpdate(const float& deltaTime);
 
 protected:
 	/**
-	* Called from handle update, at desired tickrate (Previously set)
-	* @param engine			The engine + game to update using
+	* Callback for before a net update occurs
+	*/
+	void PreNetUpdate();
+	/**
+	* Callback every time there should be a network update (IO to be polled/pushed)
 	* @param deltaTime		Time since last update (In seconds)
 	*/
-	virtual void Update(const float& deltaTime) = 0;
-
-
+	virtual void NetUpdate(const float& deltaTime) {}
 	/**
-	* Encode a handshake to be sent from a client to the server
-	* @param buffer			Where to store all information
+	* Callback for after a net update occurs
 	*/
-	void EncodeClientHandshake(ByteBuffer& buffer);
-	/**
-	* Decode a handshake sent from a client to the server
-	* @param inbuffer			Where read data from
-	* @param outBuffer			Where write data to (To be sent back to the client as a response)
-	* @param outNetId			The net id of the player (If accepted)
-	* @returns The result of the handshake
-	*/
-	NetResponseCode DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuffer& outBuffer, uint16& outNetId);
-	/**
-	* Decode a handshake response received from the server
-	* @param buffer			Where read data from
-	* @param outNetId			The net id of the player (If accepted)
-	* @returns The result of the handshake
-	*/
-	NetResponseCode DecodeServerHandshake(ByteBuffer& buffer, uint16& outNetId);
+	void PostNetUpdate();
+
 
 
 	/**
-	* Encode all relevent information about this given entity
-	* @param targetNetId		The net id of where this data will be sent to
+	* Encode the client handshake to be sent to a server
+	* @param outBuffer			Where to store the handshake
+	*/
+	void EncodeHandshake_ClientToServer(ByteBuffer& outBuffer);
+	/**
+	* Decode the client handshake that has been received by server
+	* @param inbuffer			Where to read the handshake from
+	* @param outBuffer			Where to store the response
+	* @param outPlayer			Where to store the controller, if the handshake is successful
+	* @returns The response code that was sent to the client
+	*/
+	NetResponseCode DecodeHandshake_ClientToServer(ByteBuffer& inBuffer, ByteBuffer& outBuffer, OPlayerController*& outPlayer);
+	/**
+	* Decode the server's response to the client handshake
+	* @param inbuffer			Where to read the handshake from
+	* @param outPlayer			Where to store the controller, if the handshake is successful
+	* @returns The response code that was sent to the client
+	*/
+	NetResponseCode DecodeHandshake_ServerToClient(ByteBuffer& inBuffer, OPlayerController*& outPlayer);
+
+
+protected:
+	/**
+	* Encode any information to be sent out, for this object
+	* @param target				The player who is the target for this data (or nullptr, if intended for the host)
+	* @param object				The object to encode
 	* @param buffer				Where to store all information
 	* @param socketType			The socket type this content will be sent over
-	* @param entity				The entity that we wish to encode
 	*/
-	void EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, class Entity* entity);
+	void EncodeObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType);
 	/**
-	* Decode information about this entity message
-	* @param targetNetId	The net id of where this data has arrived from
-	* @param buffer			Where read data from
-	* @param socketType		The socket type this content will be sent over
+	* Decode information received about an object
+	* @param source				The player who is the source of this data (or nullptr, if from the server)
+	* @param buffer				Where to store all information
+	* @param socketType			The socket type this content will be sent over
 	*/
-	void DecodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType);
+	void DecodeObject(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType);
+
+	/**
+	* Encode any information to be sent out, for this actor
+	* @param actor				The actor to encode
+	* @param buffer				Where to store all information
+	* @param socketType			The socket type this content will be sent over
+	*/
+	void EncodeActor(AActor* actor, ByteBuffer& buffer, const SocketType& socketType);
+	/**
+	* Decode information received about an actor
+	* @param buffer				Where to store all information
+	* @param socketType			The socket type this content will be sent over
+	*/
+	void DecodeActor(ByteBuffer& buffer, const SocketType& socketType);
 
 
 	/**
 	* Encode any relevant information to be sent out this net update
-	* @param netId			The net id of where this data will be sent to
-	* @param buffer			Where to store all information
-	* @param socketType		The socket type this content will be sent over
+	* @param target				The player who is the target for this data (or nullptr, if intended for the host)
+	* @param buffer				Where to store all information
+	* @param socketType			The socket type this content will be sent over
 	*/
-	virtual void NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType) = 0;
+	void NetEncode(const OPlayerController* target, ByteBuffer& buffer, const SocketType& socketType);
 	/**
 	* Decode any information that was received this net update
-	* @param netId			The net id of where this data has arrived from
-	* @param buffer			Where to read all the information
-	* @param socketType		The socket type this content was read over
+	* @param source				The player who is the source of this data (or nullptr, if from the server)
+	* @param buffer				Where to read all the information
+	* @param socketType			The socket type this content was read over
 	*/
-	virtual void NetDecode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType);
+	void NetDecode(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType);
 
 
 	/**
-	* Getters and setters
+	* Getters & Setters
 	*/
+protected:
+	inline uint16 NewPlayerID() { return m_playerIdCounter++; }
+	inline uint16 NewObjectID() { return m_objectNetIdCounter++; }
+	inline uint16 NewActorID() { return m_actorNetIdCounter++; }
+
 public:
+	inline Game* GetGame() const { return m_game; }
+	
 	inline const bool& IsHost() const { return bIsHost; }
 	inline const bool& IsRemote() const { return !bIsHost; }
-
 	inline const bool& IsConnected() const { return bIsConnected; }
+	inline const uint16& GetMaxPlayerCount() const { return m_maxPlayerCount; }
+
 	inline const NetIdentity& GetSessionIdentity() const { return m_netIdentity; }
-	inline const uint16& GetNetworkID() const { return m_netId; }
+	inline const uint16& GetSessionNetID() const { return m_sessionNetId; }
 
 	inline const uint32& GetTickRate() const { return m_tickRate; }
 	inline void SetTickRate(const uint32& v) { m_tickRate = (v == 0 ? 1 : v); m_sleepRate = 1.0f / (float)m_tickRate; }

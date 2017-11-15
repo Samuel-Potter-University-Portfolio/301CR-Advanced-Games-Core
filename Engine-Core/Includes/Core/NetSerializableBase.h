@@ -21,17 +21,6 @@ enum class RPCTarget : uint8
 };
 
 
-/**
-* All the different roles a net synced object can have
-*/
-enum class NetRole : uint8 
-{
-	None = 0,
-	RemotePuppet,			// Doesn't have any control over this object whatsoever
-	HostPuppet,				// Doesn't own this object, but is the host, so can edit
-	RemoteOwner,			// Owns the object, but is not the host
-	HostOwner,				// Owns the object and is the host
-};
 
 /**
 * Contains all information about a RPC call
@@ -43,6 +32,7 @@ struct RPCRequest
 	ByteBuffer	params;
 };
 typedef std::vector<RPCRequest> RPCQueue;
+
 
 template<>
 inline void Encode<RPCRequest>(ByteBuffer& buffer, const RPCRequest& data)
@@ -71,7 +61,23 @@ inline bool Decode<RPCRequest>(ByteBuffer& buffer, RPCRequest& out, void* contex
 }
 
 
+
+/**
+* All the different roles a net synced object can have
+*/
+enum class NetRole : uint8
+{
+	None = 0,
+	RemotePuppet,			// Doesn't have any control over this object whatsoever
+	HostPuppet,				// Doesn't own this object, but is the host, so can edit
+	RemoteOwner,			// Owns the object, but is not the host
+	HostOwner,				// Owns the object and is the host
+};
+
+
+
 class NetSession;
+
 
 
 /**
@@ -89,9 +95,11 @@ class CORE_API NetSerializableBase
 {
 private:
 	friend NetSession;
+
 	NetRole m_netRole = NetRole::None;
 	uint16 m_networkOwnerId = 0;
 	uint16 m_networkId = 0;
+	bool bFirstNetUpdate;
 
 	RPCQueue m_UdpRpcQueue;
 	RPCQueue m_TcpRpcQueue;

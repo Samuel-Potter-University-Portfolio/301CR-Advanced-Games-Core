@@ -85,6 +85,34 @@ public:
 	*/
 	inline bool IsRegisteredLevel(const uint16& id) const { return m_registeredLevels.find(id) != m_registeredLevels.end(); }
 
+	/**
+	* Retrieve object class from it's id
+	* @param id			The id of the object
+	* @returns The class, if found or nullptr if failed
+	*/
+	inline const MClass* GetObjectClass(const uint16& id) const {
+		auto it = m_registeredObjectTypes.find(id);
+		return it == m_registeredObjectTypes.end() ? nullptr : *(it->second);
+	}
+	/**
+	* Retrieve actor class from it's id
+	* @param id			The id of the actor
+	* @returns The class, if found or nullptr if failed
+	*/
+	inline const MClass* GetActorClass(const uint16& id) const {
+		auto it = m_registeredActorTypes.find(id);
+		return it == m_registeredActorTypes.end() ? nullptr : *(it->second);
+	}
+	/**
+	* Retrieve level class from it's id
+	* @param id			The id of the level
+	* @returns The class, if found or nullptr if failed
+	*/
+	inline const MClass* GetLevelClass(const uint16& id) const {
+		auto it = m_registeredLevels.find(id);
+		return it == m_registeredLevels.end() ? nullptr : *(it->second);
+	}
+
 
 	/**
 	* Switch level to this class (If registered)

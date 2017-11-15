@@ -21,10 +21,5 @@ typedef unsigned __int64 uint64;
 
 
 typedef sf::Vector2<float>	vec2;
-typedef sf::Vector3<float>	vec3;
 typedef sf::Vector2<int32>	ivec2;
-typedef sf::Vector3<int32>	ivec3;
 typedef sf::Vector2<uint32>	uvec2;
-typedef sf::Vector3<uint32>	uvec3;
-typedef sf::Vector2<uint8>	bvec2;
-typedef sf::Vector3<uint8>	bvec3;

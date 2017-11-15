@@ -4,18 +4,15 @@
 #include "Includes\Core\Level.h"
 
 
-NetHostSession::NetHostSession(const Engine* engine, const NetIdentity identity) :
-	NetSession(engine, identity)
+NetHostSession::NetHostSession(Game* game, const NetIdentity identity) :
+	NetSession(game, identity)
 {
 	bIsHost = true;
 }
 
 NetHostSession::~NetHostSession()
 {
-	for (NetPlayer* c : m_players)
-		delete c;
-
-	LOG("NetHostSession closed.");
+	LOG("NetHostSession destroyed.");
 }
 
 bool NetHostSession::Start() 
@@ -39,7 +36,7 @@ bool NetHostSession::Start()
 	return true;
 }
 
-void NetHostSession::Update(const float& deltaTime)
+void NetHostSession::NetUpdate(const float& deltaTime)
 {
 	////
 	// Read and attempt to connect/decode any data retrieved from clients
@@ -53,24 +50,19 @@ void NetHostSession::Update(const float& deltaTime)
 			packet.buffer.Flip();
 
 			// Player not connected
-			NetPlayer* player;
-			if (!GetPlayerFromIdentity(packet.source, player)) 
+			NetPlayerConnection playerConnection;
+			if (!GetPlayerFromIdentity(packet.source, playerConnection))
 			{
 				// Attempt to accept with handshake
-				player = new NetPlayer;
-				player->m_identity = packet.source;
+				OPlayerController* player;
 				ByteBuffer response;
-				if (DecodeClientHandshake(packet.buffer, response, player->m_uniqueId) == NetResponseCode::Accepted)
+				if (DecodeHandshake_ClientToServer(packet.buffer, response, player) == NetResponseCode::Accepted)
 				{
-					// Add player
-					m_players.emplace_back(player);
-					m_playerLookup[player->m_identity] = player;
-					LOG("Player(%i) connected from %s:%i", player->GetUniqueID(), player->m_identity.ip.toString().c_str(), player->m_identity.port);
+					playerConnection.identity = packet.source;
+					playerConnection.controller = player;
+					m_connectionLookup[playerConnection.identity] = playerConnection;
+					LOG("Player(%i) connected from %s:%i", player->GetNetworkOwnerID(), packet.source.ip.toString().c_str(), packet.source.port);
 				}
-
-				// Failed handshake
-				else
-					delete player;
 
 				// Send handshake response
 				m_TcpSocket.SendTo(response.Data(), response.Size(), packet.source);
@@ -78,7 +70,7 @@ void NetHostSession::Update(const float& deltaTime)
 
 			// Player already connected (So just attempt to decode)
 			else
-				NetDecode(player->GetUniqueID(), packet.buffer, TCP);
+				NetDecode(playerConnection.controller, packet.buffer, TCP);
 		}
 
 	// Fetch UDP packets
@@ -89,28 +81,28 @@ void NetHostSession::Update(const float& deltaTime)
 			packet.buffer.Flip();
 
 			// Player connected (Only perform handshake on TCP)
-			NetPlayer* player;
-			if (GetPlayerFromIdentity(packet.source, player))
-				NetDecode(player->GetUniqueID(), packet.buffer, UDP);
+			NetPlayerConnection playerConnection;
+			if (GetPlayerFromIdentity(packet.source, playerConnection))
+				NetDecode(playerConnection.controller, packet.buffer, UDP);
 		}
 
 	
 
 	////
-	// Encode any data and broadcast to all connected clients
+	// Send out updates to connected clients
 	////
 	ByteBuffer tcpContent;
 	ByteBuffer udpContent;
 
 	// Send out packet update
-	for (NetPlayer* player : m_players)
+	for (auto it : m_connectionLookup)
 	{
 		tcpContent.Clear();
 		udpContent.Clear();
-		NetEncode(player->GetUniqueID(), tcpContent, TCP);
-		NetEncode(player->GetUniqueID(), udpContent, UDP);
+		NetEncode(it.second.controller, tcpContent, TCP);
+		NetEncode(it.second.controller, udpContent, UDP);
 
-		const NetIdentity& identity = player->m_identity;
+		const NetIdentity& identity = it.first;
 		if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
 		{
 			// TODO - Handle disconnections 
@@ -119,45 +111,14 @@ void NetHostSession::Update(const float& deltaTime)
 		if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
 			LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
 	}
-
-
-	// Clear any queued net data
-	// TODO - UPDATE
-	//for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
-	//	if (entity->IsNetSynced())
-	//		entity->ClearQueuedNetData();
 }
 
-bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlayer*& outPlayer) const
+bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlayerConnection& outPlayer) const
 {
-	auto it = m_playerLookup.find(identity);
-	if (it == m_playerLookup.end())
+	auto it = m_connectionLookup.find(identity);
+	if (it == m_connectionLookup.end())
 		return false;
 	
 	outPlayer = it->second;
 	return true;
-}
-
-void NetHostSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
-{
-	// Encode all entities
-	// TODO - UPDATE
-	/*
-	ByteBuffer tempBuffer;
-	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
-		if (entity->IsNetSynced())
-		{
-			EncodeEntityMessage(netId, tempBuffer, socketType, entity);
-			if (tempBuffer.Size() != 0)
-			{
-				Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
-				buffer.Push(tempBuffer.Data(), tempBuffer.Size());
-				tempBuffer.Clear();
-			}
-		}
-		*/
-
-	// Encode empty ping packet
-	if (buffer.Size() == 0)
-		Encode<uint8>(buffer, (uint8)NetMessage::Nothing);
 }

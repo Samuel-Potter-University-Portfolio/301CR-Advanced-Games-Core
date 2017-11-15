@@ -123,6 +123,25 @@ inline void Encode<std::string>(ByteBuffer& buffer, const string& data)
 	Encode<const char*>(buffer, data.c_str());
 }
 
+template<>
+inline void Encode<vec2>(ByteBuffer& buffer, const vec2& data)
+{
+	Encode<float>(buffer, data.x);
+	Encode<float>(buffer, data.y);
+}
+template<>
+inline void Encode<ivec2>(ByteBuffer& buffer, const ivec2& data)
+{
+	Encode<int32>(buffer, data.x);
+	Encode<int32>(buffer, data.y);
+}
+template<>
+inline void Encode<uvec2>(ByteBuffer& buffer, const uvec2& data)
+{
+	Encode<uint32>(buffer, data.x);
+	Encode<uint32>(buffer, data.y);
+}
+
 
 
 
@@ -283,4 +302,20 @@ inline bool Decode<std::string>(ByteBuffer& buffer, string& out, void* context)
 	}
 
 	return true;
+}
+
+template<>
+inline bool Decode<vec2>(ByteBuffer& buffer, vec2& out, void* context)
+{
+	return !Decode<float>(buffer, out.x) || !Decode<float>(buffer, out.y);
+}
+template<>
+inline bool Decode<ivec2>(ByteBuffer& buffer, ivec2& out, void* context)
+{
+	return !Decode<int32>(buffer, out.x) || !Decode<int32>(buffer, out.y);
+}
+template<>
+inline bool Decode<uvec2>(ByteBuffer& buffer, uvec2& out, void* context)
+{
+	return !Decode<uint32>(buffer, out.x) || !Decode<uint32>(buffer, out.y);
 }

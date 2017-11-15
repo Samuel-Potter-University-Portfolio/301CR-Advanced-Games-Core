@@ -5,14 +5,15 @@
 
 
 
-NetRemoteSession::NetRemoteSession(const Engine* engine, const NetIdentity identity) :
-	NetSession(engine, identity)
+NetRemoteSession::NetRemoteSession(Game* game, const NetIdentity identity) :
+	NetSession(game, identity)
 {
 	bIsHost = false;
 }
 
 NetRemoteSession::~NetRemoteSession()
 {
+	LOG("NetRemoteSession destroyed.");
 }
 
 bool NetRemoteSession::Start() 
@@ -37,7 +38,7 @@ bool NetRemoteSession::Start()
 	return true;
 }
 
-void NetRemoteSession::Update(const float& deltaTime)
+void NetRemoteSession::NetUpdate(const float& deltaTime)
 {
 	if (!EnsureConnection())
 		return;
@@ -52,7 +53,7 @@ void NetRemoteSession::Update(const float& deltaTime)
 		for (RawNetPacket& packet : packets)
 		{
 			packet.buffer.Flip();
-			NetDecode(0, packet.buffer, TCP);
+			NetDecode(nullptr, packet.buffer, TCP);
 		}
 
 	// Fetch UDP packets
@@ -61,7 +62,7 @@ void NetRemoteSession::Update(const float& deltaTime)
 		for (RawNetPacket& packet : packets)
 		{
 			packet.buffer.Flip();
-			NetDecode(0, packet.buffer, UDP);
+			NetDecode(nullptr, packet.buffer, UDP);
 		}
 
 
@@ -72,8 +73,8 @@ void NetRemoteSession::Update(const float& deltaTime)
 	ByteBuffer tcpContent;
 	ByteBuffer udpContent;
 
-	NetEncode(0, tcpContent, TCP);
-	NetEncode(0, udpContent, UDP);
+	NetEncode(nullptr, tcpContent, TCP);
+	NetEncode(nullptr, udpContent, UDP);
 
 	const NetIdentity& identity = GetSessionIdentity();
 	if (!m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity))
@@ -83,13 +84,6 @@ void NetRemoteSession::Update(const float& deltaTime)
 	}
 	if (!m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity))
 		LOG_ERROR("Failed to send UDP update to %s:%i", identity.ip.toString().c_str(), identity.port); // Will never happen, as connectionless
-
-
-	// Clear any queued net data
-	// TODO - UPDATE
-	//for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
-	//	if (entity->IsNetSynced() && entity->IsNetOwner())
-	//		entity->ClearQueuedNetData();
 }
 
 bool NetRemoteSession::EnsureConnection() 
@@ -98,7 +92,7 @@ bool NetRemoteSession::EnsureConnection()
 	if (m_clientStatus == PreHandshake)
 	{
 		ByteBuffer content;
-		EncodeClientHandshake(content);
+		EncodeHandshake_ClientToServer(content);
 		if (!m_TcpSocket.Send(content.Data(), content.Size()))
 		{
 			LOG_ERROR("Failed to send handshake");
@@ -120,7 +114,7 @@ bool NetRemoteSession::EnsureConnection()
 			for (RawNetPacket& p : packets)
 			{
 				p.buffer.Flip();
-				switch (DecodeServerHandshake(p.buffer, m_netId))
+				switch (DecodeHandshake_ServerToClient(p.buffer, m_localController))
 				{
 					// Unknown should never be returned, so just rubbish?
 				case NetResponseCode::Unknown:
@@ -129,7 +123,7 @@ bool NetRemoteSession::EnsureConnection()
 
 				case NetResponseCode::Accepted:
 					m_clientStatus = Connected;
-					LOG("Connected to server as Player(%i)", GetNetworkID());
+					LOG("Connected to server as Player(%i)", m_localController->GetNetworkOwnerID());
 					break;
 
 				case NetResponseCode::Responded:
@@ -173,29 +167,4 @@ bool NetRemoteSession::EnsureConnection()
 	}
 
 	return true;
-}
-
-void NetRemoteSession::NetEncode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
-{
-	// Encode all owned entities
-	// TODO - UPDATE
-	/*
-	ByteBuffer tempBuffer;
-	for (Entity* entity : m_engine->GetGame()->GetCurrentLevel()->GetEntities())
-		if (entity->IsNetSynced() && entity->IsNetOwner())
-		{
-			EncodeEntityMessage(netId, tempBuffer, socketType, entity);
-			if (tempBuffer.Size() != 0)
-			{
-				Encode<uint8>(buffer, (uint8)NetMessage::EntityMessage);
-				buffer.Push(tempBuffer.Data(), tempBuffer.Size());
-				tempBuffer.Clear();
-			}
-		}
-		*/
-
-
-	// Encode empty ping packet
-	if (buffer.Size() == 0)
-		Encode<uint8>(buffer, (uint8)NetMessage::Nothing);
 }

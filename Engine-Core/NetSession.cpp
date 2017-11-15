@@ -8,59 +8,138 @@
 
 
 
-NetSession::NetSession(const Engine* engine, const NetIdentity identity) :
-	m_engine(engine), m_netIdentity(identity), m_netId(m_playerIdCounter++)
+NetSession::NetSession(Game* game, const NetIdentity identity) :
+	m_game(game), m_netIdentity(identity)
 {
-	m_entityIdCounter = 1; // 0 - Reservered as nullptr
+	m_sessionNetId = 0;
+
+	// 0 - Reservered as nullptr
+	m_playerIdCounter = 1;
+	m_objectNetIdCounter = 1; 
+	m_actorNetIdCounter = 1;
 }
 
 NetSession::~NetSession()
 {
 }
 
-void NetSession::HandleUpdate(const float& deltaTime)
+
+void NetSession::MainUpdate(const float& deltaTime) 
 {
-	// Only tick at desired rate
 	m_tickTimer += deltaTime;
-	if (m_tickTimer < m_sleepRate )
+	if (m_tickTimer < m_sleepRate)
 		return;
 
-	m_newPlayers.clear();
-	Update(m_tickTimer);
-	m_tickTimer -= m_sleepRate;
+	if (m_tickTimer >= m_sleepRate * 2.0f)
+		LOG_WARNING("Net update falling behind");
+
+	PreNetUpdate();
+	NetUpdate(m_tickTimer);
+	PostNetUpdate();
+	m_tickTimer = 0;
 }
 
-
-void NetSession::EncodeClientHandshake(ByteBuffer& buffer) 
+void NetSession::PreNetUpdate() 
 {
-	// Build header
-	Encode<Version>(buffer, m_engine->GetVersionNo());
-	Encode<Version>(buffer, m_engine->GetGame()->GetVersionNo());
-	Encode<uint16>(buffer, (uint16)NetRequestType::Connect);
+	// All we do is assign ids, so ignore this stage for clients
+	if (IsRemote())
+		return;
 
-	// TODO - Encode password
-	// TODO - Encode username
-}
 
-NetResponseCode NetSession::DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuffer& outBuffer, uint16& outNetId)
-{
-	// Check message header
-	uint16 requestType;
+	// Assign ids to any new objects
+	for (OObject* object : GetGame()->GetActiveObjects())
 	{
-		Version engineVersion;
-		Version gameVersion;
+		if (!object->IsNetSynced())
+			continue;
+
+		// Assign new net id
+		if (object->GetNetworkID() == 0 && IsHost())
+		{
+			object->m_networkId = NewObjectID();
+			object->bFirstNetUpdate = true;
+			object->UpdateRole(this);
+		}
+	}
+
+
+	// Assign ids to any new actors
+	LLevel* level = GetGame()->GetCurrentLevel();
+	if (level != nullptr)
+		for (AActor* actor : level->GetActiveActors())
+		{
+			if (!actor->IsNetSynced())
+				continue;
+
+			// Assign new net id
+			if (actor->GetNetworkID() == 0 && IsHost())
+			{
+				actor->m_networkId = NewActorID();
+				actor->bFirstNetUpdate = true;
+				actor->UpdateRole(this);
+			}
+		}
+}
+
+void NetSession::PostNetUpdate() 
+{
+	// Clear object net queues
+	for (OObject* object : GetGame()->GetActiveObjects())
+	{
+		if (!object->IsNetSynced())
+			continue;
+
+		object->ClearQueuedNetData();
+		object->bFirstNetUpdate = false;
+	}
+
+
+	// Clear actor net queues
+	LLevel* level = GetGame()->GetCurrentLevel();
+	if (level != nullptr)
+		for (AActor* actor : level->GetActiveActors())
+		{
+			if (!actor->IsNetSynced())
+				continue;
+
+			actor->ClearQueuedNetData();
+			actor->bFirstNetUpdate = false;
+		}
+}
+
+
+void NetSession::EncodeHandshake_ClientToServer(ByteBuffer& outBuffer) 
+{
+	// Version numbers
+	Encode(outBuffer, GetGame()->GetEngine()->GetVersionNo());
+	Encode(outBuffer, GetGame()->GetVersionNo());
+
+	// Request type
+	Encode<uint16>(outBuffer, (uint16)NetRequestType::Connect);
+
+	// TODO - 200 Content
+	//   - Username
+	//   - Password
+}
+
+NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer, ByteBuffer& outBuffer, OPlayerController*& outPlayer)
+{
+	NetRequestType requestType;
+
+	{
+		Version engineVersion, gameVersion;
+		uint16 rawRequestType;
 
 		// Invalid header
-		if (!Decode<Version>(inbuffer, engineVersion) ||
-			!Decode<Version>(inbuffer, gameVersion) ||
-			!Decode<uint16>(inbuffer, requestType))
+		if (!Decode<Version>(inBuffer, engineVersion) ||
+			!Decode<Version>(inBuffer, gameVersion) ||
+			!Decode<uint16>(inBuffer, rawRequestType))
 		{
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadRequest);
 			return NetResponseCode::BadRequest;
 		}
 
-		// Invalid versions
-		if (m_engine->GetVersionNo() != engineVersion || m_engine->GetGame()->GetVersionNo() != gameVersion)
+		// Missmatching versions
+		if (GetGame()->GetEngine()->GetVersionNo() != engineVersion || GetGame()->GetVersionNo() != gameVersion)
 		{
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadVersions);
 			return NetResponseCode::BadVersions;
@@ -70,251 +149,350 @@ NetResponseCode NetSession::DecodeClientHandshake(ByteBuffer& inbuffer, ByteBuff
 		// TODO - Password checks
 		// TODO - Whitelist checks
 		// TODO - Server is full checks
+
+		requestType = (NetRequestType)rawRequestType;
 	}
 
 
-	// Perform any additional checks/payload filling
-	NetRequestType request = (NetRequestType)requestType;
-
-	switch (request)
+	switch (requestType)
 	{
-		// User is just pinging the server to get a response
+		// Acknowledge by pinging back
 		case NetRequestType::Ping:
+		{
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Responded);
 			return NetResponseCode::Responded;
+		}
 
 
-		// The user is attempting to connect to the server as a player
+		// Attempt to accept the player
 		case NetRequestType::Connect:
-			outNetId = m_playerIdCounter++;
+		{
+			// Server is full
+			if (m_playerControllers.size() >= GetMaxPlayerCount())
+			{
+				Encode<uint16>(outBuffer, (uint16)NetResponseCode::ServerFull);
+				return NetResponseCode::ServerFull;
+			}
+
+			// Create new player
+			outPlayer = OPlayerController::StaticClass()->New<OPlayerController>();
+			outPlayer->m_networkOwnerId = NewPlayerID();
+			outPlayer->m_networkId = NewObjectID();
+			outPlayer->bFirstNetUpdate = true;
+			outPlayer->UpdateRole(this);
+			m_playerControllers.emplace_back(outPlayer);
+			GetGame()->AddObject(outPlayer);
+
+			// Encode new player connection information
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Accepted);
-			Encode<uint16>(outBuffer, outNetId);
-			m_newPlayers.emplace(outNetId); // Add to new players to make sure correct welcome packets get sent
+			Encode<uint16>(outBuffer, outPlayer->m_networkOwnerId);
+			Encode<uint16>(outBuffer, outPlayer->m_networkId);
 
-			// TODO - Fill in more session information
-			// TODO - Notify player of level and entity info
-
-			return NetResponseCode::Accepted;
-
-
-		// The user is querying for server details
-		case NetRequestType::Query:
+			// Encode current level info
+			LLevel* level = GetGame()->GetCurrentLevel();
+			if (level != nullptr)
+			{
+				Encode<uint16>(outBuffer, level->GetClass()->GetID());
+				Encode<uint32>(outBuffer, level->GetInstanceID());
+			}
+			else
+			{
+				Encode<uint16>(outBuffer, 0);
+				Encode<uint32>(outBuffer, 0);
+			}
 		
-			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Responded);
+			return NetResponseCode::Accepted;
+		}
 
-			// TODO - query stuff
-			//Encode<uint16>(outBuffer, m_players.size());		// Players connected 
-			//Encode<uint16>(outBuffer, maxPlayerCount);		// Player limit
-			//Encode<string>(outBuffer, "Unnamed Server");		// TODO - Server name
-			//Encode<uint8>(outBuffer, 0);						// TODO - Bitflags
+
+		// Return server information
+		case NetRequestType::Query:
+		{
+			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Responded);
+			Encode<uint16>(outBuffer, m_playerControllers.size());		// Players connected 
+			Encode<uint16>(outBuffer, m_maxPlayerCount);				// Player limit
+			Encode<string>(outBuffer, "Unnamed Server");				// TODO - Server name
+			Encode<uint8>(outBuffer, 0);								// TODO - Bitflags
 			return NetResponseCode::Responded;
+		}
+
 	}
 
 	return NetResponseCode::Unknown;
 }
 
-NetResponseCode NetSession::DecodeServerHandshake(ByteBuffer& buffer, uint16& outNetId)
+NetResponseCode NetSession::DecodeHandshake_ServerToClient(ByteBuffer& inBuffer, OPlayerController*& outPlayer)
 {
-	uint16 rawCode;
-	if (!Decode<uint16>(buffer, rawCode))
+	uint16 rawResponse;
+	if(!Decode<uint16>(inBuffer, rawResponse))
 		return NetResponseCode::Unknown;
 
-	const NetResponseCode response = (NetResponseCode)rawCode;
+	const NetResponseCode response = (NetResponseCode)rawResponse;
 
-	// Get net id if successful
+	// Retrieve connection info
 	if (response == NetResponseCode::Accepted)
 	{
-		Decode<uint16>(buffer, outNetId);
+		uint16 netId;
+		uint16 controllerId;
+		uint16 levelClassId;
+		uint32 levelInstanceId;
+
+		// Decode information
+		if (!Decode<uint16>(inBuffer, netId) ||
+			!Decode<uint16>(inBuffer, controllerId) ||
+			!Decode<uint16>(inBuffer, levelClassId) ||
+			!Decode<uint32>(inBuffer, levelInstanceId)
+		)
+		{
+			LOG_ERROR("Server's response to handshake is unparsable.");
+			return NetResponseCode::BadRequest;
+		}
+
+
+
+		// Cleanup any already existing controllers
+		for (OPlayerController* player : GetGame()->GetActiveObjects<OPlayerController>())
+			OObject::Destroy(player);
+
+		// Setup new player controller
+		outPlayer = OPlayerController::StaticClass()->New<OPlayerController>();
+		m_sessionNetId = netId;
+		outPlayer->m_networkOwnerId = netId;
+		outPlayer->m_networkId = controllerId;
+		outPlayer->bFirstNetUpdate = true;
+		outPlayer->UpdateRole(this);
+		GetGame()->AddObject(outPlayer);
+
+
+
+		// Switch to desired level
+		LLevel::s_instanceCounter = levelInstanceId - 100000; // Make sure is decently away from server's instance counter
+		if (!GetGame()->SwitchLevel(levelClassId)) 
+		{
+			LOG_ERROR("Unable to switch to server requested level");
+			return NetResponseCode::BadRequest;
+		}
+		else 
+		{
+			// Set level's instance id (Works because levels don't load asynchronously)
+			LLevel* level = GetGame()->GetCurrentLevel();
+			level->m_instanceId = levelInstanceId;
+		}
 	}
+
 	return response;
 }
 
 
-void NetSession::EncodeEntityMessage(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, Entity* entity)
+
+void NetSession::EncodeObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType)
 {
-	// TODO - UPDATE
-	/*
-	if ((!IsHost() && !entity->HasNetControl()) || !entity->IsNetSynced()) 
-		return;
+	bool newOutConnection = (target != nullptr && target->bFirstNetUpdate);
 
-	bool newConnection = (m_newPlayers.find(targetNetId) != m_newPlayers.end());
-
-	// If entity has no id, it must be newly spawned
-	if(entity->GetNetworkID() == 0 || newConnection)
+	// New object
+	if (object->bFirstNetUpdate || newOutConnection)
 	{
-		// Major Entity changes must happen over TCP 
+		// Ignore if client (Server has to create entities)
+		if (!IsHost())
+			return;
+
+		// Target already knows about itself
+		if (object == target)
+			return;
+
+		// Must initialize on TCP
 		if (socketType == UDP)
 			return;
 
-
-		// Was part of level
-		if (entity->WasLoadedWithLevel())
-		{
-			if(!newConnection || entity->GetNetworkID() == 0)
-				entity->m_networkId = m_entityIdCounter++; // Give a unique net id
-
-			// Update net role
-			if (IsHost())
-				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::HostOwner : NetRole::HostPuppet);
-			else
-				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::RemoteOwner : NetRole::RemotePuppet);
-
-			Encode<uint8>(buffer, (uint8)NetEntityMethod::ControlOverride);
-			Encode<uint16>(buffer, entity->m_networkId);
-			Encode<uint16>(buffer, entity->m_networkOwnerId);
-			Encode<uint32>(buffer, entity->GetInstanceID());
-		}
-		// Was dynamically spawned
-		else
-		{
-			if (!newConnection || entity->GetNetworkID() == 0)
-				entity->m_networkId = m_entityIdCounter++; // Give a unique net id
-
-			// Update net role
-			if (IsHost())
-				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::HostOwner : NetRole::HostPuppet);
-			else
-				entity->m_netRole = (GetNetworkID() == entity->GetNetworkOwnerID() ? NetRole::RemoteOwner : NetRole::RemotePuppet);
-
-			Encode<uint8>(buffer, (uint8)NetEntityMethod::Spawn);
-			Encode<uint16>(buffer, entity->m_networkId);
-			Encode<uint16>(buffer, entity->m_networkOwnerId);
-			Encode<uint32>(buffer, entity->GetTypeID());
-		}
+		// Encode new object information
+		Encode<uint8>(buffer, (uint8)NetObjectMethod::New);	
+		Encode<uint16>(buffer, object->GetNetworkID());	
+		Encode<uint16>(buffer, object->GetNetworkOwnerID());
+		Encode<uint16>(buffer, object->GetClass()->GetID());
 	}
 
-	// Encode any changes to the entity
-	else
-	{
-		Encode<uint8>(buffer, (uint8)NetEntityMethod::Update);
-		Encode<uint16>(buffer, entity->m_networkId);
-		// TODO - Sync vars
-		entity->EncodeRPCRequests(targetNetId, buffer, socketType);
-	}
-	*/
 }
 
-void NetSession::DecodeEntityMessage(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType)
+void NetSession::DecodeObject(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType)
 {
-	// TODO - UPDATE
-	/*
 	uint8 rawMethod;
 	Decode(buffer, rawMethod);
-	NetEntityMethod method = (NetEntityMethod)rawMethod;
+	NetObjectMethod method = (NetObjectMethod)rawMethod;
 
 	switch (method)
 	{
-	case NetEntityMethod::Nothing:
-		break;
+		// Ignore this
+		case NetObjectMethod::Empty: 
+			break; 
 
 
-	// Attempt to spawn new entity
-	case NetEntityMethod::Spawn:
-	{
-		uint16 netId;
-		uint16 netOwnerId;
-		uint32 typeId;
-
-		if (!Decode(buffer, netId) ||
-			!Decode(buffer, netOwnerId) ||
-			!Decode(buffer, typeId)
-			) return;
-
-		// Fetch factory and perform checkss
-		ClassFactory<Entity>* factory = m_engine->GetGame()->GetEntityFactoryFromID(typeId);
-		if (IsHost())
+		// Create new object
+		case NetObjectMethod::New:
 		{
-			LOG_WARNING("Received entity spawn request from client");
-			return;
-		}
-		if (factory == nullptr)
-		{
-			LOG_ERROR("Cannot spawn entity of id:%i (Cannot find factory)", typeId);
-			return;
-		}
+			// Decode and check values
+			uint16 netId;
+			uint16 ownerNetId;
+			uint16 classId;
+			if (!Decode(buffer, netId) ||
+				!Decode(buffer, ownerNetId) ||
+				!Decode(buffer, classId))
+			{
+				LOG_ERROR("Received invalid object new method");
+				return;
+			}
 
-		// Spawn in entity with given settings
-		Entity* e = factory->New();
-		e->m_networkId = netId;
-		e->m_networkOwnerId = netOwnerId;
-		e->m_netRole = (netOwnerId == GetNetworkID() ? NetRole::RemoteOwner : NetRole::RemotePuppet); // Deduce role
-		m_engine->GetGame()->GetCurrentLevel()->AddEntity(e);
-		break;
-	}
+			// Ignore if host
+			if (IsHost())
+			{
+				LOG_ERROR("Received new object method from client");
+				return;
+			}
+
+			// Fetch and check class is correct
+			const MClass* typeClass = GetGame()->GetObjectClass(classId);
+			if (typeClass == nullptr)
+			{
+				LOG_ERROR("Received unidentified object class id:%i", classId);
+				return;
+			}
 
 
-	case NetEntityMethod::Despawn:
-		break;
-
-	// Attempt to override controll of entity, and give it correct net id
-	case NetEntityMethod::ControlOverride:
-	{
-		uint16 netId;
-		uint16 netOwnerId;
-		uint32 instanceId;
-
-		if (!Decode(buffer, netId) ||
-			!Decode(buffer, netOwnerId) ||
-			!Decode(buffer, instanceId)
-			) return;
-
-		// Perform checkss
-		if (IsHost())
-		{
-			LOG_WARNING("Received entity control override request from client");
-			return;
+			// Create object
+			OObject* object = typeClass->New<OObject>();
+			object->m_networkId = netId;
+			object->m_networkOwnerId = ownerNetId;
+			object->UpdateRole(this);
+			GetGame()->AddObject(object);
+			break;
 		}
 
-		Entity* e = m_engine->GetGame()->GetCurrentLevel()->GetEntityFromInstanceId(instanceId);
-		if (e == nullptr)
+
+		case NetObjectMethod::Delete:
 		{
-			LOG_ERROR("Cannot let host override control, as no entity with instance id %i can be found", instanceId);
-			return;
+			break;
 		}
 
-		e->m_networkId = netId;
-		e->m_networkOwnerId = netOwnerId;
-		e->m_netRole = (netOwnerId == GetNetworkID() ? NetRole::RemoteOwner : NetRole::RemotePuppet); // Deduce role
-		m_engine->GetGame()->GetCurrentLevel()->m_netEntities[netId] = e; // Add to lookup table
-		break;
+
+		case NetObjectMethod::Update:
+		{
+			break;
+		}
 	}
-
-	case NetEntityMethod::Update:
-	{
-		uint16 netId;
-		if (!Decode(buffer, netId)) return;
-
-		Entity* entity = m_engine->GetGame()->GetCurrentLevel()->GetEntityFromNetId(netId);
-		if (entity == nullptr)
-			return;
-
-		// TODO - Sync vars;
-		entity->DecodeRPCRequests(sourceNetId, buffer, socketType);
-		break;
-	}
-
-	default:
-		break;
-	}
-	*/
 }
 
-void NetSession::NetDecode(const uint16& netId, ByteBuffer& buffer, const SocketType& socketType)
-{
-	while (buffer.Size() != 0)
-	{
-		uint8 rawMessage;
-		Decode(buffer, rawMessage);
-		NetMessage messageType = (NetMessage)rawMessage;
 
-		switch (messageType)
+void NetSession::EncodeActor(AActor* actor, ByteBuffer& buffer, const SocketType& socketType) 
+{
+}
+
+void NetSession::DecodeActor(ByteBuffer& buffer, const SocketType& socketType) 
+{
+}
+
+
+
+void NetSession::NetEncode(const OPlayerController* target, ByteBuffer& buffer, const SocketType& socketType)
+{
+	LLevel* level = GetGame()->GetCurrentLevel();
+
+	// Encode fake level header
+	if (level == nullptr)
+	{
+		Encode<uint16>(buffer, 0); // No level id
+		Encode<uint16>(buffer, 0); // No messages
+		return;
+	}
+
+	// Encode level header
+	Encode<uint16>(buffer, level->GetInstanceID());
+	uint16 messageCount = 0;
+	ByteBuffer messageBuffer;
+
+	
+	// Encode objects
+	for (OObject* object : GetGame()->GetActiveObjects())
+		if (object->GetNetworkID() != 0 && (IsHost() || object->IsNetOwner()))
+		{
+			Encode<uint8>(messageBuffer, (uint8)NetMessage::NetObjectMessage); 
+			Encode<uint8>(messageBuffer, 0); // 0 - Object
+
+			const uint32 startSize = messageBuffer.Size();
+			EncodeObject(target, object, messageBuffer, socketType);
+
+			// Nothing changed, so just revert
+			if (messageBuffer.Size() == startSize)
+			{
+				messageBuffer.Pop();
+				messageBuffer.Pop();
+			}
+			else
+				++messageCount;
+		}
+
+	// Encode actors
+	for (AActor* actor : level->GetActiveActors())
+		if (actor->GetNetworkID() != 0 && (IsHost() || actor->IsNetOwner()))
+		{
+			Encode<uint8>(messageBuffer, (uint8)NetMessage::NetObjectMessage);
+			Encode<uint8>(messageBuffer, 1); // 1 - Actor
+
+			const uint32 startSize = messageBuffer.Size();
+			EncodeActor(actor, messageBuffer, socketType);
+
+			// Nothing changed, so just revert
+			if (messageBuffer.Size() == startSize)
+			{
+				messageBuffer.Pop();
+				messageBuffer.Pop();
+			}
+			else
+				++messageCount;
+		}
+
+
+	Encode<uint16>(buffer, messageCount);
+	buffer.Push(messageBuffer.Data(), messageBuffer.Size());
+}
+
+void NetSession::NetDecode(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType)
+{
+	uint16 levelId;
+	uint16 messageCount;
+	Decode<uint16>(buffer, levelId);
+	Decode<uint16>(buffer, messageCount);
+
+	LLevel* level = GetGame()->GetCurrentLevel();
+	const bool levelIsValid = (level != nullptr && levelId == level->GetInstanceID());
+
+
+	// Decode all  object messages
+	for (uint32 i = 0; i < messageCount; ++i)
+	{
+		uint8 rawMsgType;
+		if (!Decode(buffer, rawMsgType))
+			return;
+		NetMessage msgType = (NetMessage)rawMsgType;
+		
+		switch (msgType)
 		{
 			case NetMessage::Nothing:
 				break;
 
-			case NetMessage::EntityMessage:
-				DecodeEntityMessage(netId, buffer, socketType);
+			// Decode any net object information
+			case NetMessage::NetObjectMessage:
+			{
+				uint8 isActor;
+				Decode(buffer, isActor);
+
+				if (isActor == true)
+				{
+					if(levelIsValid)
+						DecodeActor(buffer, socketType);
+				}
+				else
+					DecodeObject(source, buffer, socketType);
 				break;
+			}
 
 			default:
 				break;

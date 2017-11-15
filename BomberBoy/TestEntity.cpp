@@ -1,6 +1,9 @@
 #include "TestEntity.h"
 CLASS_SOURCE(ATestEntity)
 
+#include "Core\Level.h"
+#include "Core\Game.h"
+#include "Core\PlayerController.h"
 
 ATestEntity::ATestEntity()
 {
@@ -42,6 +45,19 @@ void ATestEntity::OnTick(const float& deltaTime)
 #ifdef BUILD_CLIENT
 	timer += deltaTime;
 	
+	if (timer < 3.0f)
+		return;
+
+	timer = 0.0f;
+
+	std::vector<OPlayerController*> controllers = GetLevel()->GetGame()->GetActiveObjects<OPlayerController>();
+	LOG("%i players", controllers.size());
+	for (auto ply : controllers)
+	{
+		LOG("\t id:%i %i", ply->GetNetworkOwnerID(), ply->IsNetOwner());
+	}
+
+
 	//if (timer >= 10.0f)
 	//{
 	//	timer = 0.0f;
@@ -49,7 +65,7 @@ void ATestEntity::OnTick(const float& deltaTime)
 	//	return;
 	//}
 
-	CallRPC_TwoParam(UDP, RPCTarget::GlobalBroadcast, this, PrintTime, timer, 10.0f - timer);
+	//CallRPC_TwoParam(UDP, RPCTarget::GlobalBroadcast, this, PrintTime, timer, 10.0f - timer);
 
 	//sf::Vector2f dl = GetLocation() + sf::Vector2f(30, 0) * deltaTime;
 	//CallRPC_TwoParam(TCP, RPCTarget::Owner, this, MoveTo, dl.x, dl.y);

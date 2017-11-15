@@ -15,9 +15,10 @@ class Game;
 class CORE_API LLevel : public ManagedObject
 {
 	CLASS_BODY()
+	friend class NetSession;
 private:
 	static uint32 s_instanceCounter;
-	const uint32 m_instanceId;
+	uint32 m_instanceId;
 	Game* m_game = nullptr;
 
 	bool bIsBuilding = false;
