@@ -25,6 +25,18 @@ void NetSerializableBase::UpdateRole(const NetSession* session, const bool& assi
 		m_netRole = m_networkOwnerId == session->GetSessionNetID() ? NetRole::RemoteOwner : NetRole::RemotePuppet;
 }
 
+void NetSerializableBase::OnPreNetUpdate() 
+{
+	// Fetch all variables that need to be updated
+	if (IsNetHost())
+	{
+		uint16 index;
+		uint32 track;
+		RegisterSyncVars(m_TcpVarQueue, TCP, index, track);
+		RegisterSyncVars(m_UdpVarQueue, UDP, index, track);
+	}
+}
+
 
 
 bool NetSerializableBase::RegisterRPCs(const char* func, RPCInfo& outInfo) const 
@@ -32,11 +44,22 @@ bool NetSerializableBase::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 	outInfo.index = 0;
 	return false;
 }
-
 bool NetSerializableBase::ExecuteRPC(uint16& id, ByteBuffer& params) 
 {
 	return false;
 }
+
+
+void NetSerializableBase::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex)
+{
+	index = 0;
+	trackIndex = 0;
+}
+bool NetSerializableBase::ExecuteSyncVar(uint16& id, ByteBuffer& value) 
+{
+	return false;
+}
+
 
 void NetSerializableBase::RemoteCallRPC(const RPCInfo& rpcInfo, const ByteBuffer& params) 
 {
@@ -53,7 +76,6 @@ void NetSerializableBase::RemoteCallRPC(const RPCInfo& rpcInfo, const ByteBuffer
 	request.params = params;
 	queue.emplace_back(request);
 }
-
 
 
 void NetSerializableBase::EncodeRPCRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType)
@@ -126,5 +148,54 @@ void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffe
 			if(request.function.callingMode != RPCCallingMode::Host)
 				ExecuteRPC(request.function.index, request.params);
 		}
+	}
+}
+
+
+void NetSerializableBase::EncodeSyncVarRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType) 
+{
+	// Only host can sync vars
+	if (!IsNetHost())
+	{
+		Encode<uint16>(buffer, 0);
+		return;
+	}
+
+	SyncVarQueue& queue = (socketType == SocketType::TCP ? m_TcpVarQueue : m_UdpVarQueue);
+	uint16 count = 0;
+	ByteBuffer callBuffer;
+
+	// Encode all var changes (Synced to every client)
+	for (const SyncVarRequest& request : queue)
+	{
+		Encode<SyncVarRequest>(callBuffer, request);
+		++count;
+	}
+
+	// Encode calls into main buffer
+	Encode<uint16>(buffer, count);
+	if (count != 0)
+		buffer.Push(callBuffer.Data(), callBuffer.Size());
+}
+
+void NetSerializableBase::DecodeSyncVarRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType) 
+{
+	uint16 count;
+	if (!Decode(buffer, count) || count == 0)
+		return;
+
+	// Only process var changes if they have come from the server
+	const bool skipExecution = sourceNetId != 0 || IsNetHost();
+
+	// Update all sync vars
+	for (uint32 i = 0; i < count; ++i)
+	{
+		SyncVarRequest request;
+		if (!Decode<SyncVarRequest>(buffer, request))
+			return;
+		if (skipExecution)
+			continue;
+
+		ExecuteSyncVar(request.variable.index, request.value);
 	}
 }

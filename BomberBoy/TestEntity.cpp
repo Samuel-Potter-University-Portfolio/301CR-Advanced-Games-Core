@@ -10,6 +10,7 @@ ATestEntity::ATestEntity()
 	bIsNetSynced = true;
 	bIsTickable = true;
 }
+
 bool ATestEntity::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
 	RPC_INDEX_HEADER(func, outInfo);
@@ -25,6 +26,20 @@ bool ATestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
 	RPC_EXEC(ResetPosition);
 	RPC_EXEC_TwoParam(MoveTo, float, float);
 	RPC_EXEC_TwoParam(PrintTime, float, float);
+	return false;
+}
+
+
+void ATestEntity::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex) 
+{
+	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex)
+	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, int, clampedTimer)
+}
+
+bool ATestEntity::ExecuteSyncVar(uint16& id, ByteBuffer& value) 
+{
+	SYNCVAR_EXEC_HEADER(id, value);
+	SYNCVAR_EXEC_Callback(clampedTimer, OnClampedTimerChange);
 	return false;
 }
 
@@ -45,11 +60,12 @@ void ATestEntity::OnTick(const float& deltaTime)
 {
 #ifdef BUILD_SERVER
 	timer += deltaTime; 
+	clampedTimer = (int)(timer / 5.0f);
 	//CallRPC_TwoParam(this, MoveTo, timer * 20.0f, 0);
 
-	if (timer < 10.0f)
-		return;
-	Destroy(this);
+	//if (timer < 10.0f)
+	//	return;
+	//Destroy(this);
 #endif
 }
 
@@ -82,4 +98,10 @@ void ATestEntity::ResetPosition()
 void ATestEntity::MoveTo(float x, float y)
 {
 	SetLocation(startPos + sf::Vector2f(x, y));
+}
+
+
+void ATestEntity::OnClampedTimerChange() 
+{
+	LOG("Called OnClampedTimerChange %i", clampedTimer);
 }

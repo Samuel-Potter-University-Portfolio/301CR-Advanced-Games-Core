@@ -30,7 +30,7 @@ void NetSession::MainUpdate(const float& deltaTime)
 	if (m_tickTimer < m_sleepRate)
 		return;
 
-	if (m_tickTimer >= m_sleepRate * 2.0f)
+	if (m_tickTimer >= m_sleepRate * 5.0f)
 		LOG_WARNING("Net update falling behind");
 
 	PreNetUpdate();
@@ -41,17 +41,12 @@ void NetSession::MainUpdate(const float& deltaTime)
 
 void NetSession::PreNetUpdate() 
 {
-	// All we do is assign ids, so ignore this stage for clients
-	if (IsRemote())
-		return;
-
-
 	// Assign ids to any new objects
 	for (OObject* object : GetGame()->GetActiveObjects())
 	{
 		if (!object->IsNetSynced())
 			continue;
-
+		
 		// Assign new net id
 		if (object->GetNetworkID() == 0 && IsHost())
 		{
@@ -59,6 +54,9 @@ void NetSession::PreNetUpdate()
 			object->bFirstNetUpdate = true;
 			object->UpdateRole(this);
 		}
+
+		if(object->HasNetControl())
+			object->OnPreNetUpdate();
 	}
 
 
@@ -77,6 +75,9 @@ void NetSession::PreNetUpdate()
 				actor->bFirstNetUpdate = true;
 				actor->UpdateRole(this);
 			}
+
+			if (actor->HasNetControl())
+				actor->OnPreNetUpdate();
 		}
 }
 
@@ -344,8 +345,9 @@ void NetSession::EncodeNetObject(const OPlayerController* target, OObject* objec
 
 	// Encode sync vars and rpcs
 	Encode<uint16>(buffer, object->GetNetworkID());
-	// TODO - Encode sync vars
-	object->EncodeRPCRequests(target == nullptr ? 0 : target->GetNetworkOwnerID(), buffer, socketType);
+	const uint16 targetId = target == nullptr ? 0 : target->GetNetworkOwnerID();
+	object->EncodeSyncVarRequests(targetId, buffer, socketType);
+	object->EncodeRPCRequests(targetId, buffer, socketType);
 }
 
 void NetSession::DecodeNetObject(const OPlayerController* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType, const bool& justCleanUp)
@@ -465,8 +467,9 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 			OObject* object = isActor ? GetGame()->GetCurrentLevel()->GetActorByNetID(netId) : GetGame()->GetObjectByNetID(netId);
 			if (object != nullptr)
 			{
-				// TODO - Decode sync vars
-				object->DecodeRPCRequests(source == nullptr ? 0 : source->GetNetworkOwnerID(), buffer, socketType);
+				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
+				object->DecodeSyncVarRequests(sourceId, buffer, socketType);
+				object->DecodeRPCRequests(sourceId, buffer, socketType);
 			}
 			return;
 		}

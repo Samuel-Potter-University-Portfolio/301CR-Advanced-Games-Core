@@ -27,10 +27,7 @@ void Engine::Launch(Game* game)
 {
 	LOG("Launching game engine with game '%s'", game->GetName().c_str());
 	LOG("\t-Game Version (%i.%i.%i)", game->GetVersionNo().major, game->GetVersionNo().minor, game->GetVersionNo().patch);
-
-	// Setup game
 	m_game = game;
-	m_game->OnGameHooked(this);
 
 	
 #ifdef BUILD_CLIENT
@@ -48,8 +45,8 @@ void Engine::Launch(Game* game)
 
 #endif
 
-
 	// Launch into main loop
+	m_game->OnGameHooked(this);
 	MainLoop();
 
 

@@ -12,6 +12,9 @@ public:
 protected:
 	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
+	
+	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex) override;
+	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value) override;
 
 protected:
 	/**
@@ -29,9 +32,12 @@ protected:
 
 	sf::Vector2f startPos;
 	float timer;
+	int clampedTimer;
 	void ResetPosition();
 	void MoveTo(float x, float y);
 	void PrintTime(float time, float time2);
+
+	void OnClampedTimerChange();
 
 #ifdef BUILD_CLIENT
 	/**

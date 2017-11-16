@@ -69,6 +69,62 @@ inline bool Decode<RPCRequest>(ByteBuffer& buffer, RPCRequest& out, void* contex
 
 
 /**
+* The different calling modes avaliable when calling an RPC
+*/
+enum class SyncVarMode : uint8
+{
+	Unknown		= 0,
+	OnChange	= 1,	// Sync whenever the value changes
+	Interval	= 2,	// Sync at regular intervals
+	Always		= 3,	// Sync every net update
+};
+
+/**
+* Describes a registered sync var and how to sync it it
+*/
+struct SyncVarInfo 
+{
+	uint16			index;			// Registered index of this variable
+	SyncVarMode		syncMode;		// Synchronisation mode of this variable
+	SocketType		socket;			// What socket the variable should be synced over
+};
+
+
+/**
+* Describes a call request for an RPC
+*/
+struct SyncVarRequest
+{
+	SyncVarInfo		variable;	// Registered variable information
+	ByteBuffer		value;		// Value of this variable
+};
+typedef std::vector<SyncVarRequest> SyncVarQueue;
+
+template<>
+inline void Encode<SyncVarRequest>(ByteBuffer& buffer, const SyncVarRequest& data)
+{
+	Encode<uint16>(buffer, data.variable.index);
+	Encode<uint16>(buffer, data.value.Size());
+	buffer.Push(data.value.Data(), data.value.Size());
+}
+
+template<>
+inline bool Decode<SyncVarRequest>(ByteBuffer& buffer, SyncVarRequest& out, void* context)
+{
+	uint16 paramCount;
+
+	if (!Decode<uint16>(buffer, out.variable.index) ||
+		!Decode<uint16>(buffer, paramCount)
+		)
+		return false;
+
+	buffer.PopBuffer(out.value, paramCount);
+	return true;
+}
+
+
+
+/**
 * All the different roles a net synced object can have
 */
 enum class NetRole : uint8
@@ -107,8 +163,13 @@ private:
 
 	RPCQueue m_UdpRpcQueue;
 	RPCQueue m_TcpRpcQueue;
+	SyncVarQueue m_UdpVarQueue;
+	SyncVarQueue m_TcpVarQueue;
 
 protected:
+	// Where to check if any value has changed
+	std::vector<uint8> m_varCheckValues;
+
 	bool bIsNetSynced = false;
 
 public:
@@ -120,9 +181,7 @@ public:
 	void UpdateRole(const NetSession* session, const bool& assignOwner = false);
 
 
-	/**
-	* RPC Override pair
-	*/
+
 public:
 	/**
 	* Register RPCs in this function
@@ -131,6 +190,15 @@ public:
 	* @returns If the function is registered or not
 	*/
 	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const;
+
+	/**
+	* Register variables in this function
+	* @param outQueue		The queue to encode any variable changes
+	* @param socketType		The socket type this is using
+	* @param startIndex		The index to start the counting at
+	* @param trackIndex		The index to track changes from from
+	*/
+	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex);
 protected:
 	/**
 	* Call a given function from it's RPC id
@@ -140,6 +208,15 @@ protected:
 	* @returns If call succeeds
 	*/
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params);
+
+	/**
+	* Set a variable's value from it's id
+	* NOTE: macro order between RegisterSyncVars and ExecuteSyncVar must align
+	* @param id				The id of the variable
+	* @param value			The raw value for the variable to use
+	* @returns If call succeeds
+	*/
+	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value);
 public:
 
 	/**
@@ -151,7 +228,6 @@ public:
 	void RemoteCallRPC(const RPCInfo& rpcInfo, const ByteBuffer& params);
 
 
-
 	/**
 	* Has this object got any data to encode
 	* @param socketType			The socket type the data will be sent over
@@ -160,9 +236,9 @@ public:
 	inline bool HasQueuedNetData(const SocketType& socketType) const
 	{
 		if (socketType == TCP)
-			return m_TcpRpcQueue.size() != 0;
+			return m_TcpRpcQueue.size() != 0 || m_TcpVarQueue.size() != 0;
 		else
-			return m_UdpRpcQueue.size() != 0;
+			return m_UdpRpcQueue.size() != 0 || m_UdpVarQueue.size() != 0;
 	}
 	/**
 	* Clears any net data which is currently queued
@@ -171,11 +247,18 @@ public:
 	{
 		m_UdpRpcQueue.clear();
 		m_TcpRpcQueue.clear();
+		m_UdpVarQueue.clear();
+		m_TcpVarQueue.clear();
 	}
 
 
 
 private:
+	/**
+	* Callback for just before a net update is about to occur
+	*/
+	void OnPreNetUpdate();
+
 	/**
 	* Encode all currently queued RPC calls
 	* @param targetNetId	The net id of where this data will be sent to
@@ -190,6 +273,21 @@ private:
 	* @param socketType		The socket type this was sent over
 	*/
 	void DecodeRPCRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType);
+
+	/**
+	* Encode all currently queued sync var requests
+	* @param targetNetId	The net id of where this data will be sent to
+	* @param buffer			The buffer to fill with all this information
+	* @param socketType		The socket type this will be sent over
+	*/
+	void EncodeSyncVarRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType);
+	/**
+	* Decode all sync var calls in this queue
+	* @param sourceNetId	The net id of where this data came from
+	* @param buffer			The buffer to fill with all this information
+	* @param socketType		The socket type this was sent over
+	*/
+	void DecodeSyncVarRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType);
 	
 
 	/**
@@ -213,7 +311,7 @@ public:
 
 
 /**
-* Placed at the start of FetchRPCIndex to create temporary vars (To avoid naming problems)
+* Placed at the start of RegisterRPCs to create temporary vars (To avoid naming problems)
 * and to handle parent calls correctly
 */
 #define RPC_INDEX_HEADER(func, outInfo) \
@@ -222,7 +320,7 @@ public:
 	if(__super::RegisterRPCs(__TEMP_NAME, __TEMP_INFO)) return true; 
 
 /**
-* Placed after RPC_INDEX_HEADER in FetchRPCIndex to create an entry for a function
+* Placed after RPC_INDEX_HEADER in ExecuteRPC to create an entry for a function
 */
 #define RPC_INDEX(socketType, mode, func) \
 	if (std::strcmp(__TEMP_NAME, #func) == 0) \
@@ -235,6 +333,67 @@ public:
 		++__TEMP_INFO.index;
 
 
+/**
+* Placed at the start of RegisterSyncVars to create temporary vars (To avoid naming problems)
+* and to handle parent calls correctly
+*/
+#define SYNCVAR_INDEX_HEADER(queue, socketType, index, trackIndex) \
+	SyncVarQueue& __TEMP_QUEUE = queue; \
+	const SocketType& __TEMP_SOCKET = socketType; \
+	uint16& __TEMP_INDEX = index; \
+	uint32& __TEMP_TRACK = trackIndex; \
+	__super::RegisterSyncVars(__TEMP_QUEUE, __TEMP_SOCKET, __TEMP_INDEX, __TEMP_TRACK);
+
+/**
+* Placed after SYNCVAR_INDEX_HEADER in ExecuteSyncVar to create an entry for a variable
+*/
+#define SYNCVAR_INDEX(socketType, mode, type, var) \
+	if (__TEMP_SOCKET == socketType) \
+		{ \
+			if (mode == SyncVarMode::Always || (mode == SyncVarMode::Interval)) \
+			{ \
+				SyncVarRequest request; \
+				request.variable.index = __TEMP_INDEX; \
+				request.variable.socket = socketType; \
+				request.variable.syncMode = mode; \
+				Encode(request.value, var); \
+				__TEMP_QUEUE.emplace_back(request); \
+			} \
+			else if (mode == SyncVarMode::OnChange) \
+			{ \
+				type* vptr; \
+				if (typeid(type) == typeid(string)) \
+				{ \
+					if (m_varCheckValues.size() < __TEMP_TRACK + STR_MAX_ENCODE_LEN) \
+						m_varCheckValues.resize(__TEMP_TRACK + STR_MAX_ENCODE_LEN); \
+					\
+					*(m_varCheckValues.data() + __TEMP_TRACK + STR_MAX_ENCODE_LEN - 1) = '\0'; \
+					vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
+					__TEMP_TRACK += STR_MAX_ENCODE_LEN; \
+				} \
+				else \
+				{ \
+					if (m_varCheckValues.size() < __TEMP_TRACK + sizeof(type)) \
+						m_varCheckValues.resize(__TEMP_TRACK + sizeof(type)); \
+					\
+					vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
+					__TEMP_TRACK += sizeof(type); \
+				} \
+				\
+				if (*vptr != var) \
+				{ \
+					*vptr = var; \
+					SyncVarRequest request; \
+					request.variable.index = __TEMP_INDEX; \
+					request.variable.socket = socketType; \
+					request.variable.syncMode = mode; \
+					Encode(request.value, var); \
+					__TEMP_QUEUE.emplace_back(request); \
+				} \
+			} \
+		} \
+			++__TEMP_INDEX;
+
 
 
 /**
@@ -245,7 +404,6 @@ public:
 	uint16 __TEMP_ID = id; \
 	ByteBuffer& __TEMP_BUFFER = params; \
 	if(__super::ExecuteRPC(__TEMP_ID, __TEMP_BUFFER)) return true;
-
 
 /**
 * Execution for a function at the placed index
@@ -357,6 +515,44 @@ public:
 
 
 
+/**
+* Placed at the start of ExecuteSyncVar to create temporary vars (To avoid naming problems)
+* and to handle parent calls correctly
+*/
+#define SYNCVAR_EXEC_HEADER(id, value) \
+	uint16 __TEMP_ID = id; \
+	ByteBuffer& __TEMP_BUFFER = value; \
+	if(__super::ExecuteSyncVar(__TEMP_ID, __TEMP_BUFFER)) return true;
+
+/**
+* Execution for a variable at the placed index
+*/
+#define SYNCVAR_EXEC(var) \
+	if (__TEMP_ID == 0) \
+		return Decode(__TEMP_BUFFER, var); \
+	else \
+		--__TEMP_ID;
+
+/**
+* Execution for a variable at the placed index
+* Calls the callback function when the value is changed (Over the net)
+*/
+#define SYNCVAR_EXEC_Callback(var, callback) \
+	if (__TEMP_ID == 0) \
+	{ \
+		const bool decoded = Decode(__TEMP_BUFFER, var); \
+		if(!decoded) return false; \
+		callback(); \
+		return true; \
+	} \
+	else \
+		--__TEMP_ID;
+
+
+
+/**
+* GENERIC* Execute RPC with given settings
+*/
 #define __CallRPC(object, func, funcCall, funcEncode) \
 { \
 	NetSerializableBase* __TEMP_NSB = static_cast<NetSerializableBase*>(object); \

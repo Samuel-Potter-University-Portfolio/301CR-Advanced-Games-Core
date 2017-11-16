@@ -63,16 +63,12 @@ void Game::OnGameHooked(Engine* engine)
 {
 	m_engine = engine;
 
-#if BUILD_CLIENT
 	// Switch to correct level
 	NetSession* session = GetSession();
 	if(session == nullptr || !session->IsHost())
 		SwitchLevel(defaultLevel);
 	else
 		SwitchLevel(defaultNetLevel);
-#else
-	SwitchLevel(defaultNetLevel);
-#endif
 }
 
 
