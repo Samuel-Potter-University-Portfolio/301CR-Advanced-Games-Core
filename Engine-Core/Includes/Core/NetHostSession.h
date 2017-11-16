@@ -19,7 +19,7 @@ struct NetPlayerConnection
 class NetHostSession : public NetSession
 {
 private:
-	std::map<const NetIdentity, NetPlayerConnection> m_connectionLookup;
+	std::map<const NetIdentity, NetPlayerConnection*> m_connectionLookup;
 	const float m_maxInactivityTime = 15.0f;
 
 public:
@@ -46,5 +46,5 @@ private:
 	* @param outPlayer			Where the player will be stored
 	* @returns If id is succesfully fetched
 	*/
-	bool GetPlayerFromIdentity(const NetIdentity& identity, NetPlayerConnection& outPlayer) const;
+	bool GetPlayerFromIdentity(const NetIdentity& identity, NetPlayerConnection*& outPlayer) const;
 };

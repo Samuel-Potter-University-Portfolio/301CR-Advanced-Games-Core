@@ -33,13 +33,15 @@ bool ATestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
 void ATestEntity::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex)
-	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, int, clampedTimer)
+		SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, int, clampedTimer)
+		SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, string, testString)
 }
 
 bool ATestEntity::ExecuteSyncVar(uint16& id, ByteBuffer& value) 
 {
 	SYNCVAR_EXEC_HEADER(id, value);
 	SYNCVAR_EXEC_Callback(clampedTimer, OnClampedTimerChange);
+	SYNCVAR_EXEC_Callback(testString, OnTestStringChange);
 	return false;
 }
 
@@ -60,7 +62,11 @@ void ATestEntity::OnTick(const float& deltaTime)
 {
 #ifdef BUILD_SERVER
 	timer += deltaTime; 
-	clampedTimer = (int)(timer / 5.0f);
+	if (timer < 2)
+		return;
+	timer = 0;
+	testString += "(len:" + std::to_string(testString.size()) + ")";
+
 	//CallRPC_TwoParam(this, MoveTo, timer * 20.0f, 0);
 
 	//if (timer < 10.0f)
@@ -101,7 +107,12 @@ void ATestEntity::MoveTo(float x, float y)
 }
 
 
-void ATestEntity::OnClampedTimerChange() 
+void ATestEntity::OnClampedTimerChange()
 {
 	LOG("Called OnClampedTimerChange %i", clampedTimer);
+}
+
+void ATestEntity::OnTestStringChange()
+{
+	LOG("Called OnTestStringChange:\n%s", testString.c_str());
 }

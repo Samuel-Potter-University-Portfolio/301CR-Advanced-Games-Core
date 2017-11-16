@@ -33,11 +33,13 @@ protected:
 	sf::Vector2f startPos;
 	float timer;
 	int clampedTimer;
+	string testString;
 	void ResetPosition();
 	void MoveTo(float x, float y);
 	void PrintTime(float time, float time2);
 
 	void OnClampedTimerChange();
+	void OnTestStringChange();
 
 #ifdef BUILD_CLIENT
 	/**

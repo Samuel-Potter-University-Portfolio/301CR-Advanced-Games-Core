@@ -41,10 +41,11 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 	// Update for any timed out connection
 	for (auto& it = m_connectionLookup.begin(); it != m_connectionLookup.end();)
 	{
-		if ((it->second.inactivityTimer += deltaTime) >= m_maxInactivityTime)
+		if ((it->second->inactivityTimer += deltaTime) >= m_maxInactivityTime)
 		{
-			LOG("%s:%i timed out..", it->second.identity.ip.toString().c_str(), it->second.identity.port);
-			OObject::Destroy(it->second.controller);
+			LOG("%s:%i timed out..", it->second->identity.ip.toString().c_str(), it->second->identity.port);
+			OObject::Destroy(it->second->controller);
+			delete it->second;
 			m_connectionLookup.erase(it++);
 		}
 		else
@@ -64,7 +65,7 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 			packet.buffer.Flip();
 
 			// Player not connected
-			NetPlayerConnection playerConnection;
+			NetPlayerConnection* playerConnection;
 			if (!GetPlayerFromIdentity(packet.source, playerConnection))
 			{
 				// Attempt to accept with handshake
@@ -72,9 +73,10 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 				ByteBuffer response;
 				if (DecodeHandshake_ClientToServer(packet.buffer, response, player) == NetResponseCode::Accepted)
 				{
-					playerConnection.identity = packet.source;
-					playerConnection.controller = player;
-					m_connectionLookup[playerConnection.identity] = playerConnection;
+					playerConnection = new NetPlayerConnection;
+					playerConnection->identity = packet.source;
+					playerConnection->controller = player;
+					m_connectionLookup[playerConnection->identity] = playerConnection;
 					LOG("Player(%i) connected from %s:%i", player->GetNetworkOwnerID(), packet.source.ip.toString().c_str(), packet.source.port);
 				}
 
@@ -85,8 +87,8 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 			// Player already connected (So just attempt to decode)
 			else
 			{
-				NetDecode(playerConnection.controller, packet.buffer, TCP);
-				playerConnection.inactivityTimer = 0;
+				NetDecode(playerConnection->controller, packet.buffer, TCP);
+				playerConnection->inactivityTimer = -deltaTime;
 			}
 		}
 
@@ -98,11 +100,11 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 			packet.buffer.Flip();
 
 			// Player connected (Only perform handshake on TCP)
-			NetPlayerConnection playerConnection;
+			NetPlayerConnection* playerConnection;
 			if (GetPlayerFromIdentity(packet.source, playerConnection))
 			{
-				NetDecode(playerConnection.controller, packet.buffer, UDP);
-				playerConnection.inactivityTimer = 0;
+				NetDecode(playerConnection->controller, packet.buffer, UDP);
+				playerConnection->inactivityTimer = -deltaTime;
 			}
 		}
 
@@ -115,12 +117,12 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 	ByteBuffer udpContent;
 
 	// Send out packet update
-	for (auto it : m_connectionLookup)
+	for (auto& it : m_connectionLookup)
 	{
 		tcpContent.Clear();
 		udpContent.Clear();
-		NetEncode(it.second.controller, tcpContent, TCP);
-		NetEncode(it.second.controller, udpContent, UDP);
+		NetEncode(it.second->controller, tcpContent, TCP);
+		NetEncode(it.second->controller, udpContent, UDP);
 
 		const NetIdentity& identity = it.first;
 		m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity); // Will return false in event of disconnect, so could use this?
@@ -128,7 +130,7 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 	}
 }
 
-bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlayerConnection& outPlayer) const
+bool NetHostSession::GetPlayerFromIdentity(const NetIdentity& identity, NetPlayerConnection*& outPlayer) const
 {
 	auto it = m_connectionLookup.find(identity);
 	if (it == m_connectionLookup.end())
