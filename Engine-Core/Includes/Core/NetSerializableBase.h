@@ -159,7 +159,9 @@ private:
 	NetRole m_netRole = NetRole::None;
 	uint16 m_networkOwnerId = 0;
 	uint16 m_networkId = 0;
+
 	bool bFirstNetUpdate;
+	uint16 m_updateCounter = 0;
 
 	RPCQueue m_UdpRpcQueue;
 	RPCQueue m_TcpRpcQueue;
@@ -172,6 +174,12 @@ protected:
 
 	bool bIsNetSynced = false;
 
+	/**
+	* Should the variable at this index be encoded (Used for internval synced vars)
+	* @param id			The index of the sync var
+	* @returns If this variable should be encoded
+	*/
+	inline bool ShouldEncodeVar(const uint16& id) const { return ((m_updateCounter + id) % 20) == 0; }
 public:
 	/**
 	* Update this object's role, based on the current session information
@@ -350,7 +358,7 @@ public:
 #define SYNCVAR_INDEX(socketType, mode, type, var) \
 	if (__TEMP_SOCKET == socketType) \
 		{ \
-			if (mode == SyncVarMode::Always || (mode == SyncVarMode::Interval)) \
+			if (mode == SyncVarMode::Always || (mode == SyncVarMode::Interval && ShouldEncodeVar(__TEMP_INDEX))) \
 			{ \
 				SyncVarRequest request; \
 				request.variable.index = __TEMP_INDEX; \

@@ -32,6 +32,7 @@ void NetSerializableBase::OnPreNetUpdate()
 	{
 		uint16 index;
 		uint32 track;
+		m_updateCounter++;
 		RegisterSyncVars(m_TcpVarQueue, TCP, index, track);
 		RegisterSyncVars(m_UdpVarQueue, UDP, index, track);
 	}

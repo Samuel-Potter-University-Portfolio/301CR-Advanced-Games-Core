@@ -33,8 +33,8 @@ bool ATestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
 void ATestEntity::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex)
-		SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, int, clampedTimer)
-		SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, string, testString)
+	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, int, clampedTimer)
+	SYNCVAR_INDEX(TCP, SyncVarMode::Interval, string, testString)
 }
 
 bool ATestEntity::ExecuteSyncVar(uint16& id, ByteBuffer& value) 
@@ -65,7 +65,8 @@ void ATestEntity::OnTick(const float& deltaTime)
 	if (timer < 2)
 		return;
 	timer = 0;
-	testString += "(len:" + std::to_string(testString.size()) + ")";
+	clampedTimer++;
+	//testString += "(len:" + std::to_string(testString.size()) + ")";
 
 	//CallRPC_TwoParam(this, MoveTo, timer * 20.0f, 0);
 
@@ -82,6 +83,7 @@ void ATestEntity::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	shape.setPosition(GetLocation());
 	shape.setFillColor(sf::Color(255, 100, 50));
 	window->draw(shape);
+
 
 	//sf::CircleShape shape(50);
 	//shape.setPosition(GetLocation());

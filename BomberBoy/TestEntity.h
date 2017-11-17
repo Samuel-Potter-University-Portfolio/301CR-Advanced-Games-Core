@@ -17,11 +17,7 @@ protected:
 	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value) override;
 
 protected:
-	/**
-	* Callback for entity's level first tick
-	*/
 	virtual void OnBegin();
-
 	virtual void OnDestroy() override;
 
 	/**
