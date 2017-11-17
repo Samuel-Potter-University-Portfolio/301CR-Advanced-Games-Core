@@ -21,11 +21,7 @@ void AActor::OnLevelLoaded(LLevel* level)
 	OnGameLoaded(level->GetGame());
 }
 
-TextureAsset AActor::GetTextureAsset(const string path)
-{
-	Game* game = GetGame();
-	if (game != nullptr) // If game is not nullptr, everything else should be fine too
-		return game->GetEngine()->GetAssetController()->GetTextureAsset(path);
-	else
-		return TextureAsset();
+AssetController* AActor::GetAssetController() 
+{ 
+	return GetGame()->GetAssetController(); 
 }

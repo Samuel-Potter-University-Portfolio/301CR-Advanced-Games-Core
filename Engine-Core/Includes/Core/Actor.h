@@ -17,7 +17,7 @@ class CORE_API AActor : public OObject
 private:
 	static uint32 s_instanceCounter;
 	const uint32 m_instanceId;
-	LLevel* m_level;
+	LLevel* m_level = nullptr;
 
 	bool bWasSpawnedWithLevel;
 
@@ -67,6 +67,7 @@ public:
 	inline const vec2& GetLocation() const { return m_location; }
 
 	inline LLevel* GetLevel() const { return m_level; }
+	class AssetController* GetAssetController();
 
 	/** Was this actor create with the level initially (i.e. has a level switch unique instance id)*/
 	inline const bool& WasSpawnedWithLevel() const { return bWasSpawnedWithLevel; }

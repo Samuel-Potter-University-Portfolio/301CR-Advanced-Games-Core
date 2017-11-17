@@ -15,7 +15,7 @@ class CORE_API OObject : public ManagedObject, public NetSerializableBase
 {
 	CLASS_BODY()
 private:
-	Game* m_game;
+	Game* m_game = nullptr;
 	string m_name;
 
 	bool bIsDestroyed = false;

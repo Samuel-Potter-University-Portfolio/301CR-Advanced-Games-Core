@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "Version.h"
+#include "AssetController.h"
 
 #include "Level.h"
 #include "Actor.h"
@@ -26,6 +27,7 @@ private:
 	Engine* m_engine = nullptr;
 	Version m_version;
 
+	AssetController m_assetController;
 	LLevel* m_currentLevel = nullptr;
 
 	std::unordered_map<uint16, SubClassOf<LLevel>> m_registeredLevels;
@@ -40,6 +42,7 @@ public:
 	SubClassOf<LLevel> defaultLevel;
 	/// Level to load at start (For server)
 	SubClassOf<LLevel> defaultNetLevel;
+
 	/// Class type to use for any player connections
 	SubClassOf<OPlayerController> playerControllerClass;
 
@@ -169,6 +172,8 @@ public:
 
 	inline string GetName() const { return m_name; }
 	inline const Version& GetVersionNo() const { return m_version; }
+
+	inline AssetController* GetAssetController() { return &m_assetController; }
 
 	NetSession* GetSession() const;
 

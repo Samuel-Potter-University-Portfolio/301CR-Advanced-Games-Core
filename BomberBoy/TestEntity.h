@@ -1,5 +1,5 @@
 #pragma once
-#include "Core\Actor.h"
+#include "Core\Core-Common.h"
 
 
 class ATestEntity : public AActor
@@ -7,7 +7,6 @@ class ATestEntity : public AActor
 	CLASS_BODY()
 public:
 	ATestEntity();
-
 
 protected:
 	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;

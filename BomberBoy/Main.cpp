@@ -30,6 +30,11 @@ static inline int entry(std::vector<string>& args)
 		game.defaultLevel = LMainLevel::StaticClass();
 		game.defaultNetLevel = LMainLevel::StaticClass();
 
+
+		// Register assets
+		game.GetAssetController()->RegisterTexture("Resources\\Test.png");
+
+
 		// Register actors
 		game.RegisterClass(ACamera::StaticClass());
 		game.RegisterClass(ATestEntity::StaticClass());

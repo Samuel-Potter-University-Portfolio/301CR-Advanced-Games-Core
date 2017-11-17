@@ -14,7 +14,7 @@ ATestEntity::ATestEntity()
 bool ATestEntity::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
 	RPC_INDEX_HEADER(func, outInfo);
-	RPC_INDEX(TCP, RPCCallingMode::Broadcast, ResetPosition);
+	RPC_INDEX(TCP, RPCCallingMode::Host, ResetPosition);
 	RPC_INDEX(UDP, RPCCallingMode::Broadcast, MoveTo);
 	RPC_INDEX(UDP, RPCCallingMode::Broadcast, PrintTime);
 	return false;
@@ -75,22 +75,24 @@ void ATestEntity::OnTick(const float& deltaTime)
 	//	return;
 	//Destroy(this);
 	*/
+#else
 #endif
 }
 
 #ifdef BUILD_CLIENT
 void ATestEntity::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 {
-	sf::CircleShape shape(50);
-	shape.setPosition(GetLocation());
-	shape.setFillColor(sf::Color(255, 100, 50));
-	window->draw(shape);
+	const sf::Texture* tex = GetAssetController()->GetTexture("Resources\\Test.png");
 
 
-	//sf::CircleShape shape(50);
-	//shape.setPosition(GetLocation());
-	//shape.setFillColor(sf::Color(100, 255, 50));
-	//window->draw(shape);
+	sf::RectangleShape rect;
+	rect.setPosition(GetLocation());
+	rect.setSize(vec2(100, 100));
+	rect.setTexture(tex);
+
+	rect.setOutlineThickness(10);
+	rect.setOutlineColor(sf::Color(0, 255, 255));
+	window->draw(rect);
 }
 #endif
 

@@ -371,6 +371,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="AssetController.cpp" />
     <ClCompile Include="ByteBuffer.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Engine.cpp" />
@@ -391,6 +392,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Includes\Core\Actor.h" />
+    <ClInclude Include="Includes\Core\AssetController.h" />
     <ClInclude Include="Includes\Core\ByteBuffer.h" />
     <ClInclude Include="Includes\Core\Camera.h" />
     <ClInclude Include="Includes\Core\Common.h" />

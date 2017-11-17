@@ -55,6 +55,9 @@
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="AssetController.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -74,6 +77,12 @@
     </Filter>
     <Filter Include="Source\Core">
       <UniqueIdentifier>{15dac885-aaf3-41b8-9469-a4c62ff7addc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes\Graphics">
+      <UniqueIdentifier>{ad77a5d7-6b3d-4837-b4d3-a2a9a38b7f3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics">
+      <UniqueIdentifier>{85ce4bd4-391e-4d5f-9f67-da9952a15ffc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="Includes\Core\PlayerController.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\AssetController.h">
+      <Filter>Includes\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

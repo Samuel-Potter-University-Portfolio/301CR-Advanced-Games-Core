@@ -4,7 +4,7 @@
 
 
 Engine::Engine(std::vector<string>& args) :
-	m_version(0,1,1)
+	m_version(0,1,2)
 {
 	LOG("Engine Initializing");
 	LOG("\t-Engine Version (%i.%i.%i)", m_version.major, m_version.minor, m_version.patch);
