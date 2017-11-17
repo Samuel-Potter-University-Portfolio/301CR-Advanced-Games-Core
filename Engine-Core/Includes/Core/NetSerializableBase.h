@@ -371,6 +371,30 @@ public:
 				request.variable.syncMode = mode; \
 				Encode(request.value, var); \
 				__TEMP_QUEUE.emplace_back(request); \
+				\
+				if(__TEMP_FORCE_ENCODE && mode == SyncVarMode::OnChange) \
+				{ \
+					type* vptr; \
+					if (typeid(type) == typeid(string)) \
+					{ \
+						if (m_varCheckValues.size() < __TEMP_TRACK + STR_MAX_ENCODE_LEN) \
+							m_varCheckValues.resize(__TEMP_TRACK + STR_MAX_ENCODE_LEN); \
+						\
+						*(m_varCheckValues.data() + __TEMP_TRACK + STR_MAX_ENCODE_LEN - 1) = '\0'; \
+						vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
+						__TEMP_TRACK += STR_MAX_ENCODE_LEN; \
+					} \
+					else \
+					{ \
+						if (m_varCheckValues.size() < __TEMP_TRACK + sizeof(type)) \
+							m_varCheckValues.resize(__TEMP_TRACK + sizeof(type)); \
+						\
+						vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
+						__TEMP_TRACK += sizeof(type); \
+					} \
+					*vptr = var; \
+					\
+				} \
 			} \
 			else if (mode == SyncVarMode::OnChange) \
 			{ \

@@ -211,7 +211,7 @@ NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer,
 
 			// Create new player
 			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
-			outPlayer->SetPlayerName(playerName);
+			outPlayer->m_playerName = playerName;
 			outPlayer->m_networkOwnerId = NewPlayerID();
 			outPlayer->m_networkId = NewObjectID();
 			outPlayer->bFirstNetUpdate = true;

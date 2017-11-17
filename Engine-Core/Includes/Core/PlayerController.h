@@ -8,6 +8,7 @@
 class CORE_API OPlayerController : public OObject
 {
 	CLASS_BODY()
+	friend NetSession;
 private:
 	string m_playerName;
 

@@ -27,7 +27,7 @@ static inline int entry(std::vector<string>& args)
 		game.RegisterClass(LMainLevel::StaticClass());
 		game.RegisterClass(LConnDudLevel::StaticClass());
 
-		game.defaultLevel = LConnDudLevel::StaticClass();
+		game.defaultLevel = LMainLevel::StaticClass();
 		game.defaultNetLevel = LMainLevel::StaticClass();
 
 		// Register actors

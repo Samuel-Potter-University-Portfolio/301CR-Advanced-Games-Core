@@ -11,6 +11,8 @@ void ACamera::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 {
 	sf::View view = window->getView();
 	view.setCenter(GetLocation());
+	view.setSize(window->getSize().x, window->getSize().y);
 	window->setView(view);
+
 }
 #endif
