@@ -39,6 +39,8 @@ public:
 
 	inline void SetFrameDuration(const float& value) { m_frameDuration = value; }
 	inline const float& GetFrameDuration() const { return m_frameDuration; }
+
+	inline void SetTotalDuration(const float& value) { m_frameDuration = value / m_timeline.size(); }
 	inline float GetTotalDuration() const { return m_frameDuration * m_timeline.size(); }
 
 
