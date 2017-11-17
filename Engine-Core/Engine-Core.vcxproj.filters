@@ -58,6 +58,9 @@
     <ClCompile Include="AssetController.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationSheet.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -162,6 +165,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="Includes\Core\AssetController.h">
+      <Filter>Includes\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\AnimationSheet.h">
       <Filter>Includes\Graphics</Filter>
     </ClInclude>
   </ItemGroup>

@@ -5,6 +5,9 @@
 class ATestEntity : public AActor
 {
 	CLASS_BODY()
+private:
+	AnimationSheet m_testAnimation;
+
 public:
 	ATestEntity();
 

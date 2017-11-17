@@ -50,6 +50,12 @@ void ATestEntity::OnBegin()
 	Super::OnBegin();
 	startPos = GetLocation();
 	timer = 0;
+
+	m_testAnimation.SetFrameDuration(0.15f);
+	m_testAnimation.AddFrame(GetAssetController()->GetTexture("Resources\\Character\\Down_0.png"));
+	m_testAnimation.AddFrame(GetAssetController()->GetTexture("Resources\\Character\\Down_1.png"));
+	m_testAnimation.AddFrame(GetAssetController()->GetTexture("Resources\\Character\\Down_0.png"));
+	m_testAnimation.AddFrame(GetAssetController()->GetTexture("Resources\\Character\\Down_2.png"));
 }
 
 void ATestEntity::OnDestroy() 
@@ -77,20 +83,20 @@ void ATestEntity::OnTick(const float& deltaTime)
 	*/
 #else
 #endif
+
 }
 
 #ifdef BUILD_CLIENT
 void ATestEntity::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 {
-	const sf::Texture* tex = GetAssetController()->GetTexture("Resources\\Test.png");
-
+	m_testAnimation.UpdateAnimation(deltaTime);
 
 	sf::RectangleShape rect;
 	rect.setPosition(GetLocation());
-	rect.setSize(vec2(100, 100));
-	rect.setTexture(tex);
+	rect.setSize(vec2(16, 21) * 2.0f);
+	rect.setTexture(m_testAnimation.GetCurrentFrame());
 
-	rect.setOutlineThickness(10);
+	rect.setOutlineThickness(1);
 	rect.setOutlineColor(sf::Color(0, 255, 255));
 	window->draw(rect);
 }

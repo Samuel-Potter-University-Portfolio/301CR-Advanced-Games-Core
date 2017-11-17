@@ -34,6 +34,10 @@ static inline int entry(std::vector<string>& args)
 		// Register assets
 		game.GetAssetController()->RegisterTexture("Resources\\Test.png");
 
+		game.GetAssetController()->RegisterTexture("Resources\\Character\\Down_0.png", false);
+		game.GetAssetController()->RegisterTexture("Resources\\Character\\Down_1.png", false);
+		game.GetAssetController()->RegisterTexture("Resources\\Character\\Down_2.png", false);
+
 
 		// Register actors
 		game.RegisterClass(ACamera::StaticClass());

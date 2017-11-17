@@ -6,3 +6,5 @@
 
 #include "Object.h"
 #include "Actor.h"
+
+#include "AnimationSheet.h"
