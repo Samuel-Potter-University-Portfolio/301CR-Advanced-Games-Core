@@ -287,6 +287,7 @@ inline bool Decode<float>(ByteBuffer& buffer, float& out, void* context)
 template<>
 inline bool Decode<std::string>(ByteBuffer& buffer, string& out, void* context)
 {
+	out.clear();
 	while (true)
 	{
 		// Emptied before a '\0'

@@ -30,16 +30,16 @@ bool ATestEntity::ExecuteRPC(uint16& id, ByteBuffer& params)
 }
 
 
-void ATestEntity::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex) 
+void ATestEntity::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode)
 {
-	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex)
+	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode)
 	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, int, clampedTimer)
-	SYNCVAR_INDEX(TCP, SyncVarMode::Interval, string, testString)
+	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, string, testString)
 }
 
-bool ATestEntity::ExecuteSyncVar(uint16& id, ByteBuffer& value) 
+bool ATestEntity::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
 {
-	SYNCVAR_EXEC_HEADER(id, value);
+	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
 	SYNCVAR_EXEC_Callback(clampedTimer, OnClampedTimerChange);
 	SYNCVAR_EXEC_Callback(testString, OnTestStringChange);
 	return false;
@@ -61,6 +61,7 @@ void ATestEntity::OnDestroy()
 void ATestEntity::OnTick(const float& deltaTime)
 {
 #ifdef BUILD_SERVER
+	/*
 	timer += deltaTime; 
 	if (timer < 2)
 		return;
@@ -73,6 +74,7 @@ void ATestEntity::OnTick(const float& deltaTime)
 	//if (timer < 10.0f)
 	//	return;
 	//Destroy(this);
+	*/
 #endif
 }
 

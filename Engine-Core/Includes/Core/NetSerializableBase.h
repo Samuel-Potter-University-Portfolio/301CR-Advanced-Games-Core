@@ -205,8 +205,9 @@ public:
 	* @param socketType		The socket type this is using
 	* @param startIndex		The index to start the counting at
 	* @param trackIndex		The index to track changes from from
+	* @param forceEncode	Forces all variables to gets encoded
 	*/
-	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex);
+	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode);
 protected:
 	/**
 	* Call a given function from it's RPC id
@@ -222,9 +223,10 @@ protected:
 	* NOTE: macro order between RegisterSyncVars and ExecuteSyncVar must align
 	* @param id				The id of the variable
 	* @param value			The raw value for the variable to use
+	* @param skipCallbacks	Used during object net creation of clients
 	* @returns If call succeeds
 	*/
-	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value);
+	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks);
 public:
 
 	/**
@@ -287,15 +289,17 @@ private:
 	* @param targetNetId	The net id of where this data will be sent to
 	* @param buffer			The buffer to fill with all this information
 	* @param socketType		The socket type this will be sent over
+	* @param forceEncode	Forcefully encode all variables
 	*/
-	void EncodeSyncVarRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType);
+	void EncodeSyncVarRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, const bool& forceEncode);
 	/**
 	* Decode all sync var calls in this queue
 	* @param sourceNetId	The net id of where this data came from
 	* @param buffer			The buffer to fill with all this information
 	* @param socketType		The socket type this was sent over
+	* @param skipCallbacks	Should all var calllbacks be skipped this decode
 	*/
-	void DecodeSyncVarRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType);
+	void DecodeSyncVarRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType, const bool& skipCallbacks);
 	
 
 	/**
@@ -345,12 +349,13 @@ public:
 * Placed at the start of RegisterSyncVars to create temporary vars (To avoid naming problems)
 * and to handle parent calls correctly
 */
-#define SYNCVAR_INDEX_HEADER(queue, socketType, index, trackIndex) \
+#define SYNCVAR_INDEX_HEADER(queue, socketType, index, trackIndex, forceEncode) \
 	SyncVarQueue& __TEMP_QUEUE = queue; \
 	const SocketType& __TEMP_SOCKET = socketType; \
 	uint16& __TEMP_INDEX = index; \
 	uint32& __TEMP_TRACK = trackIndex; \
-	__super::RegisterSyncVars(__TEMP_QUEUE, __TEMP_SOCKET, __TEMP_INDEX, __TEMP_TRACK);
+	const bool& __TEMP_FORCE_ENCODE = forceEncode; \
+	__super::RegisterSyncVars(__TEMP_QUEUE, __TEMP_SOCKET, __TEMP_INDEX, __TEMP_TRACK, __TEMP_FORCE_ENCODE);
 
 /**
 * Placed after SYNCVAR_INDEX_HEADER in ExecuteSyncVar to create an entry for a variable
@@ -358,7 +363,7 @@ public:
 #define SYNCVAR_INDEX(socketType, mode, type, var) \
 	if (__TEMP_SOCKET == socketType) \
 		{ \
-			if (mode == SyncVarMode::Always || (mode == SyncVarMode::Interval && ShouldEncodeVar(__TEMP_INDEX))) \
+			if (__TEMP_FORCE_ENCODE || mode == SyncVarMode::Always || (mode == SyncVarMode::Interval && ShouldEncodeVar(__TEMP_INDEX))) \
 			{ \
 				SyncVarRequest request; \
 				request.variable.index = __TEMP_INDEX; \
@@ -527,10 +532,11 @@ public:
 * Placed at the start of ExecuteSyncVar to create temporary vars (To avoid naming problems)
 * and to handle parent calls correctly
 */
-#define SYNCVAR_EXEC_HEADER(id, value) \
+#define SYNCVAR_EXEC_HEADER(id, value, skipCallbacks) \
 	uint16 __TEMP_ID = id; \
 	ByteBuffer& __TEMP_BUFFER = value; \
-	if(__super::ExecuteSyncVar(__TEMP_ID, __TEMP_BUFFER)) return true;
+	const bool& __TEMP_SKIP_CALLBACKS = skipCallbacks; \
+	if(__super::ExecuteSyncVar(__TEMP_ID, __TEMP_BUFFER, __TEMP_SKIP_CALLBACKS)) return true;
 
 /**
 * Execution for a variable at the placed index
@@ -550,7 +556,7 @@ public:
 	{ \
 		const bool decoded = Decode(__TEMP_BUFFER, var); \
 		if(!decoded) return false; \
-		callback(); \
+		if(!__TEMP_SKIP_CALLBACKS) callback(); \
 		return true; \
 	} \
 	else \

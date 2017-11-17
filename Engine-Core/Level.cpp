@@ -111,6 +111,7 @@ void LLevel::AddActor(AActor* actor)
 		m_netActorLookup[actor->GetNetworkID()] = actor;
 }
 
+template<>
 AActor* LLevel::SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location, const OObject* owner)
 {
 	AActor* actor = actorClass->New<AActor>();

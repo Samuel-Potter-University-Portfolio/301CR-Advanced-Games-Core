@@ -133,8 +133,14 @@ void NetSession::EncodeHandshake_ClientToServer(ByteBuffer& outBuffer)
 	// Request type
 	Encode<uint16>(outBuffer, (uint16)NetRequestType::Connect);
 
+	// Encode player name
+	auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
+	if (playerList.size() != 0)
+		Encode<string>(outBuffer, playerList[0]->GetPlayerName());
+	else
+		Encode<const char*>(outBuffer, "__PLAYER__");
+
 	// TODO - 200 Content
-	//   - Username
 	//   - Password
 }
 
@@ -163,9 +169,7 @@ NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer,
 		}
 
 		// TODO - Ban checks
-		// TODO - Password checks
 		// TODO - Whitelist checks
-		// TODO - Server is full checks
 
 		requestType = (NetRequestType)rawRequestType;
 	}
@@ -184,6 +188,17 @@ NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer,
 		// Attempt to accept the player
 		case NetRequestType::Connect:
 		{
+			string playerName;
+			string password; // TODO
+
+			// Invalid information provided
+			if (!Decode<string>(inBuffer, playerName))
+			{
+				Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadRequest);
+				return NetResponseCode::BadRequest;
+			}
+			
+
 			// Server is full
 			if (m_playerControllers.size() >= GetMaxPlayerCount())
 			{
@@ -191,8 +206,12 @@ NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer,
 				return NetResponseCode::ServerFull;
 			}
 
+			// TODO - Password checks
+
+
 			// Create new player
 			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
+			outPlayer->SetPlayerName(playerName);
 			outPlayer->m_networkOwnerId = NewPlayerID();
 			outPlayer->m_networkId = NewObjectID();
 			outPlayer->bFirstNetUpdate = true;
@@ -218,6 +237,7 @@ NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer,
 				Encode<uint32>(outBuffer, 0);
 			}
 		
+			outPlayer->EncodeSyncVarRequests(outPlayer->m_networkOwnerId, outBuffer, TCP, true);
 			return NetResponseCode::Accepted;
 		}
 
@@ -266,18 +286,27 @@ NetResponseCode NetSession::DecodeHandshake_ServerToClient(ByteBuffer& inBuffer,
 		}
 
 
-		// Cleanup any already existing controllers
-		for (OPlayerController* player : GetGame()->GetActiveObjects<OPlayerController>())
-			OObject::Destroy(player);
+		// Use an existing controller
+		auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
+		if (playerList.size() >= 1)
+		{
+			outPlayer = playerList[0];
 
+			// Cleaup any other controllers that may exist for some reason
+			for (uint32 i = 1; i < playerList.size(); ++i)
+				OObject::Destroy(playerList[i]);
+		}
+		else if (playerList.size() == 0)
+			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
+		
 
 		// Setup new player controller
-		outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
 		m_sessionNetId = netId;
 		outPlayer->m_networkOwnerId = netId;
 		outPlayer->m_networkId = controllerId;
 		outPlayer->bFirstNetUpdate = true;
 		outPlayer->UpdateRole(this);
+		outPlayer->DecodeSyncVarRequests(netId, inBuffer, TCP, true);
 		GetGame()->AddObject(outPlayer);
 
 
@@ -329,12 +358,19 @@ void NetSession::EncodeNetObject(const OPlayerController* target, OObject* objec
 		Encode<uint16>(buffer, object->GetNetworkOwnerID());
 		Encode<uint16>(buffer, object->GetClass()->GetID());
 		
+
 		// Attempt to encode unique instance id for actors built in level load
 		AActor* actor = dynamic_cast<AActor*>(object);
 		if(actor == nullptr || !actor->WasSpawnedWithLevel())
 			Encode<uint32>(buffer, 0);
 		else
 			Encode<uint32>(buffer, actor->GetInstanceID());
+
+
+		// Encode all sync var values for initial sync
+		const uint16 targetId = target == nullptr ? 0 : target->GetNetworkOwnerID();
+		object->EncodeSyncVarRequests(targetId, buffer, socketType, true);
+
 		return;
 	}
 
@@ -346,7 +382,7 @@ void NetSession::EncodeNetObject(const OPlayerController* target, OObject* objec
 	// Encode sync vars and rpcs
 	Encode<uint16>(buffer, object->GetNetworkID());
 	const uint16 targetId = target == nullptr ? 0 : target->GetNetworkOwnerID();
-	object->EncodeSyncVarRequests(targetId, buffer, socketType);
+	object->EncodeSyncVarRequests(targetId, buffer, socketType, false);
 	object->EncodeRPCRequests(targetId, buffer, socketType);
 }
 
@@ -412,6 +448,9 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 						actor->m_networkId = netId;
 						actor->m_networkOwnerId = ownerNetId;
 						actor->UpdateRole(this);
+
+						const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
+						actor->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 						GetGame()->GetCurrentLevel()->m_netActorLookup[actor->m_networkId] = actor;
 						return;
 					}
@@ -423,6 +462,9 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				actor->m_networkId = netId;
 				actor->m_networkOwnerId = ownerNetId;
 				actor->UpdateRole(this);
+
+				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
+				actor->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 				GetGame()->GetCurrentLevel()->AddActor(dynamic_cast<AActor*>(actor));
 			}
 
@@ -433,6 +475,9 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				object->m_networkId = netId;
 				object->m_networkOwnerId = ownerNetId;
 				object->UpdateRole(this);
+
+				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
+				object->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 				GetGame()->AddObject(object);
 			}
 			return;
@@ -468,7 +513,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 			if (object != nullptr)
 			{
 				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
-				object->DecodeSyncVarRequests(sourceId, buffer, socketType);
+				object->DecodeSyncVarRequests(sourceId, buffer, socketType, false);
 				object->DecodeRPCRequests(sourceId, buffer, socketType);
 			}
 			return;

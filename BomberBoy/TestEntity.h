@@ -13,8 +13,8 @@ protected:
 	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
 	
-	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex) override;
-	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value) override;
+	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
+	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
 
 protected:
 	virtual void OnBegin();

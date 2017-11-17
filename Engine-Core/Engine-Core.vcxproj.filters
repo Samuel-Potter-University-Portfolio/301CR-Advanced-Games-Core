@@ -53,7 +53,7 @@
       <Filter>Source\Core</Filter>
     </ClCompile>
     <ClCompile Include="PlayerController.cpp">
-      <Filter>Source\Net</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -146,10 +146,10 @@
     <ClInclude Include="Includes\Core\ByteBuffer.h">
       <Filter>Includes\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Includes\Core\PlayerController.h">
-      <Filter>Includes\Net</Filter>
-    </ClInclude>
     <ClInclude Include="Includes\Core\Core-Common.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\PlayerController.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

@@ -126,21 +126,31 @@ bool Game::SwitchLevel(const SubClassOf<LLevel>& levelType)
 		m_currentLevel = nullptr;
 	}
 
-#ifdef BUILD_DEBUG
+
+#ifdef BUILD_CLIENT
+	// Create player local player, if non-exists and not connected to server
+	NetSession* session = GetSession();
+	if (session == nullptr)
+	{
+		auto playerList = GetActiveObjects<OPlayerController>();
+		if (playerList.size() == 0)
+			SpawnObject(playerControllerClass);
+	}
+
+	// Recentre camera
+	sf::RenderWindow* window = m_engine->GetDisplayWindow();
+	if (window != nullptr)
+		window->setView(window->getDefaultView());
+#endif
+
+
 	// Check level is supported
 	if (!IsRegisteredLevel(levelType->GetID()))
 	{
 		LOG_ERROR("Cannot switch to level '%s', as it is not registered to the game", levelType->GetName().c_str());
 		return false;
 	}
-#endif
 
-#ifdef BUILD_CLIENT
-	// Recentre camera
-	sf::RenderWindow* window = m_engine->GetDisplayWindow();
-	if (window != nullptr)
-		window->setView(window->getDefaultView());
-#endif
 
 	// Attempt to load desired level
 	LOG("Loading level '%s'", levelType->GetName().c_str());
@@ -152,36 +162,14 @@ bool Game::SwitchLevel(const SubClassOf<LLevel>& levelType)
 
 bool Game::SwitchLevel(const uint16& levelId) 
 {
-	// Close current level
-	if (m_currentLevel != nullptr)
-	{
-		LOG("Closing level '%s'", m_currentLevel->GetClass()->GetName().c_str());
-		m_currentLevel->Destroy();
-		delete m_currentLevel;
-		m_currentLevel = nullptr;
-	}
-
-#ifdef BUILD_CLIENT
-	// Recentre camera
-	sf::RenderWindow* window = m_engine->GetDisplayWindow();
-	if (window != nullptr)
-		window->setView(window->getDefaultView());
-#endif
-
 	// Level not registered
 	if (!IsRegisteredLevel(levelId))
 	{
 		LOG_ERROR("Cannot switch to level to id %i, as it is not registered to the game", levelId);
 		return false;
 	}
-
-	// Attempt to load desired level
-	SubClassOf<LLevel>& levelType = m_registeredLevels[levelId];
-	LOG("Loading level '%s'", levelType->GetName().c_str());
-	m_currentLevel = levelType->New<LLevel>();
-	m_currentLevel->OnLevelActive(this);
-	m_currentLevel->Build();
-	return true;
+	else
+		return SwitchLevel(m_registeredLevels[levelId]);
 }
 
 void Game::AddObject(OObject* object)
@@ -203,6 +191,7 @@ void Game::AddObject(OObject* object)
 		m_netObjectLookup[object->GetNetworkID()] = object;
 }
 
+template<>
 OObject* Game::SpawnObject(const SubClassOf<OObject>& objectClass, const OObject* owner)
 {
 	OObject* object = objectClass->New<OObject>();

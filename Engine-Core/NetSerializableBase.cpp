@@ -33,8 +33,9 @@ void NetSerializableBase::OnPreNetUpdate()
 		uint16 index;
 		uint32 track;
 		m_updateCounter++;
-		RegisterSyncVars(m_TcpVarQueue, TCP, index, track);
-		RegisterSyncVars(m_UdpVarQueue, UDP, index, track);
+		// If first update, encode all variables over TCP
+		RegisterSyncVars(m_TcpVarQueue, TCP, index, track, false); 
+		RegisterSyncVars(m_UdpVarQueue, UDP, index, track, false);
 	}
 }
 
@@ -51,12 +52,12 @@ bool NetSerializableBase::ExecuteRPC(uint16& id, ByteBuffer& params)
 }
 
 
-void NetSerializableBase::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex)
+void NetSerializableBase::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode)
 {
 	index = 0;
 	trackIndex = 0;
 }
-bool NetSerializableBase::ExecuteSyncVar(uint16& id, ByteBuffer& value) 
+bool NetSerializableBase::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
 {
 	return false;
 }
@@ -153,7 +154,7 @@ void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffe
 }
 
 
-void NetSerializableBase::EncodeSyncVarRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType) 
+void NetSerializableBase::EncodeSyncVarRequests(const uint16& targetNetId, ByteBuffer& buffer, const SocketType& socketType, const bool& forceEncode)
 {
 	// Only host can sync vars
 	if (!IsNetHost())
@@ -162,12 +163,23 @@ void NetSerializableBase::EncodeSyncVarRequests(const uint16& targetNetId, ByteB
 		return;
 	}
 
-	SyncVarQueue& queue = (socketType == SocketType::TCP ? m_TcpVarQueue : m_UdpVarQueue);
+	SyncVarQueue* queue;
+	SyncVarQueue tempQueue; // Keep it in scope
+	if (forceEncode)
+	{
+		uint16 index;
+		uint32 track;
+		RegisterSyncVars(tempQueue, socketType, index, track, forceEncode);
+		queue = &tempQueue;
+	}
+	else
+		queue = &(socketType == SocketType::TCP ? m_TcpVarQueue : m_UdpVarQueue);
+
 	uint16 count = 0;
 	ByteBuffer callBuffer;
 
 	// Encode all var changes (Synced to every client)
-	for (const SyncVarRequest& request : queue)
+	for (const SyncVarRequest& request : *queue)
 	{
 		Encode<SyncVarRequest>(callBuffer, request);
 		++count;
@@ -179,7 +191,7 @@ void NetSerializableBase::EncodeSyncVarRequests(const uint16& targetNetId, ByteB
 		buffer.Push(callBuffer.Data(), callBuffer.Size());
 }
 
-void NetSerializableBase::DecodeSyncVarRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType) 
+void NetSerializableBase::DecodeSyncVarRequests(const uint16& sourceNetId, ByteBuffer& buffer, const SocketType& socketType, const bool& skipCallbacks)
 {
 	uint16 count;
 	if (!Decode(buffer, count) || count == 0)
@@ -197,6 +209,6 @@ void NetSerializableBase::DecodeSyncVarRequests(const uint16& sourceNetId, ByteB
 		if (skipExecution)
 			continue;
 
-		ExecuteSyncVar(request.variable.index, request.value);
+		ExecuteSyncVar(request.variable.index, request.value, skipCallbacks);
 	}
 }
