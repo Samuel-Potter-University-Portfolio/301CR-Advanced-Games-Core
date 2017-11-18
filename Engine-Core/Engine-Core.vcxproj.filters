@@ -61,6 +61,9 @@
     <ClCompile Include="AnimationSheet.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="LevelController.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -169,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="Includes\Core\AnimationSheet.h">
       <Filter>Includes\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\LevelController.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -56,6 +56,12 @@ void ATestEntity::OnBegin()
 	m_testAnimation.AddFrame(GetAssetController()->GetTexture("Resources\\Character\\Down_1.png"));
 	m_testAnimation.AddFrame(GetAssetController()->GetTexture("Resources\\Character\\Down_0.png"));
 	m_testAnimation.AddFrame(GetAssetController()->GetTexture("Resources\\Character\\Down_2.png"));
+
+
+	if (GetGame()->GetSession() == nullptr)
+	{
+		GetGame()->GetEngine()->GetNetController()->JoinSession(GetGame()->GetEngine()->GetDefaultNetIdentity());
+	}
 }
 
 void ATestEntity::OnDestroy() 

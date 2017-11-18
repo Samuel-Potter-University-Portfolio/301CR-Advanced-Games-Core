@@ -4,6 +4,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "LevelController.h"
+
 
 class Game;
 
@@ -26,6 +28,11 @@ private:
 
 	std::vector<AActor*> m_activeActors;
 	std::unordered_map<uint16, AActor*> m_netActorLookup;
+
+protected:
+	/// Class type to use for the level controller
+	SubClassOf<ALevelController> levelControllerClass;
+	ALevelController* m_levelController = nullptr;
 
 public:
 	LLevel();
@@ -104,6 +111,7 @@ public:
 	inline const uint32& GetInstanceID() const { return m_instanceId; }
 
 	inline Game* GetGame() const { return m_game; }
+	inline ALevelController* GetLevelController() const { return m_levelController; }
 
 
 	/** 

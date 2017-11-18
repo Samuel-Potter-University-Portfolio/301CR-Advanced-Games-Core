@@ -2,6 +2,7 @@
 #include "Includes\Core\Engine.h"
 
 #include "Includes\Core\PlayerController.h"
+#include "Includes\Core\LevelController.h"
 
 
 Game::Game(string name, Version version) :
@@ -9,6 +10,7 @@ Game::Game(string name, Version version) :
 	m_version(version)
 {
 	RegisterClass(OPlayerController::StaticClass());
+	RegisterClass(ALevelController::StaticClass());
 }
 
 Game::~Game()

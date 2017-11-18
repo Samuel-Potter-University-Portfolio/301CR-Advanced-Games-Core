@@ -78,8 +78,16 @@ void LLevel::Build()
 {
 	AActor::s_instanceCounter = 1;
 	bIsBuilding = true;
+
+	m_levelController = SpawnActor<ALevelController>(*levelControllerClass);
 	OnBuildLevel();
+
 	bIsBuilding = false;
+
+	// Call player connect callback
+	auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
+	for (OPlayerController* player : playerList)
+		m_levelController->OnPlayerConnect(player, false);
 }
 
 void LLevel::Destroy()

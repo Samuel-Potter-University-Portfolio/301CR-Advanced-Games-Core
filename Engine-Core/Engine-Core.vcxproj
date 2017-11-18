@@ -378,6 +378,7 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Level.cpp" />
+    <ClCompile Include="LevelController.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="ManagedClass.cpp" />
     <ClCompile Include="NetHostSession.cpp" />
@@ -405,6 +406,7 @@
     <ClInclude Include="Includes\Core\EngineMemory.h" />
     <ClInclude Include="Includes\Core\Game.h" />
     <ClInclude Include="Includes\Core\Level.h" />
+    <ClInclude Include="Includes\Core\LevelController.h" />
     <ClInclude Include="Includes\Core\Logger.h" />
     <ClInclude Include="Includes\Core\ManagedClass.h" />
     <ClInclude Include="Includes\Core\NetHostSession.h" />

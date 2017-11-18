@@ -1,4 +1,7 @@
 #include "Includes\Core\PlayerController.h"
+
+#include "Includes\Core\Game.h"
+#include "Includes\Core\LevelController.h"
 #include <Windows.h>
 
 
@@ -64,13 +67,24 @@ void OPlayerController::OnBegin()
 			m_playerName = "Player" + idPart;
 	}
 
-	LOG("Player(%i) '%s' has joined.", GetNetworkOwnerID(), m_playerName.c_str());
+
+	// Call player connect callback
+	LLevel* level = GetGame()->GetCurrentLevel();
+	if (level != nullptr && level->GetLevelController() != nullptr)
+		level->GetLevelController()->OnPlayerConnect(this, true);
+
 }
 
 void OPlayerController::OnDestroy() 
 {
 	Super::OnDestroy();
-	LOG("Player(%i) '%s' has left.", GetNetworkOwnerID(), m_playerName.c_str());
+
+
+	// Call player disconnect callback
+	LLevel* level = GetGame()->GetCurrentLevel();
+	if (level != nullptr && level->GetLevelController() != nullptr)
+		level->GetLevelController()->OnPlayerDisconnect(this);
+
 }
 
 
