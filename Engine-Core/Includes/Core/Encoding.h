@@ -29,30 +29,22 @@ inline void Encode<int8>(ByteBuffer& buffer, const int8& data)
 template<>
 inline void Encode<int16>(ByteBuffer& buffer, const int16& data)
 {
-	buffer.Push(data >> 0 * 8);
-	buffer.Push(data >> 1 * 8);
+	buffer.Resize(buffer.Size() + sizeof(int16));
+	*(int16*)(buffer.Data() + buffer.Size() - sizeof(int16)) = data;
 }
 
 template<>
 inline void Encode<int32>(ByteBuffer& buffer, const int32& data)
 {
-	buffer.Push(data >> 0 * 8);
-	buffer.Push(data >> 1 * 8);
-	buffer.Push(data >> 2 * 8);
-	buffer.Push(data >> 3 * 8);
+	buffer.Resize(buffer.Size() + sizeof(int32));
+	*(int32*)(buffer.Data() + buffer.Size() - sizeof(int32)) = data;
 }
 
 template<>
 inline void Encode<int64>(ByteBuffer& buffer, const int64& data)
 {
-	buffer.Push(data >> 0 * 8);
-	buffer.Push(data >> 1 * 8);
-	buffer.Push(data >> 2 * 8);
-	buffer.Push(data >> 3 * 8);
-	buffer.Push(data >> 4 * 8);
-	buffer.Push(data >> 5 * 8);
-	buffer.Push(data >> 6 * 8);
-	buffer.Push(data >> 7 * 8);
+	buffer.Resize(buffer.Size() + sizeof(int64));
+	*(int64*)(buffer.Data() + buffer.Size() - sizeof(int64)) = data;
 }
 
 
@@ -65,39 +57,30 @@ inline void Encode<uint8>(ByteBuffer& buffer, const uint8& data)
 template<>
 inline void Encode<uint16>(ByteBuffer& buffer, const uint16& data)
 {
-	buffer.Push(data >> 0 * 8);
-	buffer.Push(data >> 1 * 8);
+	buffer.Resize(buffer.Size() + sizeof(uint16));
+	*(uint16*)(buffer.Data() + buffer.Size() - sizeof(uint16)) = data;
 }
 
 template<>
 inline void Encode<uint32>(ByteBuffer& buffer, const uint32& data)
 {
-	buffer.Push(data >> 0 * 8);
-	buffer.Push(data >> 1 * 8);
-	buffer.Push(data >> 2 * 8);
-	buffer.Push(data >> 3 * 8);
+	buffer.Resize(buffer.Size() + sizeof(uint32));
+	*(uint32*)(buffer.Data() + buffer.Size() - sizeof(uint32)) = data;
 }
 
 template<>
 inline void Encode<uint64>(ByteBuffer& buffer, const uint64& data)
 {
-	buffer.Push(data >> 0 * 8);
-	buffer.Push(data >> 1 * 8);
-	buffer.Push(data >> 2 * 8);
-	buffer.Push(data >> 3 * 8);
-	buffer.Push(data >> 4 * 8);
-	buffer.Push(data >> 5 * 8);
-	buffer.Push(data >> 6 * 8);
-	buffer.Push(data >> 7 * 8);
+	buffer.Resize(buffer.Size() + sizeof(uint64));
+	*(uint64*)(buffer.Data() + buffer.Size() - sizeof(uint64)) = data;
 }
 
 
 template<>
 inline void Encode<float>(ByteBuffer& buffer, const float& data)
 {
-	int temp;
-	std::memcpy(&temp, &data, sizeof(float));
-	Encode(buffer, temp);
+	buffer.Resize(buffer.Size() + sizeof(float));
+	*(float*)(buffer.Data() + buffer.Size() - sizeof(float)) = data;
 }
 
 template<>
@@ -120,6 +103,8 @@ inline void Encode<const char*>(ByteBuffer& buffer, const char* const& data)
 template<>
 inline void Encode<std::string>(ByteBuffer& buffer, const string& data)
 {
+	// Reserve enough space for the string
+	buffer.Reserve(buffer.Size() + (data.size() > STR_MAX_ENCODE_LEN ? STR_MAX_ENCODE_LEN : data.size())); 
 	Encode<const char*>(buffer, data.c_str());
 }
 
@@ -172,8 +157,8 @@ inline bool Decode<int16>(ByteBuffer& buffer, int16& out, void* context)
 	if (buffer.Size() < sizeof(int16))
 		return false;
 
-	out += buffer.Pop() << 0 * 8;
-	out += buffer.Pop() << 1 * 8;
+	out += (int16)buffer.Pop() << 0 * 8;
+	out += (int16)buffer.Pop() << 1 * 8;
 	return true;
 }
 
@@ -185,10 +170,10 @@ inline bool Decode<int32>(ByteBuffer& buffer, int32& out, void* context)
 	if (buffer.Size() < sizeof(int32))
 		return false;
 
-	out += buffer.Pop() << 0 * 8;
-	out += buffer.Pop() << 1 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 3 * 8;
+	out += (int32)buffer.Pop() << 0 * 8;
+	out += (int32)buffer.Pop() << 1 * 8;
+	out += (int32)buffer.Pop() << 2 * 8;
+	out += (int32)buffer.Pop() << 3 * 8;
 	return true;
 }
 
@@ -200,14 +185,14 @@ inline bool Decode<int64>(ByteBuffer& buffer, int64& out, void* context)
 	if (buffer.Size() < sizeof(int64))
 		return false;
 
-	out += buffer.Pop() << 0 * 8;
-	out += buffer.Pop() << 1 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 3 * 8;
-	out += buffer.Pop() << 4 * 8;
-	out += buffer.Pop() << 5 * 8;
-	out += buffer.Pop() << 6 * 8;
-	out += buffer.Pop() << 7 * 8;
+	out += (int64)buffer.Pop() << 0 * 8;
+	out += (int64)buffer.Pop() << 1 * 8;
+	out += (int64)buffer.Pop() << 2 * 8;
+	out += (int64)buffer.Pop() << 3 * 8;
+	out += (int64)buffer.Pop() << 4 * 8;
+	out += (int64)buffer.Pop() << 5 * 8;
+	out += (int64)buffer.Pop() << 6 * 8;
+	out += (int64)buffer.Pop() << 7 * 8;
 	return true;
 }
 
@@ -232,8 +217,8 @@ inline bool Decode<uint16>(ByteBuffer& buffer, uint16& out, void* context)
 	if (buffer.Size() < sizeof(uint16))
 		return false;
 
-	out += buffer.Pop() << 0 * 8;
-	out += buffer.Pop() << 1 * 8;
+	out += (uint16)buffer.Pop() << 0 * 8;
+	out += (uint16)buffer.Pop() << 1 * 8;
 	return true;
 }
 
@@ -245,10 +230,10 @@ inline bool Decode<uint32>(ByteBuffer& buffer, uint32& out, void* context)
 	if (buffer.Size() < sizeof(uint32))
 		return false;
 
-	out += buffer.Pop() << 0 * 8;
-	out += buffer.Pop() << 1 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 3 * 8;
+	out += (uint32)buffer.Pop() << 0 * 8;
+	out += (uint32)buffer.Pop() << 1 * 8;
+	out += (uint32)buffer.Pop() << 2 * 8;
+	out += (uint32)buffer.Pop() << 3 * 8;
 	return true;
 }
 
@@ -260,14 +245,14 @@ inline bool Decode<uint64>(ByteBuffer& buffer, uint64& out, void* context)
 	if (buffer.Size() < sizeof(uint64))
 		return false;
 
-	out += buffer.Pop() << 0 * 8;
-	out += buffer.Pop() << 1 * 8;
-	out += buffer.Pop() << 2 * 8;
-	out += buffer.Pop() << 3 * 8;
-	out += buffer.Pop() << 4 * 8;
-	out += buffer.Pop() << 5 * 8;
-	out += buffer.Pop() << 6 * 8;
-	out += buffer.Pop() << 7 * 8;
+	out += (uint64)buffer.Pop() << 0 * 8;
+	out += (uint64)buffer.Pop() << 1 * 8;
+	out += (uint64)buffer.Pop() << 2 * 8;
+	out += (uint64)buffer.Pop() << 3 * 8;
+	out += (uint64)buffer.Pop() << 4 * 8;
+	out += (uint64)buffer.Pop() << 5 * 8;
+	out += (uint64)buffer.Pop() << 6 * 8;
+	out += (uint64)buffer.Pop() << 7 * 8;
 	return true;
 }
 
@@ -288,6 +273,8 @@ template<>
 inline bool Decode<std::string>(ByteBuffer& buffer, string& out, void* context)
 {
 	out.clear();
+	out.reserve(STR_MAX_ENCODE_LEN);
+
 	while (true)
 	{
 		// Emptied before a '\0'

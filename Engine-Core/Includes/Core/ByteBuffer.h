@@ -26,6 +26,7 @@ public:
 
 	inline void Clear() { m_data.clear(); }
 	inline void Reserve(const uint32 size) { m_data.reserve(size); }
+	inline void Resize(const uint32 size) { m_data.resize(size); }
 	inline const uint32 Size() const { return m_data.size(); }
 
 	void Push(const uint8* b, uint32 count);
