@@ -377,6 +377,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="InputController.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="LevelController.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -405,6 +406,7 @@
     <ClInclude Include="Includes\Core\Engine.h" />
     <ClInclude Include="Includes\Core\EngineMemory.h" />
     <ClInclude Include="Includes\Core\Game.h" />
+    <ClInclude Include="Includes\Core\InputController.h" />
     <ClInclude Include="Includes\Core\Level.h" />
     <ClInclude Include="Includes\Core\LevelController.h" />
     <ClInclude Include="Includes\Core\Logger.h" />

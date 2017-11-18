@@ -33,6 +33,11 @@ private:
 	const vec2 m_drawSize;
 	const vec2 m_drawOffset;
 
+	KeyBinding m_upKey;
+	KeyBinding m_downKey;
+	KeyBinding m_leftKey;
+	KeyBinding m_rightKey;
+
 public:
 	ABomberCharacter();
 

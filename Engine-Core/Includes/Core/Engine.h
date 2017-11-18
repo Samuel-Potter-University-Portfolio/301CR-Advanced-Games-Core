@@ -3,6 +3,7 @@
 #include "Version.h"
 #include "NetController.h"
 #include "NetSession.h"
+#include "InputController.h"
 
 #include <vector>
 #include <string>
@@ -23,6 +24,7 @@ private:
 
 	Game* m_game = nullptr;
 	NetController* m_netController = nullptr;
+	InputController* m_inputController = nullptr;
 
 	uvec2 m_desiredResolution;
 	bool bUpdateMain;

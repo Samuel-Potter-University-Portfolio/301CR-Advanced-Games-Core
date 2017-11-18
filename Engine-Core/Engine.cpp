@@ -9,7 +9,13 @@ Engine::Engine(std::vector<string>& args) :
 	LOG("Engine Initializing");
 	LOG("\t-Engine Version (%i.%i.%i)", m_version.major, m_version.minor, m_version.patch);
 
+#ifdef BUILD_CLIENT
+	m_inputController = new InputController;
+#else
+	m_inputController = nullptr;
+#endif
 	m_netController = new NetController(this);
+
 	m_desiredResolution = uvec2(800, 600);
 	m_defaultNetIdentity.ip = sf::IpAddress::LocalHost;
 	m_defaultNetIdentity.port = 20010;
@@ -19,6 +25,8 @@ Engine::~Engine()
 {
 	if (m_netController != nullptr)
 		delete m_netController;
+	if (m_inputController != nullptr)
+		delete m_inputController;
 
 	LOG("Engine destroyed");
 }
@@ -74,7 +82,9 @@ void Engine::MainLoop()
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
 		m_game->MainUpdate(deltaTime);
 		m_netController->HandleUpdate(deltaTime);
-
+#ifdef BUILD_CLIENT
+		m_inputController->HandleUpdate(m_game, deltaTime);
+#endif
 
 		// Sleep a little
 		// TODO - More elegant checks to compensate for large loops
@@ -152,6 +162,30 @@ void Engine::HandleDisplayEvent(sf::Event& event)
 	case sf::Event::Closed:
 		Close();
 		break;
+		
+	case sf::Event::KeyPressed:
+		m_inputController->UpdateKeystate(event.key, true);
+		break;
+	case sf::Event::KeyReleased:
+		m_inputController->UpdateKeystate(event.key, false);
+		break;
+
+	case sf::Event::MouseButtonPressed:
+		break;
+	case sf::Event::MouseButtonReleased:
+		break;
+	case sf::Event::MouseWheelMoved:
+		break;
+	case sf::Event::MouseMoved:
+		break;
+
+	case sf::Event::JoystickButtonPressed:
+		break;
+	case sf::Event::JoystickButtonReleased:
+		break;
+	case sf::Event::JoystickMoved:
+		break;
+		
 	}
 }
 

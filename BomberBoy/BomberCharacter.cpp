@@ -20,10 +20,20 @@ const std::vector<CharacterColour> ABomberCharacter::s_supportedColours(
 
 ABomberCharacter::ABomberCharacter() :
 	m_drawSize(vec2(16.0f, 21.0f) * 2.0f),
-	m_drawOffset(vec2(0.0f, 0.0f))
+	m_drawOffset(vec2(0.0f, 0.0f)),
+
+	m_upKey(sf::Keyboard::Key::W),
+	m_downKey(sf::Keyboard::Key::S),
+	m_leftKey(sf::Keyboard::Key::A),
+	m_rightKey(sf::Keyboard::Key::D)
 {
 	bIsNetSynced = true;
 	bIsTickable = true;
+
+	RegisterKeybinding(&m_upKey);
+	RegisterKeybinding(&m_downKey);
+	RegisterKeybinding(&m_leftKey);
+	RegisterKeybinding(&m_rightKey);
 }
 
 
@@ -145,14 +155,14 @@ void ABomberCharacter::OnBegin()
 void ABomberCharacter::OnTick(const float& deltaTime) 
 {
 	Super::OnTick(deltaTime);
-#ifdef BUILD_CLIENT
 	if (IsNetOwner())
 	{
-		Translate(vec2(0, 35) * deltaTime);
+		if(m_downKey.IsHeld())
+			Translate(vec2(0, 35) * deltaTime);
+
 		if (GetLocation().y > 100)
 			SetLocation(vec2(GetLocation().x, -100));
 	}
-#endif
 }
 
 #ifdef BUILD_CLIENT

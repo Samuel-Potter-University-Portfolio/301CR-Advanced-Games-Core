@@ -22,11 +22,16 @@ private:
 	bool bWasSpawnedWithLevel;
 
 
+	/// Stores key bindings, so that the input controller may update them
+	std::vector<struct KeyBinding*> m_keyBindings;
+
+
 	// Location used for syncing back and forth between network
 	vec2 m_netLocation;
 	vec2 m_desiredLocation;
 	bool bLocationUpdated = false;
 	uint8 m_netLocationCheckId = 0; // Used to verify set location calls (Host always has precedence)
+
 
 	/// RPCs to sync location
 	void SendLocationToHost(const vec2& location, const uint8& checkId);
@@ -39,6 +44,7 @@ protected:
 
 	/// How far behind the netlocation can this actor be before snapping back to it (For puppets)
 	float m_catchupDistance = 5.0f;
+
 
 public:
 	AActor();
@@ -74,6 +80,14 @@ public:
 	virtual void OnDraw(sf::RenderWindow* window, const float& deltaTime) {}
 #endif
 
+protected:
+	/**
+	* Internally registers this keybinding
+	* @param binding		The binding for this key (Pointer must exist for duration of this actor)
+	*/
+	inline void RegisterKeybinding(KeyBinding* binding) { m_keyBindings.emplace_back(binding); }
+
+
 
 	/**
 	* Net sync functions
@@ -95,6 +109,9 @@ public:
 
 	inline const bool& IsTickable() const { return bIsTickable; }
 	inline const bool& IsVisible() const { return true; }
+
+	inline const std::vector<KeyBinding*>& GetKeyBindings() const { return m_keyBindings; }
+	inline const bool& CanReceiveInput() const { return m_keyBindings.size(); }
 
 	inline void SetLocation(const vec2& location) { m_desiredLocation = location; bLocationUpdated = true; }
 	inline void Translate(const vec2& amount) { m_desiredLocation += amount; bLocationUpdated = true; }

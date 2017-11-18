@@ -64,6 +64,7 @@
     <ClCompile Include="LevelController.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="InputController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -176,5 +177,6 @@
     <ClInclude Include="Includes\Core\LevelController.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="Includes\Core\InputController.h" />
   </ItemGroup>
 </Project>
