@@ -1,5 +1,6 @@
 #include "Includes\Core\Level.h"
 #include "Includes\Core\Game.h"
+#include "Includes\Core\NetSession.h"
 
 
 CLASS_SOURCE(LLevel, CORE_API)
@@ -113,7 +114,6 @@ void LLevel::AddActor(AActor* actor)
 
 	// Add to level
 	m_activeActors.emplace_back(actor);
-	actor->OnLevelLoaded(this);
 
 	// Add to look up table, if net synced
 	NetSession* session = GetGame()->GetSession();
@@ -121,19 +121,21 @@ void LLevel::AddActor(AActor* actor)
 	{
 		if (actor->GetNetworkID() != 0)
 			m_netActorLookup[actor->GetNetworkID()] = actor;
+		actor->UpdateRole(session);
 	}
 	else
 		// Give fake role so offline play still works
 		actor->UpdateRole(nullptr, true);
+
+	actor->OnLevelLoaded(this);
 }
 
 template<>
-AActor* LLevel::SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location, const OObject* owner)
+AActor* LLevel::SpawnActor(const SubClassOf<AActor>& actorClass, const OObject* owner)
 {
 	AActor* actor = actorClass->New<AActor>();
 	if (actor == nullptr)
 		return nullptr;
-	actor->m_location = location;
 	actor->bWasSpawnedWithLevel = bIsBuilding;
 	if (owner != nullptr)
 		actor->m_networkOwnerId = owner->m_networkOwnerId;

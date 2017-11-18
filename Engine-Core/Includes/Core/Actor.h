@@ -24,18 +24,21 @@ private:
 
 	// Location used for syncing back and forth between network
 	vec2 m_netLocation;
-	vec2 m_location;
+	vec2 m_desiredLocation;
+	bool bLocationUpdated = false;
+	uint8 m_netLocationCheckId = 0; // Used to verify set location calls (Host always has precedence)
 
-	/// Callback for when net location is updated
-	void OnNetLocationUpdate();
+	/// RPCs to sync location
+	void SendLocationToHost(const vec2& location, const uint8& checkId);
+	void SendLocationToOwner(const vec2& location, const uint8& checkId);
 
 
 protected:
 	bool bIsTickable; 
 	uint8 m_drawingLayer;
 
-	/// How far behind the netlocation can this actor be before snapping back to it
-	float m_catchupDistance = 2.0f;
+	/// How far behind the netlocation can this actor be before snapping back to it (For puppets)
+	float m_catchupDistance = 5.0f;
 
 public:
 	AActor();
@@ -46,6 +49,10 @@ public:
 	*/
 	void OnLevelLoaded(LLevel* level);
 
+	/**
+	* Callback for when this actor is loaded into the game as an active object
+	*/
+	virtual void OnBegin() override;
 	/**
 	* Callback for main logic loop tick
 	* @param deltaTime		Time since last tick in seconds
@@ -89,9 +96,9 @@ public:
 	inline const bool& IsTickable() const { return bIsTickable; }
 	inline const bool& IsVisible() const { return true; }
 
-	inline void SetLocation(const vec2& location) { m_location = location; }
-	inline void Translate(const vec2& amount) { m_location += amount; }
-	inline const vec2& GetLocation() const { return m_location; }
+	inline void SetLocation(const vec2& location) { m_desiredLocation = location; bLocationUpdated = true; }
+	inline void Translate(const vec2& amount) { m_desiredLocation += amount; bLocationUpdated = true; }
+	inline const vec2& GetLocation() const { return m_desiredLocation; }
 
 	inline LLevel* GetLevel() const { return m_level; }
 	class AssetController* GetAssetController();

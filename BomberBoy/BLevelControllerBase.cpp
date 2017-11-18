@@ -27,7 +27,10 @@ void ABLevelControllerBase::OnPlayerConnect(OPlayerController* player, const boo
 
 	// Spawn in character for this controller
 	if (IsNetHost())
-		GetLevel()->SpawnActor<ABomberCharacter>(ABomberCharacter::StaticClass(), vec2(20, 0) * (float)player->GetNetworkOwnerID(), player);
+	{
+		ABomberCharacter* character = GetLevel()->SpawnActor<ABomberCharacter>(ABomberCharacter::StaticClass(), player);
+		character->SetLocation(vec2(20, 0) * (float)player->GetNetworkOwnerID());
+	}
 }
 
 void ABLevelControllerBase::OnPlayerDisconnect(OPlayerController* player) 

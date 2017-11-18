@@ -23,6 +23,7 @@ class Engine;
 class CORE_API Game
 {
 private:
+	friend NetSession;
 	string m_name;
 	Engine* m_engine = nullptr;
 	Version m_version;

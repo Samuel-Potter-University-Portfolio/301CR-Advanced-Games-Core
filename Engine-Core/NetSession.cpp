@@ -53,6 +53,7 @@ void NetSession::PreNetUpdate()
 			object->m_networkId = NewObjectID();
 			object->bFirstNetUpdate = true;
 			object->UpdateRole(this);
+			GetGame()->m_netObjectLookup[object->m_networkId] = object;
 		}
 
 		if(object->HasNetControl())
@@ -74,6 +75,7 @@ void NetSession::PreNetUpdate()
 				actor->m_networkId = NewActorID();
 				actor->bFirstNetUpdate = true;
 				actor->UpdateRole(this);
+				level->m_netActorLookup[actor->m_networkId] = actor;
 			}
 
 			if (actor->HasNetControl())

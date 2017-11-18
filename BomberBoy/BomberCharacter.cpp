@@ -119,19 +119,39 @@ void ABomberCharacter::OnBegin()
 
 #ifdef BUILD_CLIENT
 	// Load default animations
-	m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim");
-	m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim");
-	m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim");
-	m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim");
+	//m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim");
+	//m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim");
+	//m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim");
+	//m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim");
+
+	if (IsNetOwner())
+	{
+		// Load default animations
+		m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim.green");
+		m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim.green");
+		m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim.green");
+		m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim.green");
+	}
+	else
+	{
+		m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim.red");
+		m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim.red");
+		m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim.red");
+		m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim.red");
+	}
 #endif
 }
 
 void ABomberCharacter::OnTick(const float& deltaTime) 
 {
-#ifdef BUILD_SERVER
-	Translate(vec2(0, 35) * deltaTime);
-	if (GetLocation().y > 100)
-		SetLocation(vec2(GetLocation().x, -100));
+	Super::OnTick(deltaTime);
+#ifdef BUILD_CLIENT
+	if (IsNetOwner())
+	{
+		Translate(vec2(0, 35) * deltaTime);
+		if (GetLocation().y > 100)
+			SetLocation(vec2(GetLocation().x, -100));
+	}
 #endif
 }
 

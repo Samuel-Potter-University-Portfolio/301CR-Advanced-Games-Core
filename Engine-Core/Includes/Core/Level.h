@@ -79,7 +79,7 @@ public:
 	* @returns New actor object or nullptr, if invalid
 	*/
 	template<class ActorType>
-	ActorType* SpawnActor(const SubClassOf<AActor>& actorClass = ActorType::StaticClass(), const vec2& location = vec2(0, 0), const OObject* owner = nullptr) { return static_cast<ActorType*>(SpawnActor<AActor>(*actorClass, location, owner)); }
+	ActorType* SpawnActor(const SubClassOf<AActor>& actorClass = ActorType::StaticClass(), const OObject* owner = nullptr) { return static_cast<ActorType*>(SpawnActor<AActor>(*actorClass, owner)); }
 	/**
 	* Spawns an actor into the level of the given type
 	* @param actorClass			The class of the actor to spawn
@@ -88,7 +88,7 @@ public:
 	* @returns New actor object or nullptr, if invalid
 	*/
 	template<>
-	AActor* SpawnActor(const SubClassOf<AActor>& actorClass, const vec2& location, const OObject* owner);
+	AActor* SpawnActor(const SubClassOf<AActor>& actorClass, const OObject* owner);
 
 protected:
 	/**

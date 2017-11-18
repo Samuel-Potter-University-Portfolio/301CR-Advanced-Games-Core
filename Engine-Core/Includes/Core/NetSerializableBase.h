@@ -160,7 +160,6 @@ private:
 	uint16 m_networkOwnerId = 0;
 	uint16 m_networkId = 0;
 
-	bool bFirstNetUpdate;
 	uint16 m_updateCounter = 0;
 
 	RPCQueue m_UdpRpcQueue;
@@ -172,6 +171,7 @@ protected:
 	// Where to check if any value has changed
 	std::vector<uint8> m_varCheckValues;
 
+	bool bFirstNetUpdate = false;
 	bool bIsNetSynced = false;
 
 	/**

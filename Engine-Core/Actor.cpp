@@ -19,12 +19,16 @@ AActor::AActor() :
 bool AActor::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
 	RPC_INDEX_HEADER(func, outInfo);
+	RPC_INDEX(UDP, RPCCallingMode::Host, SendLocationToHost);
+	RPC_INDEX(UDP, RPCCallingMode::Owner, SendLocationToOwner);
 	return false;
 }
 
 bool AActor::ExecuteRPC(uint16& id, ByteBuffer& params)
 {
 	RPC_EXEC_HEADER(id, params);
+	RPC_EXEC_TwoParam(SendLocationToHost, vec2, uint8);
+	RPC_EXEC_TwoParam(SendLocationToOwner, vec2, uint8);
 	return false;
 }
 
@@ -37,7 +41,7 @@ void AActor::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketTy
 bool AActor::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
 {
 	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
-	SYNCVAR_EXEC_Callback(m_netLocation, OnNetLocationUpdate);
+	SYNCVAR_EXEC(m_netLocation);
 	return false;
 }
 
@@ -48,13 +52,61 @@ void AActor::OnLevelLoaded(LLevel* level)
 	OnGameLoaded(level->GetGame());
 }
 
+void AActor::OnBegin() 
+{
+	// Start at correct location
+	if (IsNetSynced())
+	{
+		if (IsNetHost())
+			bLocationUpdated = true;
+		else
+		{
+			m_desiredLocation = m_netLocation;
+			bLocationUpdated = false;
+		}
+	}
+}
+
 void AActor::OnPostTick()
 {
-	if (IsNetHost())
-		m_netLocation = m_location;
-	else if (IsNetOwner())
+	if (GetNetworkID() != 0)
 	{
-		// TODO - Send location to server
+		// Update net location (So clients receive the correct value)
+		if (IsNetHost())
+		{
+			if (bLocationUpdated && !IsNetOwner())
+			{
+				++m_netLocationCheckId;
+				CallRPC_TwoParam(this, SendLocationToOwner, m_desiredLocation, m_netLocationCheckId);
+			}
+			m_netLocation = m_desiredLocation;
+		}
+
+		// Send location to server
+		else if (IsNetOwner())
+		{
+			if (bLocationUpdated)
+			{
+				CallRPC_TwoParam(this, SendLocationToHost, m_desiredLocation, m_netLocationCheckId);
+			}
+		}
+
+		// Not owner
+		else
+		{
+			const vec2 dif = m_desiredLocation - m_netLocation;
+			const float distanceSqrd = dif.x*dif.x + dif.y*dif.y;
+
+			// Snap to location
+			if (distanceSqrd >= m_catchupDistance * m_catchupDistance)
+				m_desiredLocation = m_netLocation;
+
+			// Close, so smoothly reach position
+			else
+				m_desiredLocation = m_netLocation*0.5f + m_desiredLocation*0.5f;
+		}
+
+		bLocationUpdated = false;
 	}
 }
 
@@ -64,17 +116,19 @@ AssetController* AActor::GetAssetController()
 	return GetGame()->GetAssetController(); 
 }
 
-void AActor::OnNetLocationUpdate() 
+void AActor::SendLocationToHost(const vec2& location, const uint8& checkId)
 {
-	// Check to see if location is too far out
-	if (IsNetOwner())
-	{
-		const vec2 dif = m_location - m_netLocation;
-		const float distanceSqrd = dif.x*dif.x + dif.y*dif.y;
-		if(distanceSqrd >= m_catchupDistance * m_catchupDistance)
-			m_location = m_netLocation;
-	}
-	// Forcefully set location
-	else
-		m_location = m_netLocation;
+	// Owner hasn't acknowledged previous server sent location set yet
+	if (m_netLocationCheckId != checkId)
+		return;
+
+	m_desiredLocation = location;
+	// TODO - Checks (Can the player actually be here?)
+	// If not call RPC telling them where they should be
+}
+
+void AActor::SendLocationToOwner(const vec2& location, const uint8& checkId)
+{
+	m_desiredLocation = location;
+	m_netLocationCheckId = checkId;
 }
