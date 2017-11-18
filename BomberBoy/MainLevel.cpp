@@ -2,7 +2,7 @@
 CLASS_SOURCE(LMainLevel)
 
 #include "Core\Camera.h"
-#include "TestEntity.h"
+#include "BomberCharacter.h"
 
 
 LMainLevel::LMainLevel()
@@ -14,6 +14,6 @@ LMainLevel::LMainLevel()
 void LMainLevel::OnBuildLevel()
 {
 	SpawnActor<ACamera>();
-	SpawnActor<ATestEntity>();
+	SpawnActor<ABomberCharacter>();
 	//SpawnActor<ATestEntity>(vec2(0, 100));
 }

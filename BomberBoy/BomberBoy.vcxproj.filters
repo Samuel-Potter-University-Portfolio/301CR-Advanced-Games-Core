@@ -9,7 +9,7 @@
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="TestEntity.cpp" />
-    <ClCompile Include="ConnDudLevel.cpp" />
+    <ClCompile Include="BomberCharacter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -18,7 +18,7 @@
     <ClInclude Include="TestEntity.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="ConnDudLevel.h">
+    <ClInclude Include="BomberCharacter.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

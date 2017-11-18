@@ -4,6 +4,7 @@
 */
 
 #include <string>
+#include <SFML\Graphics\Color.hpp>
 #include <SFML\System\Vector2.hpp>
 #include <SFML\System\Vector3.hpp>
 
@@ -23,3 +24,6 @@ typedef unsigned __int64 uint64;
 typedef sf::Vector2<float>	vec2;
 typedef sf::Vector2<int32>	ivec2;
 typedef sf::Vector2<uint32>	uvec2;
+
+
+typedef sf::Color Colour;

@@ -4,7 +4,7 @@
 
 
 #include "MainLevel.h"
-#include "ConnDudLevel.h"
+#include "BomberCharacter.h"
 
 #include "Core\Camera.h"
 #include "TestEntity.h"
@@ -25,7 +25,6 @@ static inline int entry(std::vector<string>& args)
 	{
 		// Add levels
 		game.RegisterClass(LMainLevel::StaticClass());
-		game.RegisterClass(LConnDudLevel::StaticClass());
 
 		game.defaultLevel = LMainLevel::StaticClass();
 		game.defaultNetLevel = LMainLevel::StaticClass();
@@ -33,15 +32,11 @@ static inline int entry(std::vector<string>& args)
 
 		// Register assets
 		game.GetAssetController()->RegisterTexture("Resources\\Test.png");
-
-		game.GetAssetController()->RegisterTexture("Resources\\Character\\Down_0.png", false);
-		game.GetAssetController()->RegisterTexture("Resources\\Character\\Down_1.png", false);
-		game.GetAssetController()->RegisterTexture("Resources\\Character\\Down_2.png", false);
-
+		ABomberCharacter::RegisterAssets(&game);
+		
 
 		// Register actors
 		game.RegisterClass(ACamera::StaticClass());
-		game.RegisterClass(ATestEntity::StaticClass());
 
 		// Register assets
 	}

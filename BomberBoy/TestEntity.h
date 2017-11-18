@@ -22,11 +22,6 @@ protected:
 	virtual void OnBegin();
 	virtual void OnDestroy() override;
 
-	/**
-	* Callback for level first tick
-	* @param deltaTime		Time since last tick in seconds
-	*/
-	virtual void OnTick(const float& deltaTime);
 
 	sf::Vector2f startPos;
 	float timer;
@@ -39,6 +34,11 @@ protected:
 	void OnClampedTimerChange();
 	void OnTestStringChange();
 
+	/**
+	* Callback for level first tick
+	* @param deltaTime		Time since last tick in seconds
+	*/
+	virtual void OnTick(const float& deltaTime);
 #ifdef BUILD_CLIENT
 	/**
 	* Called when this entity should be drawn to the screen

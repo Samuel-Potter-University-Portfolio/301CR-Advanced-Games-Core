@@ -37,7 +37,7 @@ void AssetController::RegisterTexture(const string& path, sf::Texture* texture)
 	else
 	{
 		m_textures[key] = texture;
-		LOG("\t-Registered texture at '%s'", key.c_str());
+		//LOG("\t-Registered texture at '%s'", key.c_str());
 	}
 #else
 	delete texture;
@@ -89,7 +89,7 @@ void AssetController::RegisterAnimation(const string& path, AnimationSheet* anim
 	else
 	{
 		m_animations[key] = animation;
-		LOG("\t-Registered animation at '%s'", key.c_str());
+		//LOG("\t-Registered animation at '%s'", key.c_str());
 	}
 #else
 	delete animation;
