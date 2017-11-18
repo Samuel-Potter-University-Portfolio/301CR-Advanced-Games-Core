@@ -295,6 +295,11 @@ NetResponseCode NetSession::DecodeHandshake_ServerToClient(ByteBuffer& inBuffer,
 			// Cleaup any other controllers that may exist for some reason
 			for (uint32 i = 1; i < playerList.size(); ++i)
 				OObject::Destroy(playerList[i]);
+
+			// As we are reusing this controller, let level cleanup
+			LLevel* level = GetGame()->GetCurrentLevel();
+			if (level != nullptr)
+				level->GetLevelController()->OnPlayerDisconnect(outPlayer);
 		}
 		else if (playerList.size() == 0)
 			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();

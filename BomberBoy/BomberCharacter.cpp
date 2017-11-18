@@ -23,28 +23,16 @@ ABomberCharacter::ABomberCharacter() :
 	m_drawOffset(vec2(0.0f, 0.0f))
 {
 	bIsNetSynced = true;
+	bIsTickable = true;
 }
 
-void ABomberCharacter::OnBegin()
-{
-	Super::OnBegin();
-
-#ifdef BUILD_CLIENT
-	// Load default animations
-	m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim");
-	m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim");
-	m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim");
-	m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim");
-#endif
-}
 
 /**
 * Replaces parts of a texture with a given colour
 * Used to generate player/team colours
 */
-static void ReplaceGreyMask(sf::Texture* texture, const sf::Color& colour)
+static void ReplaceGreyMask(sf::Image& image, const sf::Color& colour)
 {
-	sf::Image image = texture->copyToImage();
 	for (uint32 x = 0; x < image.getSize().x; ++x)
 		for (uint32 y = 0; y < image.getSize().y; ++y)
 		{
@@ -52,15 +40,18 @@ static void ReplaceGreyMask(sf::Texture* texture, const sf::Color& colour)
 			if (pc == sf::Color(170, 170, 170) || pc == sf::Color(127, 127, 127)) // Multiply these colours by the given colour
 				image.setPixel(x, y, pc * colour);
 		}
-	texture->loadFromImage(image);
 }
 static sf::Texture* GetTextureInColour(const string& path, const sf::Color& colour)
 {
 	sf::Texture* texture = new sf::Texture;
 	texture->setSmooth(false);
 	texture->setRepeated(false);
-	texture->loadFromFile(path);
-	ReplaceGreyMask(texture, colour);
+
+	sf::Image image;
+	image.loadFromFile(path);
+	ReplaceGreyMask(image, colour);
+
+	texture->loadFromImage(image);
 	return texture;
 }
 
@@ -77,6 +68,7 @@ void ABomberCharacter::RegisterAssets(Game* game)
 		"Up", "Down", "Left", "Right"
 	};
 
+
 	// Import all player directions (And setup animations)
 	for (const string& dir : directions)
 	{
@@ -92,6 +84,7 @@ void ABomberCharacter::RegisterAssets(Game* game)
 			for (const CharacterColour& colour : s_supportedColours)
 				assets->RegisterTexture(defaultPath + "." + colour.name, GetTextureInColour(defaultPath, colour.colour));
 		}
+
 
 		// Setup animation
 		// Default (grey)
@@ -120,9 +113,26 @@ void ABomberCharacter::RegisterAssets(Game* game)
 }
 
 
+void ABomberCharacter::OnBegin()
+{
+	Super::OnBegin();
+
+#ifdef BUILD_CLIENT
+	// Load default animations
+	m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim");
+	m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim");
+	m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim");
+	m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim");
+#endif
+}
+
 void ABomberCharacter::OnTick(const float& deltaTime) 
 {
-
+#ifdef BUILD_SERVER
+	Translate(vec2(0, 35) * deltaTime);
+	if (GetLocation().y > 100)
+		SetLocation(vec2(GetLocation().x, -100));
+#endif
 }
 
 #ifdef BUILD_CLIENT

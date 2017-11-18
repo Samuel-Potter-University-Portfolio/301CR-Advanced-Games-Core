@@ -35,13 +35,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BLevelControllerBase.cpp" />
     <ClCompile Include="BomberCharacter.cpp" />
+    <ClCompile Include="BPlayerController.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="TestEntity.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BLevelControllerBase.h" />
     <ClInclude Include="BomberCharacter.h" />
+    <ClInclude Include="BPlayerController.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="TestEntity.h" />
   </ItemGroup>

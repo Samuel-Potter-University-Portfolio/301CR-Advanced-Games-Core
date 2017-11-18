@@ -10,6 +10,8 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="TestEntity.cpp" />
     <ClCompile Include="BomberCharacter.cpp" />
+    <ClCompile Include="BLevelControllerBase.cpp" />
+    <ClCompile Include="BPlayerController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -19,6 +21,12 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="BomberCharacter.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="BLevelControllerBase.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="BPlayerController.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

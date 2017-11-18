@@ -28,14 +28,17 @@ void LLevel::MainUpdate(const float& deltaTime)
 	for (AActor* actor : m_activeActors)
 	{
 		if (actor->IsTickable())
+		{
 			actor->OnTick(deltaTime);
+			actor->OnPostTick();
+		}
 	}
 
 
 	// Perform cleanup
 	for (uint32 i = 0; i < m_activeActors.size(); ++i)
 	{
-		AActor*& actor = m_activeActors[i];
+		AActor* actor = m_activeActors[i];
 		if (!actor->IsDestroyed())
 			continue;
 
@@ -45,10 +48,7 @@ void LLevel::MainUpdate(const float& deltaTime)
 
 		// Remove networking reference
 		if (actor->GetNetworkID() != 0)
-		{
 			m_netActorLookup.erase(actor->GetNetworkID());
-			// TODO - Active Session callback
-		}
 
 		delete actor;
 	}
@@ -80,6 +80,8 @@ void LLevel::Build()
 	bIsBuilding = true;
 
 	m_levelController = SpawnActor<ALevelController>(*levelControllerClass);
+	m_levelController->UpdateRole(GetGame()->GetSession());
+
 	OnBuildLevel();
 
 	bIsBuilding = false;
@@ -115,8 +117,14 @@ void LLevel::AddActor(AActor* actor)
 
 	// Add to look up table, if net synced
 	NetSession* session = GetGame()->GetSession();
-	if (session != nullptr && actor->GetNetworkID() != 0)
-		m_netActorLookup[actor->GetNetworkID()] = actor;
+	if (session != nullptr)
+	{
+		if (actor->GetNetworkID() != 0)
+			m_netActorLookup[actor->GetNetworkID()] = actor;
+	}
+	else
+		// Give fake role so offline play still works
+		actor->UpdateRole(nullptr, true);
 }
 
 template<>

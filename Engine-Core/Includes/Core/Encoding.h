@@ -308,15 +308,15 @@ inline bool Decode<std::string>(ByteBuffer& buffer, string& out, void* context)
 template<>
 inline bool Decode<vec2>(ByteBuffer& buffer, vec2& out, void* context)
 {
-	return !Decode<float>(buffer, out.x) || !Decode<float>(buffer, out.y);
+	return Decode<float>(buffer, out.x) && Decode<float>(buffer, out.y);
 }
 template<>
 inline bool Decode<ivec2>(ByteBuffer& buffer, ivec2& out, void* context)
 {
-	return !Decode<int32>(buffer, out.x) || !Decode<int32>(buffer, out.y);
+	return Decode<int32>(buffer, out.x) && Decode<int32>(buffer, out.y);
 }
 template<>
 inline bool Decode<uvec2>(ByteBuffer& buffer, uvec2& out, void* context)
 {
-	return !Decode<uint32>(buffer, out.x) || !Decode<uint32>(buffer, out.y);
+	return Decode<uint32>(buffer, out.x) && Decode<uint32>(buffer, out.y);
 }

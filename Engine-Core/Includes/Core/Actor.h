@@ -21,11 +21,21 @@ private:
 
 	bool bWasSpawnedWithLevel;
 
+
+	// Location used for syncing back and forth between network
+	vec2 m_netLocation;
 	vec2 m_location;
+
+	/// Callback for when net location is updated
+	void OnNetLocationUpdate();
+
 
 protected:
 	bool bIsTickable; 
 	uint8 m_drawingLayer;
+
+	/// How far behind the netlocation can this actor be before snapping back to it
+	float m_catchupDistance = 2.0f;
 
 public:
 	AActor();
@@ -42,6 +52,11 @@ public:
 	*/
 	virtual void OnTick(const float& deltaTime) {}
 
+	/**
+	* Callback for when after a tick as completed
+	*/
+	void OnPostTick();
+
 #ifdef BUILD_CLIENT
 	/**
 	* Called when this actor should be drawn to the screen
@@ -51,6 +66,17 @@ public:
 	*/
 	virtual void OnDraw(sf::RenderWindow* window, const float& deltaTime) {}
 #endif
+
+
+	/**
+	* Net sync functions
+	*/
+protected:
+	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
+	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
+
+	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
+	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
 
 
 	/**
@@ -64,6 +90,7 @@ public:
 	inline const bool& IsVisible() const { return true; }
 
 	inline void SetLocation(const vec2& location) { m_location = location; }
+	inline void Translate(const vec2& amount) { m_location += amount; }
 	inline const vec2& GetLocation() const { return m_location; }
 
 	inline LLevel* GetLevel() const { return m_level; }

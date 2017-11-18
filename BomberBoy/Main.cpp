@@ -6,6 +6,9 @@
 #include "MainLevel.h"
 #include "BomberCharacter.h"
 
+#include "BLevelControllerBase.h"
+#include "BPlayerController.h"
+
 #include "Core\Camera.h"
 #include "TestEntity.h"
 
@@ -23,6 +26,11 @@ static inline int entry(std::vector<string>& args)
 	// Setup game
 	Game game("Bomber Boy", Version(0,1,0));
 	{
+		// Register misc.
+		game.RegisterClass(OBPlayerController::StaticClass());
+		game.RegisterClass(ABLevelControllerBase::StaticClass());
+
+
 		// Add levels
 		game.RegisterClass(LMainLevel::StaticClass());
 
@@ -38,7 +46,8 @@ static inline int entry(std::vector<string>& args)
 		// Register actors
 		game.RegisterClass(ACamera::StaticClass());
 
-		// Register assets
+
+		game.playerControllerClass = OBPlayerController::StaticClass();
 	}
 
 	engine.Launch(&game);
