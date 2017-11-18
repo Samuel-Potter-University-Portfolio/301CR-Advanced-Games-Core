@@ -36,6 +36,7 @@ public:
 	*/
 	inline void AddFrame(const sf::Texture* texture) { m_timeline.emplace_back(texture); }
 	inline const sf::Texture* GetCurrentFrame() const { return m_timeline[m_currentFrame]; }
+	inline const sf::Texture* GetFrame(uint32 index) const { return m_timeline[index]; }
 
 	inline void SetFrameDuration(const float& value) { m_frameDuration = value; }
 	inline const float& GetFrameDuration() const { return m_frameDuration; }

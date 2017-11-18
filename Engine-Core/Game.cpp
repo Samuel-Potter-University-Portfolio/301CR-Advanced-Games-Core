@@ -30,6 +30,10 @@ Game::~Game()
 
 void Game::MainUpdate(const float& deltaTime)
 {
+	// Update assets
+	m_assetController.HandleUpdate(deltaTime);
+
+
 	if (m_currentLevel != nullptr)
 		m_currentLevel->MainUpdate(deltaTime);
 
