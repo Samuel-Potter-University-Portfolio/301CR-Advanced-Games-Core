@@ -98,12 +98,12 @@ void AActor::OnPostTick()
 			const float distanceSqrd = dif.x*dif.x + dif.y*dif.y;
 
 			// Snap to location
-			if (distanceSqrd >= m_catchupDistance * m_catchupDistance)
+			if (distanceSqrd >= m_netCatchupDistance * m_netCatchupDistance)
 				m_desiredLocation = m_netLocation;
 
 			// Close, so smoothly reach position
 			else
-				m_desiredLocation = m_netLocation*0.75f + m_desiredLocation*0.25f;
+				m_desiredLocation = m_netLocation*m_netCatchupRate + m_desiredLocation*(1.0f - m_netCatchupRate);
 		}
 
 		bLocationUpdated = false;

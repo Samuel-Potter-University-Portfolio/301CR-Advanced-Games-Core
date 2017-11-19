@@ -43,7 +43,9 @@ protected:
 	uint8 m_drawingLayer;
 
 	/// How far behind the netlocation can this actor be before snapping back to it (For puppets)
-	float m_catchupDistance = 5.0f;
+	float m_netCatchupDistance = 15.0f;
+	/// At what rate should this actor catch up, when they fall behind
+	float m_netCatchupRate = 0.3f;
 
 
 public:
