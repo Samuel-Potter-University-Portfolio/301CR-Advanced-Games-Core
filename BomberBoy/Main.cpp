@@ -4,7 +4,7 @@
 
 
 #include "MainLevel.h"
-#include "BomberCharacter.h"
+#include "BCharacter.h"
 
 #include "BLevelControllerBase.h"
 #include "BPlayerController.h"
@@ -40,7 +40,7 @@ static inline int entry(std::vector<string>& args)
 
 		// Register assets
 		game.GetAssetController()->RegisterTexture("Resources\\Test.png");
-		ABomberCharacter::RegisterAssets(&game);
+		ABCharacter::RegisterAssets(&game);
 		
 
 		// Register actors

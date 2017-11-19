@@ -5,7 +5,7 @@ CLASS_SOURCE(LMainLevel)
 
 
 #include "Core\Camera.h"
-#include "BomberCharacter.h"
+#include "BCharacter.h"
 #include "BLevelControllerBase.h"
 
 #include "TestEntity.h"

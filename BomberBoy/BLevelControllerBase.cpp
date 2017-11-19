@@ -1,5 +1,5 @@
 #include "BLevelControllerBase.h"
-#include "BomberCharacter.h"
+#include "BCharacter.h"
 
 
 CLASS_SOURCE(ABLevelControllerBase)
@@ -28,7 +28,7 @@ void ABLevelControllerBase::OnPlayerConnect(OPlayerController* player, const boo
 	// Spawn in character for this controller
 	if (IsNetHost())
 	{
-		ABomberCharacter* character = GetLevel()->SpawnActor<ABomberCharacter>(ABomberCharacter::StaticClass(), player);
+		ABCharacter* character = GetLevel()->SpawnActor<ABCharacter>(ABCharacter::StaticClass(), player);
 		character->SetLocation(vec2(20, 0) * (float)player->GetNetworkOwnerID());
 	}
 }
@@ -49,9 +49,9 @@ void ABLevelControllerBase::OnPlayerDisconnect(OPlayerController* player)
 	if (IsNetHost())
 	{
 		// Destroy the character for that controller
-		auto playerCharacters = GetLevel()->GetActiveActors<ABomberCharacter>();
+		auto playerCharacters = GetLevel()->GetActiveActors<ABCharacter>();
 
-		for (ABomberCharacter* character : playerCharacters)
+		for (ABCharacter* character : playerCharacters)
 			if (character->GetNetworkOwnerID() == player->GetNetworkOwnerID())
 				Destroy(character);
 	}

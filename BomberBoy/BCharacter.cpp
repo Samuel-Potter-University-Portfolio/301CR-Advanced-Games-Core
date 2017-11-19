@@ -1,10 +1,10 @@
-#include "BomberCharacter.h"
+#include "BCharacter.h"
 
 
-CLASS_SOURCE(ABomberCharacter)
+CLASS_SOURCE(ABCharacter)
 
 
-const std::vector<CharacterColour> ABomberCharacter::s_supportedColours(
+const std::vector<CharacterColour> ABCharacter::s_supportedColours(
 {
 	CharacterColour("Red", sf::Color::Red),
 	CharacterColour("Green", sf::Color::Green),
@@ -18,7 +18,7 @@ const std::vector<CharacterColour> ABomberCharacter::s_supportedColours(
 );
 
 
-ABomberCharacter::ABomberCharacter() :
+ABCharacter::ABCharacter() :
 	m_drawSize(vec2(16.0f, 21.0f) * 2.0f),
 	m_drawOffset(vec2(0.0f, 0.0f)),
 
@@ -37,25 +37,25 @@ ABomberCharacter::ABomberCharacter() :
 }
 
 
-bool ABomberCharacter::RegisterRPCs(const char* func, RPCInfo& outInfo) const
+bool ABCharacter::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
 	RPC_INDEX_HEADER(func, outInfo);
 	RPC_INDEX(UDP, RPCCallingMode::Host, UpdateNetDirection);
 	return false;
 }
-bool ABomberCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
+bool ABCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
 {
 	RPC_EXEC_HEADER(id, params);
 	RPC_EXEC_OneParam(UpdateNetDirection, CharacterDirection);
 	return false;
 }
 
-void ABomberCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode)
+void ABCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode)
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
 	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, CharacterDirection, m_netDirection);
 }
-bool ABomberCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
+bool ABCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
 {
 	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
 	SYNCVAR_EXEC(m_netDirection);
@@ -92,7 +92,7 @@ static sf::Texture* GetTextureInColour(const string& path, const sf::Color& colo
 }
 
 
-void ABomberCharacter::RegisterAssets(Game* game) 
+void ABCharacter::RegisterAssets(Game* game) 
 {
 	AssetController* assets = game->GetAssetController();
 	game->RegisterClass(StaticClass());
@@ -150,7 +150,7 @@ void ABomberCharacter::RegisterAssets(Game* game)
 }
 
 
-void ABomberCharacter::OnBegin()
+void ABCharacter::OnBegin()
 {
 	Super::OnBegin();
 
@@ -179,7 +179,7 @@ void ABomberCharacter::OnBegin()
 #endif
 }
 
-void ABomberCharacter::OnTick(const float& deltaTime) 
+void ABCharacter::OnTick(const float& deltaTime) 
 {
 	Super::OnTick(deltaTime);
 	if (IsNetOwner())
@@ -217,7 +217,7 @@ void ABomberCharacter::OnTick(const float& deltaTime)
 }
 
 #ifdef BUILD_CLIENT
-void ABomberCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
+void ABCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
 	const CharacterDirection& direction = IsNetOwner() ? m_direction : m_netDirection;
 	const AnimationSheet* anim =
@@ -237,7 +237,7 @@ void ABomberCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 
 
 //inline void UpdateNetDirection(const CharacterDirection& direction) { m_netDirection = direction; }
-void ABomberCharacter::UpdateNetDirection(const CharacterDirection& direction) 
+void ABCharacter::UpdateNetDirection(const CharacterDirection& direction) 
 { 
 	m_netDirection = direction; 
 }

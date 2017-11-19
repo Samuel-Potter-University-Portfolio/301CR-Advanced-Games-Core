@@ -1,6 +1,6 @@
 #pragma once
 #include "Core\Core-Common.h"
-#include "BomberCharacter.h"
+#include "BCharacter.h"
 
 
 /**
@@ -11,7 +11,7 @@ class OBPlayerController : public OPlayerController
 	CLASS_BODY()
 	friend class ABLevelControllerBase;
 private:
-	ABomberCharacter* m_character = nullptr;
+	ABCharacter* m_character = nullptr;
 
 public:
 	OBPlayerController();

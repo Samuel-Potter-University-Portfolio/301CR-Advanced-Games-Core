@@ -43,7 +43,7 @@ inline bool Decode<CharacterDirection>(ByteBuffer& buffer, CharacterDirection& o
 /**
 * Represents player characters used in BomberBoy
 */
-class ABomberCharacter : public AActor
+class ABCharacter : public AActor
 {
 	CLASS_BODY()
 public:
@@ -67,13 +67,13 @@ private:
 	KeyBinding m_rightKey;
 
 public:
-	ABomberCharacter();
+	ABCharacter();
 
 	virtual void OnBegin() override;
 	//virtual void OnDestroy() override;
 
 	/**
-	* Registers the needed assets for ABomberCharacter
+	* Registers the needed assets for ABCharacter
 	* @param game			Where to register the assets
 	*/
 	static void RegisterAssets(Game* game);
