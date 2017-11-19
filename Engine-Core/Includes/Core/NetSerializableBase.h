@@ -438,7 +438,7 @@ public:
 * and to handle parent calls correctly
 */
 #define RPC_EXEC_HEADER(id, params) \
-	uint16 __TEMP_ID = id; \
+	uint16& __TEMP_ID = id; \
 	ByteBuffer& __TEMP_BUFFER = params; \
 	if(__super::ExecuteRPC(__TEMP_ID, __TEMP_BUFFER)) return true;
 
@@ -557,7 +557,7 @@ public:
 * and to handle parent calls correctly
 */
 #define SYNCVAR_EXEC_HEADER(id, value, skipCallbacks) \
-	uint16 __TEMP_ID = id; \
+	uint16& __TEMP_ID = id; \
 	ByteBuffer& __TEMP_BUFFER = value; \
 	const bool& __TEMP_SKIP_CALLBACKS = skipCallbacks; \
 	if(__super::ExecuteSyncVar(__TEMP_ID, __TEMP_BUFFER, __TEMP_SKIP_CALLBACKS)) return true;

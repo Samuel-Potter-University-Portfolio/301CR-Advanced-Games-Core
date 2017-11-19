@@ -37,6 +37,32 @@ ABomberCharacter::ABomberCharacter() :
 }
 
 
+bool ABomberCharacter::RegisterRPCs(const char* func, RPCInfo& outInfo) const
+{
+	RPC_INDEX_HEADER(func, outInfo);
+	RPC_INDEX(UDP, RPCCallingMode::Host, UpdateNetDirection);
+	return false;
+}
+bool ABomberCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
+{
+	RPC_EXEC_HEADER(id, params);
+	RPC_EXEC_OneParam(UpdateNetDirection, CharacterDirection);
+	return false;
+}
+
+void ABomberCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode)
+{
+	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
+	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, CharacterDirection, m_netDirection);
+}
+bool ABomberCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
+{
+	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
+	SYNCVAR_EXEC(m_netDirection);
+	return false;
+}
+
+
 /**
 * Replaces parts of a texture with a given colour
 * Used to generate player/team colours
@@ -70,6 +96,7 @@ void ABomberCharacter::RegisterAssets(Game* game)
 {
 	AssetController* assets = game->GetAssetController();
 	game->RegisterClass(StaticClass());
+
 
 	// Don't register textures and animations for server
 #ifdef BUILD_CLIENT
@@ -157,18 +184,47 @@ void ABomberCharacter::OnTick(const float& deltaTime)
 	Super::OnTick(deltaTime);
 	if (IsNetOwner())
 	{
-		if(m_downKey.IsHeld())
-			Translate(vec2(0, 35) * deltaTime);
+		vec2 velocity(0, 0);
 
-		if (GetLocation().y > 100)
-			SetLocation(vec2(GetLocation().x, -100));
+		if (m_upKey.IsHeld())
+		{
+			velocity = vec2(0, -1); // Inverted
+			m_direction = CharacterDirection::Up;
+		}
+		else if (m_downKey.IsHeld())
+		{
+			velocity = vec2(0, 1);
+			m_direction = CharacterDirection::Down;
+		}
+		else if (m_leftKey.IsHeld())
+		{
+			velocity = vec2(-1, 0);
+			m_direction = CharacterDirection::Left;
+		}
+		else if (m_rightKey.IsHeld())
+		{
+			velocity = vec2(1, 0);
+			m_direction = CharacterDirection::Right;
+		}
+
+	
+		if (velocity != vec2(0, 0))
+		{
+			Translate(velocity * 70.0f * deltaTime);
+			CallRPC_OneParam(this, UpdateNetDirection, m_direction);
+		}
 	}
 }
 
 #ifdef BUILD_CLIENT
 void ABomberCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
-	const AnimationSheet* anim = m_animDown;
+	const CharacterDirection& direction = IsNetOwner() ? m_direction : m_netDirection;
+	const AnimationSheet* anim =
+		direction == CharacterDirection::Up ? m_animUp :
+		direction == CharacterDirection::Down ? m_animDown :
+		direction == CharacterDirection::Left ? m_animLeft :
+		m_animRight;
 
 	sf::RectangleShape rect;
 	rect.setPosition(GetLocation() + m_drawOffset);
@@ -179,3 +235,9 @@ void ABomberCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 }
 #endif
 
+
+//inline void UpdateNetDirection(const CharacterDirection& direction) { m_netDirection = direction; }
+void ABomberCharacter::UpdateNetDirection(const CharacterDirection& direction) 
+{ 
+	m_netDirection = direction; 
+}

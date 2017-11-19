@@ -103,7 +103,7 @@ void AActor::OnPostTick()
 
 			// Close, so smoothly reach position
 			else
-				m_desiredLocation = m_netLocation*0.5f + m_desiredLocation*0.5f;
+				m_desiredLocation = m_netLocation*0.75f + m_desiredLocation*0.25f;
 		}
 
 		bLocationUpdated = false;
