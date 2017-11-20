@@ -10,5 +10,6 @@ void AnimationSheet::UpdateAnimation(const float& deltaTime)
 	if (m_timer > totalDuration)
 		m_timer -= totalDuration;
 
-	m_currentFrame = (uint32)(m_timer/ m_frameDuration);
+	const uint32 frame = (uint32)(m_timer/ m_frameDuration);
+	m_currentFrame = frame % m_timeline.size();
 }

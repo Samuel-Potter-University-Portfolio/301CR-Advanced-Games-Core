@@ -29,6 +29,8 @@ private:
 	std::vector<AActor*> m_activeActors;
 	std::unordered_map<uint16, AActor*> m_netActorLookup;
 
+	std::vector<AActor*> m_drawnActors;
+
 protected:
 	/// Class type to use for the level controller
 	SubClassOf<ALevelController> levelControllerClass;

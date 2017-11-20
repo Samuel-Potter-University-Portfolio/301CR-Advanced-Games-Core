@@ -119,8 +119,8 @@ AssetController* AActor::GetAssetController()
 void AActor::SendLocationToHost(const vec2& location, const uint8& checkId)
 {
 	// Owner hasn't acknowledged previous server sent location set yet
-	if (m_netLocationCheckId != checkId)
-		return;
+	//if (m_netLocationCheckId != checkId)
+	//	return;
 
 	m_desiredLocation = location;
 	// TODO - Checks (Can the player actually be here?)

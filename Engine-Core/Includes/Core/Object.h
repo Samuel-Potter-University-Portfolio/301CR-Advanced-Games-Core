@@ -19,6 +19,7 @@ private:
 	string m_name;
 
 	bool bIsDestroyed = false;
+	uint32 m_systemReferences = 0; // How many other sub-systems are current referencing this object
 
 public:
 	OObject();
@@ -43,6 +44,11 @@ public:
 	*/
 	virtual void OnDestroy() {}
 
+
+
+	inline void AddSystemReference() { ++m_systemReferences; }
+	inline void RemoveSystemReference() { --m_systemReferences; }
+	inline const uint32& GetRemainingSystemReferences() const { return m_systemReferences; }
 
 	/**
 	* Getters & Setters

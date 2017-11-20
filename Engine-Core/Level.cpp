@@ -28,6 +28,11 @@ void LLevel::MainUpdate(const float& deltaTime)
 
 	for (AActor* actor : m_activeActors)
 	{
+		// Ignore destroyed (Will deal with them after logic tick)
+		if (actor->IsDestroyed())
+			continue;
+
+		// Tick actors
 		if (actor->IsTickable())
 		{
 			actor->OnTick(deltaTime);
@@ -40,7 +45,8 @@ void LLevel::MainUpdate(const float& deltaTime)
 	for (uint32 i = 0; i < m_activeActors.size(); ++i)
 	{
 		AActor* actor = m_activeActors[i];
-		if (!actor->IsDestroyed())
+		// Attempt to destroy object, if only remaining reference is this
+		if (!actor->IsDestroyed() || actor->GetRemainingSystemReferences() != 1)
 			continue;
 
 		// Remove object
@@ -61,13 +67,24 @@ void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 	if (bIsDestroying)
 		return;
 
+
 	for (uint32 layer = 0; layer <= 10; ++layer)
 	{
-		for (uint32 i = 0; i < m_activeActors.size(); ++i)
+		for (uint32 i = 0; i < m_drawnActors.size(); ++i)
 		{
-			AActor* actor = m_activeActors[i]; // TODO - Better safety with memory destruction
+			AActor* actor = m_drawnActors[i]; // TODO - Better safety with memory destruction
+			
+			// Remove references
+			if (actor->IsDestroyed())
+			{
+				actor->RemoveSystemReference();
+				m_drawnActors.erase(m_drawnActors.begin() + i);
+				--i;
+				continue; 
+			}
 
-			if (actor->GetDrawingLayer() == layer && !actor->IsDestroyed() && actor->IsVisible())
+
+			if (actor->GetDrawingLayer() == layer && actor->IsVisible())
 				actor->OnDraw(window, deltaTime);
 		}
 	}
@@ -113,7 +130,14 @@ void LLevel::AddActor(AActor* actor)
 #endif
 
 	// Add to level
+	actor->AddSystemReference();
 	m_activeActors.emplace_back(actor);
+
+#ifdef BUILD_CLIENT
+	// Add to rendering
+	actor->AddSystemReference();
+	m_drawnActors.emplace_back(actor);
+#endif
 
 	// Add to look up table, if net synced
 	NetSession* session = GetGame()->GetSession();
