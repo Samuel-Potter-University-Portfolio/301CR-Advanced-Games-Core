@@ -12,6 +12,7 @@
     <ClCompile Include="BLevelControllerBase.cpp" />
     <ClCompile Include="BPlayerController.cpp" />
     <ClCompile Include="BCharacter.cpp" />
+    <ClCompile Include="BLevelArena.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -27,6 +28,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="BCharacter.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="BLevelArena.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

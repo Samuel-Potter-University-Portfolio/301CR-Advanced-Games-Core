@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BLevelArena.cpp" />
     <ClCompile Include="BLevelControllerBase.cpp" />
     <ClCompile Include="BCharacter.cpp" />
     <ClCompile Include="BPlayerController.cpp" />
@@ -43,6 +44,7 @@
     <ClCompile Include="TestEntity.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BLevelArena.h" />
     <ClInclude Include="BLevelControllerBase.h" />
     <ClInclude Include="BCharacter.h" />
     <ClInclude Include="BPlayerController.h" />

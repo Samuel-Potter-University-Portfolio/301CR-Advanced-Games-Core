@@ -8,6 +8,7 @@
 
 #include "BLevelControllerBase.h"
 #include "BPlayerController.h"
+#include "BLevelArena.h"
 
 #include "Core\Camera.h"
 #include "TestEntity.h"
@@ -39,8 +40,8 @@ static inline int entry(std::vector<string>& args)
 
 
 		// Register assets
-		game.GetAssetController()->RegisterTexture("Resources\\Test.png");
 		ABCharacter::RegisterAssets(&game);
+		ABLevelArena::RegisterAssets(&game);
 		
 
 		// Register actors

@@ -9,6 +9,7 @@ CLASS_SOURCE(LMainLevel)
 #include "BLevelControllerBase.h"
 
 #include "TestEntity.h"
+#include "BLevelArena.h"
 
 
 LMainLevel::LMainLevel()
@@ -19,6 +20,7 @@ LMainLevel::LMainLevel()
 void LMainLevel::OnBuildLevel()
 {
 	SpawnActor<ACamera>();
+	SpawnActor<ABLevelArena>();
 
 #ifdef BUILD_CLIENT
 	// DEBUG: TEST

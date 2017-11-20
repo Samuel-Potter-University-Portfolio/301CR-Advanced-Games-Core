@@ -118,7 +118,6 @@ public:
 	* Returns all active actors 
 	*/
 	inline const std::vector<AActor*>& GetActiveActors() const { return m_activeActors; }
-
 	/**
 	* Return all active actors of this class
 	* @param type			The class type to query for
@@ -131,7 +130,6 @@ public:
 				output.emplace_back(m_activeActors[i]);
 		return output;
 	}
-
 	/**
 	* Return all active actors of this class type
 	*/
@@ -146,6 +144,21 @@ public:
 				output.emplace_back(casted);
 		}
 		return output;
+	}
+
+	/**
+	* Get the first actor of this type
+	*/
+	template<class ActorType>
+	inline ActorType* GetFirstActor() const
+	{
+		for (uint32 i = 0; i < m_activeActors.size(); ++i)
+		{
+			ActorType* casted = dynamic_cast<ActorType*>(m_activeActors[i]);
+			if (casted != nullptr)
+				return casted;
+		}
+		return nullptr;
 	}
 
 

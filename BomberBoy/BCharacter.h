@@ -50,6 +50,8 @@ public:
 	static const std::vector<CharacterColour> s_supportedColours;
 
 private:
+	class ABLevelArena* arena = nullptr;
+
 	const AnimationSheet* m_animUp = nullptr;
 	const AnimationSheet* m_animDown = nullptr;
 	const AnimationSheet* m_animLeft = nullptr;
@@ -61,6 +63,7 @@ private:
 	CharacterDirection m_direction;
 	CharacterDirection m_netDirection;
 
+	const float m_movementSpeed;
 	KeyBinding m_upKey;
 	KeyBinding m_downKey;
 	KeyBinding m_leftKey;
@@ -94,6 +97,7 @@ protected:
 
 	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
 	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
+
 
 	/** Sends the players direction to the server */
 	void UpdateNetDirection(const CharacterDirection& direction);

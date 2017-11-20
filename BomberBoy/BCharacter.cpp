@@ -1,4 +1,5 @@
 #include "BCharacter.h"
+#include "BLevelArena.h"
 
 
 CLASS_SOURCE(ABCharacter)
@@ -25,10 +26,13 @@ ABCharacter::ABCharacter() :
 	m_upKey(sf::Keyboard::Key::W),
 	m_downKey(sf::Keyboard::Key::S),
 	m_leftKey(sf::Keyboard::Key::A),
-	m_rightKey(sf::Keyboard::Key::D)
+	m_rightKey(sf::Keyboard::Key::D),
+
+	m_movementSpeed(100.0f)
 {
 	bIsNetSynced = true;
 	bIsTickable = true;
+	m_drawingLayer = 3;
 
 	RegisterKeybinding(&m_upKey);
 	RegisterKeybinding(&m_downKey);
@@ -182,6 +186,7 @@ void ABCharacter::OnBegin()
 void ABCharacter::OnTick(const float& deltaTime) 
 {
 	Super::OnTick(deltaTime);
+
 	if (IsNetOwner())
 	{
 		vec2 velocity(0, 0);
@@ -210,8 +215,27 @@ void ABCharacter::OnTick(const float& deltaTime)
 	
 		if (velocity != vec2(0, 0))
 		{
-			Translate(velocity * 70.0f * deltaTime);
+			// Make sure actor doesn't get out of play area/ clip through walls
+			if (arena == nullptr)
+				arena = GetLevel()->GetFirstActor<ABLevelArena>();
+
+			if (arena != nullptr)
+				arena->CorrectMovement(this, velocity);
+
+			Translate(velocity * m_movementSpeed * deltaTime);
 			CallRPC_OneParam(this, UpdateNetDirection, m_direction);
+		}
+	}
+	else if (IsNetHost())
+	{
+		// Make sure actor doesn't get out of play area
+		if (arena == nullptr)
+			arena = GetLevel()->GetFirstActor<ABLevelArena>();
+
+		if (arena != nullptr)
+		{
+			vec2 dudVel;
+			arena->CorrectMovement(this, dudVel);
 		}
 	}
 }

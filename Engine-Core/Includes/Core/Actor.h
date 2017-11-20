@@ -43,9 +43,9 @@ protected:
 	uint8 m_drawingLayer;
 
 	/// How far behind the netlocation can this actor be before snapping back to it (For puppets)
-	float m_netCatchupDistance = 15.0f;
+	float m_netCatchupDistance = 20.0f;
 	/// At what rate should this actor catch up, when they fall behind
-	float m_netCatchupRate = 0.3f;
+	float m_netCatchupRate = 0.6f;
 
 
 public:
@@ -113,7 +113,7 @@ public:
 	inline const bool& IsVisible() const { return true; }
 
 	inline const std::vector<KeyBinding*>& GetKeyBindings() const { return m_keyBindings; }
-	inline const bool& CanReceiveInput() const { return m_keyBindings.size(); }
+	inline const bool& CanReceiveInput() const { return m_keyBindings.size() != 0; }
 
 	inline void SetLocation(const vec2& location) { m_desiredLocation = location; bLocationUpdated = true; }
 	inline void Translate(const vec2& amount) { m_desiredLocation += amount; bLocationUpdated = true; }
