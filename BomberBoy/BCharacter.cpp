@@ -171,8 +171,6 @@ void ABCharacter::OnTick(const float& deltaTime)
 			AttemptMove(Direction::Left);
 		if (m_rightKey.IsHeld())
 			AttemptMove(Direction::Right);
-
-		//CallRPC_OneParam(this, UpdateNetDirection, m_direction);
 	}
 }
 
@@ -200,10 +198,3 @@ void ABCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	window->draw(rect);
 }
 #endif
-
-
-//inline void UpdateNetDirection(const CharacterDirection& direction) { m_netDirection = direction; }
-//void ABCharacter::UpdateNetDirection(const CharacterDirection& direction) 
-//{ 
-//	m_netDirection = direction; 
-//}

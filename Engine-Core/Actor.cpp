@@ -67,6 +67,12 @@ void AActor::OnBegin()
 	}
 }
 
+void AActor::OnPostNetInitialize()
+{
+	Super::OnPostNetInitialize();
+	m_desiredLocation = m_netLocation;
+}
+
 void AActor::OnPostTick()
 {
 	if (GetNetworkID() != 0)

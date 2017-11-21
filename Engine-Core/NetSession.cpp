@@ -46,7 +46,10 @@ void NetSession::PreNetUpdate()
 	{
 		if (!object->IsNetSynced())
 			continue;
-		
+
+		if (object->HasNetControl())
+			object->OnPreNetUpdate();
+
 		// Assign new net id
 		if (object->GetNetworkID() == 0 && IsHost())
 		{
@@ -55,9 +58,6 @@ void NetSession::PreNetUpdate()
 			object->UpdateRole(this);
 			GetGame()->m_netObjectLookup[object->m_networkId] = object;
 		}
-
-		if(object->HasNetControl())
-			object->OnPreNetUpdate();
 	}
 
 
@@ -69,6 +69,9 @@ void NetSession::PreNetUpdate()
 			if (!actor->IsNetSynced())
 				continue;
 
+			if (actor->HasNetControl())
+				actor->OnPreNetUpdate();
+
 			// Assign new net id
 			if (actor->GetNetworkID() == 0 && IsHost())
 			{
@@ -77,9 +80,6 @@ void NetSession::PreNetUpdate()
 				actor->UpdateRole(this);
 				level->m_netActorLookup[actor->m_networkId] = actor;
 			}
-
-			if (actor->HasNetControl())
-				actor->OnPreNetUpdate();
 		}
 }
 
@@ -220,6 +220,8 @@ NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer,
 			outPlayer->UpdateRole(this);
 			m_playerControllers.emplace_back(outPlayer);
 			GetGame()->AddObject(outPlayer);
+			outPlayer->OnPostNetInitialize();
+
 
 			// Encode new player connection information
 			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Accepted);
@@ -315,6 +317,7 @@ NetResponseCode NetSession::DecodeHandshake_ServerToClient(ByteBuffer& inBuffer,
 		outPlayer->UpdateRole(this);
 		outPlayer->DecodeSyncVarRequests(netId, inBuffer, TCP, true);
 		GetGame()->AddObject(outPlayer);
+		outPlayer->OnPostNetInitialize();
 
 
 
@@ -459,6 +462,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 						const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
 						actor->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 						GetGame()->GetCurrentLevel()->m_netActorLookup[actor->m_networkId] = actor;
+						actor->OnPostNetInitialize();
 						return;
 					}
 					// If null, just create a new actor
@@ -473,6 +477,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
 				actor->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 				GetGame()->GetCurrentLevel()->AddActor(dynamic_cast<AActor*>(actor));
+				actor->OnPostNetInitialize();
 			}
 
 			// Create object
@@ -486,6 +491,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
 				object->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 				GetGame()->AddObject(object);
+				object->OnPostNetInitialize();
 			}
 			return;
 		}

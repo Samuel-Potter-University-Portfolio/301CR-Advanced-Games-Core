@@ -28,7 +28,7 @@ void NetSerializableBase::UpdateRole(const NetSession* session, const bool& assi
 void NetSerializableBase::OnPreNetUpdate() 
 {
 	// Fetch all variables that need to be updated
-	if (IsNetHost())
+	if (IsNetHost() && GetNetworkID() != 0)
 	{
 		uint16 index;
 		uint32 track;

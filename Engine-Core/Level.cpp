@@ -34,10 +34,10 @@ void LLevel::MainUpdate(const float& deltaTime)
 
 		// Tick actors
 		if (actor->IsTickable())
-		{
 			actor->OnTick(deltaTime);
-			actor->OnPostTick();
-		}
+
+		// Call post tick for all actors (So that they may sync any vars)
+		actor->OnPostTick();
 	}
 
 
@@ -64,28 +64,30 @@ void LLevel::MainUpdate(const float& deltaTime)
 #ifdef BUILD_CLIENT
 void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 {
-	if (bIsDestroying)
-		return;
-
-
 	for (uint32 layer = 0; layer <= 10; ++layer)
 	{
 		for (uint32 i = 0; i < m_drawnActors.size(); ++i)
 		{
+			if (bIsDestroying)
+				return;
+
 			AActor* actor = m_drawnActors[i]; // TODO - Better safety with memory destruction
-			
+			actor->bIsBeingDrawn = true;
+
 			// Remove references
 			if (actor->IsDestroyed())
 			{
 				actor->RemoveSystemReference();
 				m_drawnActors.erase(m_drawnActors.begin() + i);
 				--i;
+				actor->bIsBeingDrawn = false;
 				continue; 
 			}
 
 
 			if (actor->GetDrawingLayer() == layer && actor->IsVisible())
 				actor->OnDraw(window, deltaTime);
+			actor->bIsBeingDrawn = false;
 		}
 	}
 }
@@ -114,11 +116,22 @@ void LLevel::Destroy()
 {
 	bIsDestroying = true;
 	OnDestroyLevel();
+
+	m_drawnActors.clear();
+
 	for (AActor* actor : m_activeActors)
 	{
 		actor->OnDestroy();
+
+#ifdef BUILD_CLIENT
+		// Wait until actor is finished being drawn
+		while (actor->bIsBeingDrawn) 
+			sf::sleep(sf::milliseconds(2));
+#endif
+
 		delete actor;
 	}
+	m_activeActors.clear();
 }
 
 void LLevel::AddActor(AActor* actor)

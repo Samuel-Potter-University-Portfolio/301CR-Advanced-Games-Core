@@ -7,6 +7,7 @@ CLASS_SOURCE(ABTileableActor)
 
 ABTileableActor::ABTileableActor()
 {
+	m_netCatchupRate = 0.35f;
 }
 
 
@@ -49,6 +50,10 @@ void ABTileableActor::OnTick(const float& deltaTime)
 		if (m_arena == nullptr) // Still no (no arena exists), so exit out
 			return;
 		m_tileLocation = m_arena->WorldToTile(GetLocation());
+
+		// Make sure in centre of the tile
+		if (IsNetOwner())
+			SetLocation(m_arena->TileToWorld(m_tileLocation));
 	}
 
 
@@ -102,6 +107,23 @@ void ABTileableActor::OnTick(const float& deltaTime)
 	}
 }
 
+void ABTileableActor::OnPostNetInitialize()
+{
+	Super::OnPostNetInitialize();
+
+	// Make sure to start at the correct tile
+	if (m_arena == nullptr)
+	{
+		m_arena = GetLevel()->GetFirstActor<ABLevelArena>();
+		if (m_arena == nullptr) // Still no (no arena exists), so exit out
+			return;
+		m_tileLocation = m_arena->WorldToTile(GetLocation());
+
+		// Make sure in centre of the tile
+		if (IsNetOwner())
+			SetLocation(m_arena->TileToWorld(m_tileLocation));
+	}
+}
 
 bool ABTileableActor::AttemptMove(const Direction& dir) 
 {
@@ -123,10 +145,12 @@ bool ABTileableActor::AttemptMove(const Direction& dir)
 		case Direction::Right:
 			destination = m_tileLocation + ivec2(1, 0);
 			break;
+		default:
+			destination = m_tileLocation;
+			break;
 	}
 
 	// Make sure can walk here
-	auto tew = m_arena->GetTile(destination.x, destination.y);
 	if (m_arena->GetTile(destination.x, destination.y) != ABLevelArena::TileType::Floor)
 	{
 		m_direction = dir;
@@ -138,6 +162,7 @@ bool ABTileableActor::AttemptMove(const Direction& dir)
 	m_direction = dir;
 	m_movementCooldown = m_movementSpeed;
 	CallRPC_TwoParam(this, UpdateNetMoveState, m_direction, true);
+	return true;
 }
 
 void ABTileableActor::SetTileLocation(const ivec2& tile) 

@@ -21,18 +21,19 @@ public:
 	enum TileType : uint8
 	{
 		Unknown = 0,
+
 		Floor, 
 		Wall, 
 		Box, 
 		Loot,
 
-		Count // How many tile types there are
+		Actor, // Means an actor exists on this tile
 	};
 
 	typedef std::vector<ABLevelArena::TileType> TileGrid;
 	
 private:
-	ivec2 m_arenaSize;
+	uvec2 m_arenaSize;
 	const vec2 m_tileSize;
 
 	TileGrid m_tiles{ TileType::Floor };
@@ -87,7 +88,17 @@ public:
 	*/
 public:
 	inline uint32 GetTileIndex(const uint32& x, const uint32& y) const { return y * m_arenaSize.x + x; }
+	
+	inline bool SetTile(const uint32& x, const uint32& y, const TileType& tile) 
+	{ 
+		if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y) 
+			return false; 
+		else 
+			m_tiles[GetTileIndex(x, y)] = tile; 
+		return true;
+	}
 	inline TileType GetTile(const uint32& x, const uint32& y) { if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y) return TileType::Unknown; else return m_tiles[GetTileIndex(x, y)]; }
+
 
 	/** Get the extents of this arena */
 	inline sf::FloatRect GetArenaExtents() const { const vec2& loc = GetLocation(); return sf::FloatRect(loc.x, loc.y, m_arenaSize.x * m_tileSize.x, m_arenaSize.y * m_tileSize.y); }

@@ -14,6 +14,7 @@
     <ClCompile Include="BCharacter.cpp" />
     <ClCompile Include="BLevelArena.cpp" />
     <ClCompile Include="BTileableActor.cpp" />
+    <ClCompile Include="BBomb.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -34,6 +35,11 @@
     <ClInclude Include="BLevelArena.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="BTileableActor.h" />
+    <ClInclude Include="BTileableActor.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="BBomb.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

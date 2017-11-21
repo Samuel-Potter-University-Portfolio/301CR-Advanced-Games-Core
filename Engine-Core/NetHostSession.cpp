@@ -44,7 +44,9 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 		if ((it->second->inactivityTimer += deltaTime) >= m_maxInactivityTime)
 		{
 			LOG("%s:%i timed out..", it->second->identity.ip.toString().c_str(), it->second->identity.port);
+			m_playerControllers.erase(std::remove(m_playerControllers.begin(), m_playerControllers.end(), it->second->controller), m_playerControllers.end());
 			OObject::Destroy(it->second->controller);
+
 			delete it->second;
 			m_connectionLookup.erase(it++);
 		}

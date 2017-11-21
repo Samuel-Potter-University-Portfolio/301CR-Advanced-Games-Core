@@ -19,6 +19,8 @@ private:
 	const uint32 m_instanceId;
 	LLevel* m_level = nullptr;
 
+	bool bIsBeingDrawn = false;
+	bool bIsActive = true;
 	bool bWasSpawnedWithLevel;
 
 
@@ -72,6 +74,11 @@ public:
 	*/
 	void OnPostTick();
 
+	/**
+	* Callback for when this object is created via a net call
+	*/
+	virtual void OnPostNetInitialize() override;
+
 #ifdef BUILD_CLIENT
 	/**
 	* Called when this actor should be drawn to the screen
@@ -109,8 +116,11 @@ public:
 	/** A unique id applied to each object */
 	inline const uint32& GetInstanceID() const { return m_instanceId; }
 
-	inline const bool& IsTickable() const { return bIsTickable; }
-	inline const bool& IsVisible() const { return true; }
+	inline void SetActive(const bool& active) { bIsActive = active; }
+	inline const bool& IsActive() const { return bIsActive; }
+
+	inline const bool& IsTickable() const { return bIsTickable && bIsActive; }
+	inline const bool& IsVisible() const { return bIsActive; }
 
 	inline const std::vector<KeyBinding*>& GetKeyBindings() const { return m_keyBindings; }
 	inline const bool& CanReceiveInput() const { return m_keyBindings.size() != 0; }

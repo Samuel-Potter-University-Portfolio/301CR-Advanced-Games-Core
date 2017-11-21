@@ -361,7 +361,7 @@ public:
 * Placed after SYNCVAR_INDEX_HEADER in ExecuteSyncVar to create an entry for a variable
 */
 #define SYNCVAR_INDEX(socketType, mode, type, var) \
-	if (__TEMP_SOCKET == socketType) \
+	if (__TEMP_SOCKET == socketType || __TEMP_FORCE_ENCODE) \
 		{ \
 			if (__TEMP_FORCE_ENCODE || mode == SyncVarMode::Always || (mode == SyncVarMode::Interval && ShouldEncodeVar(__TEMP_INDEX))) \
 			{ \

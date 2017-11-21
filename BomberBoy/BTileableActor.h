@@ -43,6 +43,7 @@ public:
 
 
 	virtual void OnTick(const float& deltaTime) override;
+	virtual void OnPostNetInitialize() override;
 
 	/**
 	* Attempt to move this actor 

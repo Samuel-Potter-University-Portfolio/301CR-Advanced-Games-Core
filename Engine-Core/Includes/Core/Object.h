@@ -44,6 +44,11 @@ public:
 	*/
 	virtual void OnDestroy() {}
 
+	/**
+	* Callback for when this object is created via a net call
+	*/
+	virtual void OnPostNetInitialize() {}
+
 
 
 	inline void AddSystemReference() { ++m_systemReferences; }
