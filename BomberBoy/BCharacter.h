@@ -1,6 +1,8 @@
 #pragma once
 #include "Core\Core-Common.h"
 #include "BTileableActor.h"
+
+#include "Core\Camera.h"
 #include "BBomb.h"
 
 
@@ -34,6 +36,7 @@ private:
 	const AnimationSheet* m_animLeft = nullptr;
 	const AnimationSheet* m_animRight = nullptr;
 
+	ACamera* m_camera;
 	const vec2 m_drawSize;
 	const vec2 m_drawOffset;
 
@@ -60,7 +63,7 @@ public:
 	ABCharacter();
 
 	virtual void OnBegin() override;
-	//virtual void OnDestroy() override;
+	virtual void OnDestroy() override;
 
 	/**
 	* Registers the needed assets for ABCharacter

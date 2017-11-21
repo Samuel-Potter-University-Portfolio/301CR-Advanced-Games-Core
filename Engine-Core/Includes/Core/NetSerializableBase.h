@@ -610,6 +610,8 @@ public:
 			else \
 				LOG_ERROR("Invalid rights to call function '" #func "'"); \
 		} \
+		else \
+			object->funcCall; \
 	} \
 	else \
 		LOG_ERROR("Cannot call function '" #func "' as it is not a registered RPC for the given object"); \

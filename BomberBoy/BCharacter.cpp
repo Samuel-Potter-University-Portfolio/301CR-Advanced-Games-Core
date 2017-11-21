@@ -172,6 +172,16 @@ void ABCharacter::OnBegin()
 #endif
 }
 
+void ABCharacter::OnDestroy() 
+{
+	Super::OnDestroy();
+
+	// Cleanup bombs
+	if(IsNetHost())
+		for (ABBomb* bomb : m_bombs)
+			Destroy(bomb);
+}
+
 void ABCharacter::OnTick(const float& deltaTime) 
 {
 	Super::OnTick(deltaTime);
@@ -196,7 +206,6 @@ void ABCharacter::OnTick(const float& deltaTime)
 void ABCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
 	const Direction& direction = GetDirection();
-
 	const AnimationSheet* anim =
 		direction == Direction::Up ? m_animUp :
 		direction == Direction::Down ? m_animDown :

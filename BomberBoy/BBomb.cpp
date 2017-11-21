@@ -17,6 +17,18 @@ ABBomb::ABBomb() :
 	SetActive(false); // Start in active
 }
 
+bool ABBomb::RegisterRPCs(const char* func, RPCInfo& outInfo) const 
+{
+	RPC_INDEX_HEADER(func, outInfo);
+	RPC_INDEX(UDP, RPCCallingMode::Broadcast, SyncAnimation);
+	return false;
+}
+bool ABBomb::ExecuteRPC(uint16& id, ByteBuffer& params)
+{
+	RPC_EXEC_HEADER(id, params);
+	RPC_EXEC(SyncAnimation);
+	return false;
+}
 
 
 void ABBomb::RegisterAssets(Game* game) 
@@ -77,18 +89,56 @@ void ABBomb::OnBegin()
 void ABBomb::OnTick(const float& deltaTime) 
 {
 	Super::OnTick(deltaTime);
+
+	if (m_explodeTimer > 0.0f)
+	{
+		m_explodeTimer -= deltaTime;
+		if (m_explodeTimer < 0.0f)
+			m_explodeTimer = 0.0f;
+	}
+	else
+	{
+		// TODO - Do explosion logic
+		if (IsNetHost())
+		{
+			SetActive(false);
+			GetArena()->SetTile(GetTileLocation().x, GetTileLocation().y, ABLevelArena::TileType::Floor);
+		}
+	}
 }
 
 #ifdef BUILD_CLIENT
 void ABBomb::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
 	sf::RectangleShape rect;
-	rect.setPosition(GetLocation() + m_drawOffset);
 	rect.setSize(m_drawSize);
 
-	if (m_animation != nullptr)
-		rect.setTexture(m_animation->GetCurrentFrame());
-	window->draw(rect);
+	// Draw pulsing bomb
+	if (m_explodeTimer > 0.0f)
+	{
+		const float t = m_explodeTimer / m_explodeLength;
+
+		// Pulse larger when closer to exploding
+		const float pulseFrequency = 10.0f;
+		const float pulseScale = 1.0f * (t) + 30.0f * (1.0f - t);
+
+		const vec2 pulseSize = vec2(pulseScale, pulseScale) * std::abs(std::sin(t * 3.141592f * pulseFrequency));
+
+		rect.setPosition(GetLocation() + m_drawOffset - pulseSize * 0.5f);
+		rect.setSize(m_drawSize + pulseSize);
+
+		if (m_animation != nullptr)
+			rect.setTexture(m_animation->GetCurrentFrame());
+
+
+		// Blur to grey when close to explosion
+		if (t < 0.05f)
+		{
+			const uint8 v = (uint8)((t / 0.05f) * 255);
+			rect.setFillColor(sf::Color(v,v,v));
+		}
+		window->draw(rect);
+	}
 }
 #endif
 
@@ -103,6 +153,16 @@ bool ABBomb::AttemptToPlace(const ivec2& location)
 	{
 		GetArena()->SetTile(location.x, location.y, ABLevelArena::TileType::Actor);
 		SetTileLocation(location);
+
+		m_explodeTimer = m_explodeLength;
+		m_damageTimer = m_damageLength;
 		SetActive(true);
+		CallRPC(this, SyncAnimation);
 	}
+}
+
+void ABBomb::SyncAnimation() 
+{
+	m_explodeTimer = m_explodeLength;
+	m_damageTimer = m_damageLength;
 }
