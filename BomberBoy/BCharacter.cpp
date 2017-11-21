@@ -1,5 +1,6 @@
 #include "BCharacter.h"
 #include "BLevelArena.h"
+#include "Utils.h"
 
 
 CLASS_SOURCE(ABCharacter)
@@ -17,6 +18,7 @@ const std::vector<CharacterColour> ABCharacter::s_supportedColours(
 	CharacterColour("Cyan", sf::Color::Cyan),
 }
 );
+const uint32 ABCharacter::s_maxBombCount = 10;
 
 
 ABCharacter::ABCharacter() :
@@ -26,7 +28,8 @@ ABCharacter::ABCharacter() :
 	m_upKey(sf::Keyboard::Key::W),
 	m_downKey(sf::Keyboard::Key::S),
 	m_leftKey(sf::Keyboard::Key::A),
-	m_rightKey(sf::Keyboard::Key::D)
+	m_rightKey(sf::Keyboard::Key::D),
+	m_bombKey(sf::Keyboard::Key::Space)
 {
 	bIsNetSynced = true;
 	bIsTickable = true;
@@ -38,36 +41,24 @@ ABCharacter::ABCharacter() :
 	RegisterKeybinding(&m_downKey);
 	RegisterKeybinding(&m_leftKey);
 	RegisterKeybinding(&m_rightKey);
+	RegisterKeybinding(&m_bombKey);
+
+	m_bombs.reserve(s_maxBombCount);
 }
 
-
-/**
-* Replaces parts of a texture with a given colour
-* Used to generate player/team colours
-*/
-static void ReplaceGreyMask(sf::Image& image, const sf::Color& colour)
+bool ABCharacter::RegisterRPCs(const char* func, RPCInfo& outInfo) const 
 {
-	for (uint32 x = 0; x < image.getSize().x; ++x)
-		for (uint32 y = 0; y < image.getSize().y; ++y)
-		{
-			sf::Color pc = image.getPixel(x, y);
-			if (pc == sf::Color(170, 170, 170) || pc == sf::Color(127, 127, 127)) // Multiply these colours by the given colour
-				image.setPixel(x, y, pc * colour);
-		}
+	RPC_INDEX_HEADER(func, outInfo);
+	RPC_INDEX(UDP, RPCCallingMode::Host, PlaceBomb);
+	return false;
 }
-static sf::Texture* GetTextureInColour(const string& path, const sf::Color& colour)
+bool ABCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
 {
-	sf::Texture* texture = new sf::Texture;
-	texture->setSmooth(false);
-	texture->setRepeated(false);
-
-	sf::Image image;
-	image.loadFromFile(path);
-	ReplaceGreyMask(image, colour);
-
-	texture->loadFromImage(image);
-	return texture;
+	RPC_EXEC_HEADER(id, params);
+	RPC_EXEC_OneParam(PlaceBomb, ivec2);
+	return false;
 }
+
 
 
 void ABCharacter::RegisterAssets(Game* game) 
@@ -75,6 +66,7 @@ void ABCharacter::RegisterAssets(Game* game)
 	AssetController* assets = game->GetAssetController();
 	game->RegisterClass(StaticClass());
 
+	ABBomb::RegisterAssets(game);
 
 	// Don't register textures and animations for server
 #ifdef BUILD_CLIENT
@@ -97,7 +89,19 @@ void ABCharacter::RegisterAssets(Game* game)
 			// Register player/team colours
 			// Asset gets registerd at path (Where path is xyz.png) xyz.png.<colour name>
 			for (const CharacterColour& colour : s_supportedColours)
-				assets->RegisterTexture(defaultPath + "." + colour.name, GetTextureInColour(defaultPath, colour.colour));
+			{
+				// Get texture in desired colour
+				sf::Texture* texture = new sf::Texture;
+				texture->setSmooth(false);
+				texture->setRepeated(false);
+
+				sf::Image image;
+				image.loadFromFile(defaultPath);
+				CastColourFromCommonGrey(image, colour.colour);
+				texture->loadFromImage(image);
+
+				assets->RegisterTexture(defaultPath + "." + colour.name, texture);
+			}
 		}
 
 
@@ -131,6 +135,17 @@ void ABCharacter::RegisterAssets(Game* game)
 void ABCharacter::OnBegin()
 {
 	Super::OnBegin();
+
+	if (IsNetHost()) 
+	{
+		// Setup bombs
+		for (uint32 i = 0; i < s_maxBombCount; ++i)
+		{
+			ABBomb* bomb = GetLevel()->SpawnActor<ABBomb>(ABBomb::StaticClass(), this);
+			bomb->m_parent = this;
+			m_bombs.emplace_back(bomb);
+		}
+	}
 
 #ifdef BUILD_CLIENT
 	// Load default animations
@@ -171,6 +186,9 @@ void ABCharacter::OnTick(const float& deltaTime)
 			AttemptMove(Direction::Left);
 		if (m_rightKey.IsHeld())
 			AttemptMove(Direction::Right);
+
+		if (m_bombKey.IsPressed())
+			CallRPC_OneParam(this, PlaceBomb, GetClosestTileLocation());
 	}
 }
 
@@ -198,3 +216,10 @@ void ABCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	window->draw(rect);
 }
 #endif
+
+void ABCharacter::PlaceBomb(const ivec2& tile)
+{
+	ABBomb* bomb = GetNewBomb();
+	if (bomb != nullptr)
+		bomb->AttemptToPlace(tile);
+}

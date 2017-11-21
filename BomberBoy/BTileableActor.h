@@ -41,7 +41,7 @@ protected:
 public:
 	ABTileableActor();
 
-
+	virtual void OnBegin() override;
 	virtual void OnTick(const float& deltaTime) override;
 	virtual void OnPostNetInitialize() override;
 
@@ -83,6 +83,11 @@ public:
 
 	inline const ivec2& GetTileLocation() const { return m_tileLocation; }
 	void SetTileLocation(const ivec2& tile);
+	
+	/**
+	* Get the tile closest to this player e.g. if moving, get destination, if that is closer
+	*/
+	ivec2 GetClosestTileLocation() const;
 };
 
 

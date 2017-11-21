@@ -142,6 +142,12 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 					window->draw(tileRect);
 					break;
 
+				case TileType::Actor:
+					// Actor will draw itself, but will still probably need the floor to be there
+					tileRect.setTexture(m_currentFloorTile);
+					window->draw(tileRect);
+					break;
+
 				case TileType::Wall:
 					uint32 tileId = 0;
 					if (GetTile(x, y - 1) == TileType::Wall)

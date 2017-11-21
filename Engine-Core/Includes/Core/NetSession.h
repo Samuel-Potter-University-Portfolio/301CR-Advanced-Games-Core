@@ -93,7 +93,7 @@ private:
 	uint16 m_objectNetIdCounter;
 	uint16 m_actorNetIdCounter;
 
-	uint32 m_tickRate = 20;
+	uint32 m_tickRate = 30;
 	float m_sleepRate = 1.0f / (float)m_tickRate;
 	float m_tickTimer = 0.0f;
 

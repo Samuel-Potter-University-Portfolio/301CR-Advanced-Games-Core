@@ -54,6 +54,7 @@
     <ClInclude Include="BTileableActor.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="TestEntity.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

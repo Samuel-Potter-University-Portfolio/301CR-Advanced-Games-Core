@@ -36,12 +36,14 @@ void AActor::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketTy
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
 	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, vec2, m_netLocation);
+	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, bool, bIsActive);
 }
 
 bool AActor::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
 {
 	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
 	SYNCVAR_EXEC(m_netLocation);
+	SYNCVAR_EXEC(bIsActive);
 	return false;
 }
 
