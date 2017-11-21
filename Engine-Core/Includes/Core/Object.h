@@ -50,6 +50,7 @@ public:
 	inline void RemoveSystemReference() { --m_systemReferences; }
 	inline const uint32& GetRemainingSystemReferences() const { return m_systemReferences; }
 
+
 	/**
 	* Getters & Setters
 	*/

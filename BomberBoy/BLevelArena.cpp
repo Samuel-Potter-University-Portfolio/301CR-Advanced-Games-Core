@@ -10,7 +10,7 @@ static const string tileSetNames[]
 
 
 ABLevelArena::ABLevelArena() : 
-	m_tileSize(vec2(20.0f, 20.0f) * 2.0f),
+	m_tileSize(vec2(42.0f, 42.0f)),
 	m_arenaSize(10, 10), 
 
 	m_currentWallTiles({nullptr})
@@ -21,7 +21,36 @@ ABLevelArena::ABLevelArena() :
 	m_currentFloorTile = nullptr;
 	m_currentBoxTile = nullptr;
 	m_currentLootTile = nullptr;
+
+	m_tiles.resize(m_arenaSize.x * m_arenaSize.y, TileType::Floor);
+	m_tiles[GetTileIndex(7, 8)] = TileType::Box;
+	m_tiles[GetTileIndex(8, 8)] = TileType::Box;
+	m_tiles[GetTileIndex(7, 6)] = TileType::Loot;
+	m_tiles[GetTileIndex(0, 0)] = TileType::Loot;
+
+
+	m_tiles[GetTileIndex(4, 2)] = TileType::Wall;
+	m_tiles[GetTileIndex(5, 3)] = TileType::Wall;
+	m_tiles[GetTileIndex(5, 2)] = TileType::Wall;
+	m_tiles[GetTileIndex(3, 2)] = TileType::Wall;
+	m_tiles[GetTileIndex(4, 3)] = TileType::Wall;
+	m_tiles[GetTileIndex(4, 1)] = TileType::Wall;
 }
+
+
+void ABLevelArena::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
+{
+	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
+	SYNCVAR_INDEX(UDP, SyncVarMode::Interval, TileGrid, m_tiles);
+}
+
+bool ABLevelArena::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
+{
+	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
+	SYNCVAR_EXEC(m_tiles);
+	return false;
+}
+
 
 void ABLevelArena::RegisterAssets(Game* game) 
 {
@@ -35,6 +64,7 @@ void ABLevelArena::RegisterAssets(Game* game)
 	for (const string& name : tileSetNames)
 	{
 		assets->RegisterTexture("Resources\\Level\\" + name + "_Box.png", false, true);
+		assets->RegisterTexture("Resources\\Level\\" + name + "_Loot.png", false, true);
 		assets->RegisterTexture("Resources\\Level\\" + name + "_Floor.png", false, true);
 
 		// Wall tiles are stored in an atlas
@@ -57,7 +87,7 @@ void ABLevelArena::RegisterAssets(Game* game)
 			sf::Texture* texture = new sf::Texture;
 			texture->loadFromImage(subimage);
 			texture->setRepeated(true);
-			texture->setSmooth(true);
+			texture->setSmooth(false);
 			assets->RegisterTexture("Resources\\Level\\" + name + "_Walls.png." + std::to_string(i), texture);
 		}
 	}
@@ -79,23 +109,53 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	for (int x = 0; x < m_arenaSize.x; ++x)
 		for (int y = 0; y < m_arenaSize.y; ++y)
 		{
+			const TileType& tile = GetTile(x, y);
 
 			sf::RectangleShape tileRect;
-			tileRect.setPosition(GetLocation() + vec2((x + 0.5f) * m_tileSize.x, (y + 0.5f) * m_tileSize.y)); // Draw from centre of tile
+			tileRect.setPosition(GetLocation() + vec2((x) * m_tileSize.x, (y) * m_tileSize.y)); // Draw from centre of tile
 			tileRect.setSize(m_tileSize);
+			
 
-			// Draw floor
-			if (m_currentFloorTile != nullptr)
+			// Draw special tiles
+			switch (tile)
 			{
-				tileRect.setTexture(m_currentFloorTile);
-				window->draw(tileRect);
-			}
+				case TileType::Floor:
+					tileRect.setTexture(m_currentFloorTile);
+					window->draw(tileRect);
+					break;
 
-			// Draw wall
-			if (m_currentBoxTile != nullptr && (x == 0 || y == 0 || x == m_arenaSize.x - 1 || y == m_arenaSize.y - 1))
-			{
-				tileRect.setTexture(m_currentBoxTile);
-				window->draw(tileRect);
+				case TileType::Box:
+					// Draw floor under box
+					tileRect.setTexture(m_currentFloorTile);
+					window->draw(tileRect);
+
+					tileRect.setTexture(m_currentBoxTile);
+					window->draw(tileRect);
+					break;
+
+				case TileType::Loot:
+					// Draw floor under loot
+					tileRect.setTexture(m_currentFloorTile);
+					window->draw(tileRect);
+
+					tileRect.setTexture(m_currentLootTile);
+					window->draw(tileRect);
+					break;
+
+				case TileType::Wall:
+					uint32 tileId = 0;
+					if (GetTile(x, y - 1) == TileType::Wall)
+						tileId |= 1;
+					if (GetTile(x + 1, y) == TileType::Wall)
+						tileId |= 2;
+					if (GetTile(x, y + 1) == TileType::Wall)
+						tileId |= 4;
+					if (GetTile(x - 1, y) == TileType::Wall)
+						tileId |= 8;
+
+					tileRect.setTexture(m_currentWallTiles[tileId]);
+					window->draw(tileRect);
+					break;
 			}
 		}
 }
@@ -111,69 +171,4 @@ void ABLevelArena::SetTileset(const TileSet& set)
 	for (uint32 i = 0; i < 16; ++i)
 		m_currentWallTiles[i] = GetAssetController()->GetTexture("Resources\\Level\\" + tileSetNames[set] + "_Walls.png." + std::to_string(i));
 #endif
-}
-
-bool ABLevelArena::CorrectMovement(AActor* actor, vec2& velocity) 
-{
-	const sf::FloatRect arenaExtents = GetArenaExtents();
-
-	vec2 actorLocation = actor->GetLocation();
-	const float actorRadius = m_tileSize.x * 0.5f;
-
-
-	// Make sure player stays in play area and doesn't intersect any walls
-	if (actor->HasNetControl())
-	{
-		// Arena extent check
-		bool outOfBounds = false;
-
-		if (actorLocation.x - actorRadius < arenaExtents.left)
-		{
-			const float desiredVel = (arenaExtents.left + actorRadius) - actorLocation.x;
-			actorLocation.x = arenaExtents.left + actorRadius;
-			velocity.x = velocity.x < desiredVel ? velocity.x : desiredVel;
-			outOfBounds = true;
-		}
-		if (actorLocation.x + actorRadius > arenaExtents.left + arenaExtents.width)
-		{
-			const float desiredVel = (arenaExtents.left + arenaExtents.width - actorRadius) - actorLocation.x;
-			actorLocation.x = arenaExtents.left + arenaExtents.width - actorRadius;
-			velocity.x = velocity.x > desiredVel ? velocity.x : desiredVel;
-			outOfBounds = true;
-		}
-
-		if (actorLocation.y - actorRadius < arenaExtents.top)
-		{
-			const float desiredVel = (arenaExtents.top + actorRadius) - actorLocation.y;
-			actorLocation.y = arenaExtents.top + actorRadius;
-			velocity.y = velocity.y < desiredVel ? velocity.y : desiredVel;
-			outOfBounds = true;
-		}
-		if (actorLocation.y + actorRadius > arenaExtents.top + arenaExtents.height)
-		{
-			const float desiredVel = (arenaExtents.top + arenaExtents.height - actorRadius) - actorLocation.y;
-			actorLocation.y = arenaExtents.top + arenaExtents.height - actorRadius;
-			velocity.y = velocity.y > desiredVel ? velocity.y : desiredVel;
-			outOfBounds = true;
-		}
-
-		if (outOfBounds)
-		{
-			actor->SetLocation(actorLocation);
-			return true;
-		} 
-		
-		
-		// Tile checks
-		{
-			ivec2 startTile = WorldToTile(actor->GetLocation());
-
-
-		}
-	}
-
-
-	
-
-	return false;
 }

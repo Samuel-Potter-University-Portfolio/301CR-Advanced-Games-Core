@@ -20,50 +20,24 @@ const std::vector<CharacterColour> ABCharacter::s_supportedColours(
 
 
 ABCharacter::ABCharacter() :
-	m_drawSize(vec2(16.0f, 21.0f) * 2.0f),
-	m_drawOffset(vec2(0.0f, 0.0f)),
+	m_drawSize(vec2(32.0f, 42.0f)),
+	m_drawOffset(vec2(5.0f, 0.0f)),
 
 	m_upKey(sf::Keyboard::Key::W),
 	m_downKey(sf::Keyboard::Key::S),
 	m_leftKey(sf::Keyboard::Key::A),
-	m_rightKey(sf::Keyboard::Key::D),
-
-	m_movementSpeed(100.0f)
+	m_rightKey(sf::Keyboard::Key::D)
 {
 	bIsNetSynced = true;
 	bIsTickable = true;
 	m_drawingLayer = 3;
 
+	m_movementSpeed = 0.4f;
+
 	RegisterKeybinding(&m_upKey);
 	RegisterKeybinding(&m_downKey);
 	RegisterKeybinding(&m_leftKey);
 	RegisterKeybinding(&m_rightKey);
-}
-
-
-bool ABCharacter::RegisterRPCs(const char* func, RPCInfo& outInfo) const
-{
-	RPC_INDEX_HEADER(func, outInfo);
-	RPC_INDEX(UDP, RPCCallingMode::Host, UpdateNetDirection);
-	return false;
-}
-bool ABCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
-{
-	RPC_EXEC_HEADER(id, params);
-	RPC_EXEC_OneParam(UpdateNetDirection, CharacterDirection);
-	return false;
-}
-
-void ABCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode)
-{
-	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, CharacterDirection, m_netDirection);
-}
-bool ABCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
-{
-	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
-	SYNCVAR_EXEC(m_netDirection);
-	return false;
 }
 
 
@@ -189,79 +163,47 @@ void ABCharacter::OnTick(const float& deltaTime)
 
 	if (IsNetOwner())
 	{
-		vec2 velocity(0, 0);
-
 		if (m_upKey.IsHeld())
-		{
-			velocity = vec2(0, -1); // Inverted
-			m_direction = CharacterDirection::Up;
-		}
-		else if (m_downKey.IsHeld())
-		{
-			velocity = vec2(0, 1);
-			m_direction = CharacterDirection::Down;
-		}
-		else if (m_leftKey.IsHeld())
-		{
-			velocity = vec2(-1, 0);
-			m_direction = CharacterDirection::Left;
-		}
-		else if (m_rightKey.IsHeld())
-		{
-			velocity = vec2(1, 0);
-			m_direction = CharacterDirection::Right;
-		}
+			AttemptMove(Direction::Up);
+		if (m_downKey.IsHeld())
+			AttemptMove(Direction::Down);
+		if (m_leftKey.IsHeld())
+			AttemptMove(Direction::Left);
+		if (m_rightKey.IsHeld())
+			AttemptMove(Direction::Right);
 
-	
-		if (velocity != vec2(0, 0))
-		{
-			// Make sure actor doesn't get out of play area/ clip through walls
-			if (arena == nullptr)
-				arena = GetLevel()->GetFirstActor<ABLevelArena>();
-
-			if (arena != nullptr)
-				arena->CorrectMovement(this, velocity);
-
-			Translate(velocity * m_movementSpeed * deltaTime);
-			CallRPC_OneParam(this, UpdateNetDirection, m_direction);
-		}
-	}
-	else if (IsNetHost())
-	{
-		// Make sure actor doesn't get out of play area
-		if (arena == nullptr)
-			arena = GetLevel()->GetFirstActor<ABLevelArena>();
-
-		if (arena != nullptr)
-		{
-			vec2 dudVel;
-			arena->CorrectMovement(this, dudVel);
-		}
+		//CallRPC_OneParam(this, UpdateNetDirection, m_direction);
 	}
 }
 
 #ifdef BUILD_CLIENT
 void ABCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
-	const CharacterDirection& direction = IsNetOwner() ? m_direction : m_netDirection;
+	const Direction& direction = GetDirection();
+
 	const AnimationSheet* anim =
-		direction == CharacterDirection::Up ? m_animUp :
-		direction == CharacterDirection::Down ? m_animDown :
-		direction == CharacterDirection::Left ? m_animLeft :
+		direction == Direction::Up ? m_animUp :
+		direction == Direction::Down ? m_animDown :
+		direction == Direction::Left ? m_animLeft :
 		m_animRight;
 
 	sf::RectangleShape rect;
 	rect.setPosition(GetLocation() + m_drawOffset);
 	rect.setSize(m_drawSize);
-	if(anim != nullptr)
-		rect.setTexture(anim->GetCurrentFrame());
+	if (anim != nullptr)
+	{
+		if(IsMoving())
+			rect.setTexture(anim->GetCurrentFrame());
+		else
+			rect.setTexture(anim->GetFrame(0));
+	}
 	window->draw(rect);
 }
 #endif
 
 
 //inline void UpdateNetDirection(const CharacterDirection& direction) { m_netDirection = direction; }
-void ABCharacter::UpdateNetDirection(const CharacterDirection& direction) 
-{ 
-	m_netDirection = direction; 
-}
+//void ABCharacter::UpdateNetDirection(const CharacterDirection& direction) 
+//{ 
+//	m_netDirection = direction; 
+//}

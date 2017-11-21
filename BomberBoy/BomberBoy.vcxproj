@@ -39,6 +39,7 @@
     <ClCompile Include="BLevelControllerBase.cpp" />
     <ClCompile Include="BCharacter.cpp" />
     <ClCompile Include="BPlayerController.cpp" />
+    <ClCompile Include="BTileableActor.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="TestEntity.cpp" />
@@ -48,6 +49,7 @@
     <ClInclude Include="BLevelControllerBase.h" />
     <ClInclude Include="BCharacter.h" />
     <ClInclude Include="BPlayerController.h" />
+    <ClInclude Include="BTileableActor.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="TestEntity.h" />
   </ItemGroup>
@@ -55,7 +57,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{D8FDB4D8-1BC7-4FC8-AC8A-CB99C53FAAE9}</ProjectGuid>
     <RootNamespace>BomberBoy</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>BomberBoy</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

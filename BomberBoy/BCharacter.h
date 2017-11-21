@@ -1,5 +1,6 @@
 #pragma once
 #include "Core\Core-Common.h"
+#include "BTileableActor.h"
 
 
 /**
@@ -15,43 +16,17 @@ struct CharacterColour
 };
 
 
-/**
-* Used for syncing animation and sending to server
-*/
-enum class CharacterDirection : uint8
-{
-	Up, Down, Left, Right
-};
-
-template<>
-inline void Encode<CharacterDirection>(ByteBuffer& buffer, const CharacterDirection& data)
-{
-	Encode<uint8>(buffer, (uint8)data);
-}
-template<>
-inline bool Decode<CharacterDirection>(ByteBuffer& buffer, CharacterDirection& out, void* context)
-{
-	uint8 raw;
-	if (!Decode<uint8>(buffer, raw))
-		return false;
-	out = (CharacterDirection)raw;
-	return true;
-}
-
-
 
 /**
 * Represents player characters used in BomberBoy
 */
-class ABCharacter : public AActor
+class ABCharacter : public ABTileableActor
 {
 	CLASS_BODY()
 public:
 	static const std::vector<CharacterColour> s_supportedColours;
 
 private:
-	class ABLevelArena* arena = nullptr;
-
 	const AnimationSheet* m_animUp = nullptr;
 	const AnimationSheet* m_animDown = nullptr;
 	const AnimationSheet* m_animLeft = nullptr;
@@ -60,10 +35,7 @@ private:
 	const vec2 m_drawSize;
 	const vec2 m_drawOffset;
 
-	CharacterDirection m_direction;
-	CharacterDirection m_netDirection;
 
-	const float m_movementSpeed;
 	KeyBinding m_upKey;
 	KeyBinding m_downKey;
 	KeyBinding m_leftKey;
@@ -92,14 +64,12 @@ public:
 	* Net overrides
 	*/
 protected:
-	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
-	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
+	//virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
+	//virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
 
-	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
-	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
+	//virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
+	//virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
 
 
-	/** Sends the players direction to the server */
-	void UpdateNetDirection(const CharacterDirection& direction);
 };
 

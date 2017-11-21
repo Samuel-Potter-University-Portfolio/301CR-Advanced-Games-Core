@@ -19,6 +19,11 @@ void Encode(ByteBuffer& buffer, const T& data)
 	static_assert(false, "No encode implementation");
 }
 
+template<>
+inline void Encode<bool>(ByteBuffer& buffer, const bool& data)
+{
+	buffer.Push((int8)data);
+}
 
 template<>
 inline void Encode<int8>(ByteBuffer& buffer, const int8& data)
@@ -135,6 +140,18 @@ bool Decode(ByteBuffer& buffer, T& out, void* context = nullptr)
 {
 	static_assert(false, "No decode implementation");
 	return false;
+}
+
+template<>
+inline bool Decode<bool>(ByteBuffer& buffer, bool& out, void* context)
+{
+	out = false;
+
+	if (buffer.Size() < sizeof(int8))
+		return false;
+
+	out = (bool)buffer.Pop();
+	return true;
 }
 
 template<>

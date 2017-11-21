@@ -17,7 +17,7 @@ Engine::Engine(std::vector<string>& args) :
 	m_netController = new NetController(this);
 
 	m_desiredResolution = uvec2(800, 600);
-	m_defaultNetIdentity.ip = sf::IpAddress::LocalHost;
+	m_defaultNetIdentity.ip = sf::IpAddress::getLocalAddress();
 	m_defaultNetIdentity.port = 20010;
 }
 
