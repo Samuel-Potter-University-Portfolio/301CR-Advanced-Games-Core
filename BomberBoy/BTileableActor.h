@@ -1,6 +1,6 @@
 #pragma once
 #include "Core\Core-Common.h"
-
+#include "BLevelArena.h"
 
 /**
 * Represents and actor which exists at at tile and can move between tiles
@@ -15,7 +15,7 @@ public:
 	};
 private:
 	/// The arena that this actor exists in
-	class ABLevelArena* m_arena = nullptr;
+	ABLevelArena* m_arena = nullptr;
 
 	/// Where this actor exists
 	ivec2 m_tileLocation;
@@ -51,6 +51,13 @@ public:
 	* @returns Whether this call was successful or not
 	*/
 	bool AttemptMove(const Direction& dir);
+
+	/**
+	* Can the player move onto this tile
+	* @param tile		The type of tile the user would like to walk on
+	* @returns If player is allowed to walk on this
+	*/
+	inline bool CanWalkOn(const ABLevelArena::TileType& tile) const { return tile == ABLevelArena::Floor || tile == ABLevelArena::TileType::Explosion; }
 
 
 	/**

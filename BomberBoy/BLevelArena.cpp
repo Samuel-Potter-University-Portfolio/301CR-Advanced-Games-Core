@@ -1,4 +1,5 @@
 #include "BLevelArena.h"
+#include "BBomb.h"
 
 
 CLASS_SOURCE(ABLevelArena)
@@ -23,10 +24,12 @@ ABLevelArena::ABLevelArena() :
 	m_currentLootTile = nullptr;
 
 	m_tiles.resize(m_arenaSize.x * m_arenaSize.y, TileType::Floor);
+	m_explosionParents.resize(m_arenaSize.x * m_arenaSize.y, nullptr);
+
 	m_tiles[GetTileIndex(7, 8)] = TileType::Box;
 	m_tiles[GetTileIndex(8, 8)] = TileType::Box;
-	m_tiles[GetTileIndex(7, 6)] = TileType::Loot;
-	m_tiles[GetTileIndex(0, 0)] = TileType::Loot;
+	m_tiles[GetTileIndex(7, 6)] = TileType::LootBox;
+	m_tiles[GetTileIndex(0, 0)] = TileType::LootBox;
 
 
 	m_tiles[GetTileIndex(4, 2)] = TileType::Wall;
@@ -41,7 +44,7 @@ ABLevelArena::ABLevelArena() :
 void ABLevelArena::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(UDP, SyncVarMode::Interval, TileGrid, m_tiles);
+	SYNCVAR_INDEX(UDP, SyncVarMode::Always, TileGrid, m_tiles);
 }
 
 bool ABLevelArena::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
@@ -133,7 +136,7 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 					window->draw(tileRect);
 					break;
 
-				case TileType::Loot:
+				case TileType::LootBox:
 					// Draw floor under loot
 					tileRect.setTexture(m_currentFloorTile);
 					window->draw(tileRect);
@@ -142,9 +145,15 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 					window->draw(tileRect);
 					break;
 
-				case TileType::Actor:
-					// Actor will draw itself, but will still probably need the floor to be there
+				case TileType::Bomb:
+					// Actor will draw itself, but will still need the floor to be there
 					tileRect.setTexture(m_currentFloorTile);
+					window->draw(tileRect);
+					break;
+
+				case TileType::Explosion:
+					// TODO - Draw explosion
+					tileRect.setFillColor(sf::Color::Red);
 					window->draw(tileRect);
 					break;
 
@@ -177,4 +186,102 @@ void ABLevelArena::SetTileset(const TileSet& set)
 	for (uint32 i = 0; i < 16; ++i)
 		m_currentWallTiles[i] = GetAssetController()->GetTexture("Resources\\Level\\" + tileSetNames[set] + "_Walls.png." + std::to_string(i));
 #endif
+}
+
+void ABLevelArena::OnPlaceBomb(ABBomb* bomb)
+{
+	const ivec2 location = bomb->GetTileLocation();
+	const uint32 index = GetTileIndex(location.x, location.y);
+
+	m_explosionParents[index]	= bomb;
+	m_tiles[index]				= TileType::Bomb;
+}	
+
+void ABLevelArena::OnDestroyBomb(ABBomb* bomb)
+{
+	for (uint32 i = 0; i < m_tiles.size(); ++i)
+	{
+		// Reset references and tiles
+		if (m_explosionParents[i] == bomb)
+		{
+			m_explosionParents[i]	= nullptr;
+			m_tiles[i]				= TileType::Floor;
+		}
+	}
+}
+
+void ABLevelArena::HandleExplosion(ABBomb* bomb)
+{
+	// Use closest tile (As bomb may be in motion)
+	const ivec2 centre = bomb->GetTileLocation();
+
+	// Set all tiles to explosion
+	const uint32 size = bomb->m_explosionSize;
+
+
+	/// Attempt to explode this tile
+	/// @returns If explosion should continue to grow
+	auto handleExplodeTile =
+	[this, bomb](const uint32& x, const uint32& y) -> bool 
+	{
+		const ABLevelArena::TileType& tile = GetTile(x, y);
+		const uint32 index = GetTileIndex(x, y);
+		switch (tile)
+		{
+			case ABLevelArena::TileType::Floor:
+				SetTile(x, y, ABLevelArena::TileType::Explosion);
+				m_explosionParents[index] = bomb;
+				return true; // Pass through
+
+			case ABLevelArena::TileType::Explosion:
+				return true; // Pass through
+
+
+			// Exlode bomb
+			case ABLevelArena::TileType::Bomb:
+			{
+				ABBomb* tileBomb = m_explosionParents[index];
+				if (tileBomb != nullptr)
+					tileBomb->Explode();
+				return false;
+			}
+
+			// Destroy box
+			case ABLevelArena::TileType::Box:
+				SetTile(x, y, ABLevelArena::TileType::Explosion);
+				m_explosionParents[index] = bomb;
+				return false;
+
+			// Destroy loot box
+			case ABLevelArena::TileType::LootBox:
+				SetTile(x, y, ABLevelArena::TileType::Explosion);
+				m_explosionParents[index] = bomb;
+				// TODO - Drop loot
+				return false;
+
+			default:
+				return false;
+		}
+	};
+
+	// Explode this tile
+	SetTile(centre.x, centre.y, ABLevelArena::TileType::Floor);
+	handleExplodeTile(centre.x, centre.y);
+
+	// Explode right line
+	for (uint32 i = 1; i <= size; ++i)
+		if (!handleExplodeTile(centre.x + i, centre.y))
+			break;
+	// Explode left line
+	for (uint32 i = 1; i <= size; ++i)
+		if (!handleExplodeTile(centre.x - i, centre.y))
+			break;
+	// Explode up line
+	for (uint32 i = 1; i <= size; ++i)
+		if (!handleExplodeTile(centre.x, centre.y - i))
+			break;
+	// Explode down line
+	for (uint32 i = 1; i <= size; ++i)
+		if (!handleExplodeTile(centre.x, centre.y + i))
+			break;
 }

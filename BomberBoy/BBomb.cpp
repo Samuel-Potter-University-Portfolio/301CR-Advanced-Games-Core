@@ -1,5 +1,6 @@
 #include "BBomb.h"
 #include "BLevelArena.h"
+#include "BCharacter.h"
 
 
 CLASS_SOURCE(ABBomb)
@@ -27,6 +28,20 @@ bool ABBomb::ExecuteRPC(uint16& id, ByteBuffer& params)
 {
 	RPC_EXEC_HEADER(id, params);
 	RPC_EXEC(SyncAnimation);
+	return false;
+}
+
+void ABBomb::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
+{
+	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
+	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, bool, bHasExploded);
+	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, ABCharacter*, m_parent);
+}
+bool ABBomb::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
+{
+	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
+	SYNCVAR_EXEC(bHasExploded);
+	SYNCVAR_EXEC(m_parent);
 	return false;
 }
 
@@ -90,31 +105,43 @@ void ABBomb::OnTick(const float& deltaTime)
 {
 	Super::OnTick(deltaTime);
 
-	if (m_explodeTimer > 0.0f)
+	// Wait for explosion
+	if (m_explodeTimer > 0.0f && !bHasExploded)
 	{
 		m_explodeTimer -= deltaTime;
 		if (m_explodeTimer < 0.0f)
-			m_explodeTimer = 0.0f;
-	}
-	else
-	{
-		// TODO - Do explosion logic
-		if (IsNetHost())
 		{
-			SetActive(false);
-			GetArena()->SetTile(GetTileLocation().x, GetTileLocation().y, ABLevelArena::TileType::Floor);
+			m_explodeTimer = 0.0f;
+			Explode(); // Time ran out, so explode bomb
 		}
+		return;
+	}
+
+
+	// Wait for damage to go away
+	if(m_damageTimer > 0.0f)
+	{
+		m_damageTimer -= deltaTime;
+		if (m_damageTimer < 0.0f)
+			m_damageTimer = 0.0f;
+		return;
+	}
+
+
+	// Only get here, after damage has timed out, so reset bomb
+	if (IsNetHost())
+	{
+		SetActive(false);
+		GetArena()->OnDestroyBomb(this);
 	}
 }
 
 #ifdef BUILD_CLIENT
 void ABBomb::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
-	sf::RectangleShape rect;
-	rect.setSize(m_drawSize);
 
-	// Draw pulsing bomb
-	if (m_explodeTimer > 0.0f)
+	// Draw pulsing bomb (Only draw if not exploding)
+	if (!bHasExploded)
 	{
 		const float t = m_explodeTimer / m_explodeLength;
 
@@ -124,6 +151,7 @@ void ABBomb::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 
 		const vec2 pulseSize = vec2(pulseScale, pulseScale) * std::abs(std::sin(t * 3.141592f * pulseFrequency));
 
+		sf::RectangleShape rect;
 		rect.setPosition(GetLocation() + m_drawOffset - pulseSize * 0.5f);
 		rect.setSize(m_drawSize + pulseSize);
 
@@ -139,21 +167,23 @@ void ABBomb::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 		}
 		window->draw(rect);
 	}
+
 }
 #endif
 
 bool ABBomb::AttemptToPlace(const ivec2& location)
 {
-	// Already in use/ Don't have permission
+	// Already in use/Don't have permission
 	if (IsActive() || !IsNetHost())
 		return false;
 
 	// Can only place on floor
 	if (GetArena()->GetTile(location.x, location.y) == ABLevelArena::TileType::Floor) 
 	{
-		GetArena()->SetTile(location.x, location.y, ABLevelArena::TileType::Actor);
 		SetTileLocation(location);
+		GetArena()->OnPlaceBomb(this);
 
+		bHasExploded = false;
 		m_explodeTimer = m_explodeLength;
 		m_damageTimer = m_damageLength;
 		SetActive(true);
@@ -161,8 +191,20 @@ bool ABBomb::AttemptToPlace(const ivec2& location)
 	}
 }
 
+bool ABBomb::Explode() 
+{
+	// Ignore, if already exploding
+	if (bHasExploded)
+		return false;
+
+	bHasExploded = true; 
+	GetArena()->HandleExplosion(this);
+	return true;
+}
+
 void ABBomb::SyncAnimation() 
 {
+	bHasExploded = false;
 	m_explodeTimer = m_explodeLength;
 	m_damageTimer = m_damageLength;
 }

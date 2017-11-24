@@ -14,6 +14,7 @@ void OObject::OnGameLoaded(Game* game)
 {
 	m_game = game;
 	m_name = GetClass()->GetName() + "_instance";
+	m_decodingContext = game;
 	OnBegin();
 }
 

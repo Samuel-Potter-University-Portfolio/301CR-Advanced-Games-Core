@@ -96,3 +96,35 @@ protected:
 
 };
 
+
+typedef ABCharacter* ABCharacterPtr;
+template<>
+inline void Encode<ABCharacter*>(ByteBuffer& buffer, const ABCharacterPtr& data)
+{
+	Encode(buffer, data->GetNetworkID());
+}
+
+template<>
+inline bool Decode<ABCharacter*>(ByteBuffer& buffer, ABCharacterPtr& out, void* context)
+{
+	out = nullptr;
+	uint16 id;
+	if (!Decode<uint16>(buffer, id))
+		return false;
+
+	Game* game = (Game*)context;
+	if (game == nullptr)
+	{
+		LOG_ERROR("Cannot decode 'ABCharacter*' without Game* as context");
+		return true; // Decode was fine, just invalid context used
+	}
+
+	LLevel* level = game->GetCurrentLevel();
+	if (level == nullptr)
+		return true; // Decode was fine, but there was no level active
+	else
+	{
+		out = dynamic_cast<ABCharacter*>(level->GetActorByNetID(id));
+		return true;
+	}
+}

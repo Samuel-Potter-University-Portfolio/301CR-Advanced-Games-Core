@@ -1,5 +1,4 @@
 #include "BTileableActor.h"
-#include "BLevelArena.h"
 
 
 CLASS_SOURCE(ABTileableActor)
@@ -72,6 +71,8 @@ void ABTileableActor::OnTick(const float& deltaTime)
 		if (IsNetOwner())
 			SetLocation(m_arena->TileToWorld(m_tileLocation));
 	}
+
+	ivec2 oldLocation = m_tileLocation;
 
 
 	// Don't do checks if not net owner
@@ -168,7 +169,7 @@ bool ABTileableActor::AttemptMove(const Direction& dir)
 	}
 
 	// Make sure can walk here
-	if (m_arena->GetTile(destination.x, destination.y) != ABLevelArena::TileType::Floor)
+	if (!CanWalkOn(m_arena->GetTile(destination.x, destination.y)))
 	{
 		CallRPC_TwoParam(this, UpdateNetMoveState, m_direction, false);
 		return false;

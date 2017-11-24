@@ -25,9 +25,10 @@ public:
 		Floor, 
 		Wall, 
 		Box, 
-		Loot,
+		LootBox,
 
-		Actor, // Means an actor exists on this tile
+		Bomb,			// Bomb currently on the ground
+		Explosion,		// Explosion tile (That players take damage from)s
 	};
 
 	typedef std::vector<ABLevelArena::TileType> TileGrid;
@@ -36,7 +37,10 @@ private:
 	uvec2 m_arenaSize;
 	const vec2 m_tileSize;
 
-	TileGrid m_tiles{ TileType::Floor };
+	/// What tiles are placed where
+	TileGrid m_tiles;
+	/// What bombs are currently affecting which tiles
+	std::vector<class ABBomb*> m_explosionParents;
 	
 	const sf::Texture* m_currentFloorTile;
 	const sf::Texture* m_currentBoxTile;
@@ -82,22 +86,39 @@ public:
 	*/
 	void SetTileset(const TileSet& set);
 
+	/**
+	* Callback for when a bomb is placed in the arena
+	* @param bomb		The bomb that we're trying to place
+	*/
+	void OnPlaceBomb(class ABBomb* bomb);
+	/**
+	* Callback for when a bomb's effects should disappear
+	* @param bomb		The bomb that we're trying to get rid of
+	*/
+	void OnDestroyBomb(class ABBomb* bomb);
+
+	/**
+	* Handle a bomb explosion
+	* @param bomb		The bomb that we're trying to explode
+	*/
+	void HandleExplosion(class ABBomb* bomb);
 
 	/**
 	* Getters & Setters
 	*/
-public:
+protected:
 	inline uint32 GetTileIndex(const uint32& x, const uint32& y) const { return y * m_arenaSize.x + x; }
-	
-	inline bool SetTile(const uint32& x, const uint32& y, const TileType& tile) 
-	{ 
-		if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y) 
-			return false; 
-		else 
-			m_tiles[GetTileIndex(x, y)] = tile; 
+	inline bool SetTile(const uint32& x, const uint32& y, const TileType& tile)
+	{
+		if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y)
+			return false;
+		else
+			m_tiles[GetTileIndex(x, y)] = tile;
 		return true;
 	}
+public:
 	inline TileType GetTile(const uint32& x, const uint32& y) { if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y) return TileType::Unknown; else return m_tiles[GetTileIndex(x, y)]; }
+	
 
 
 	/** Get the extents of this arena */

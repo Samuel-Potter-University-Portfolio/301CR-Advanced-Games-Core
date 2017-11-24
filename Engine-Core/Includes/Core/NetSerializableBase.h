@@ -171,6 +171,7 @@ protected:
 	// Where to check if any value has changed
 	std::vector<uint8> m_varCheckValues;
 
+	void* m_decodingContext = nullptr;
 	bool bFirstNetUpdate = false;
 	bool bIsNetSynced = false;
 
@@ -307,6 +308,7 @@ private:
 	*/
 public:
 	inline const bool& IsNetSynced() const { return bIsNetSynced; }
+	inline void* GetDecodingContext() const { return m_decodingContext; }
 
 	/**
 	* A unique ID for identifying this object over the current NetSession
@@ -463,7 +465,7 @@ public:
 	if (__TEMP_ID == 0) \
 	{ \
 		paramAType A; \
-		if(Decode<paramAType>(__TEMP_BUFFER, A)) \
+		if(Decode<paramAType>(__TEMP_BUFFER, A, GetDecodingContext())) \
 			func(A); \
 		return true; \
 	} \
@@ -479,8 +481,8 @@ public:
 	{ \
 		paramAType A; \
 		paramBType B; \
-		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
-			Decode<paramBType>(__TEMP_BUFFER, B)) \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A, GetDecodingContext()) && \
+			Decode<paramBType>(__TEMP_BUFFER, B, GetDecodingContext())) \
 			func(A, B); \
 		return true; \
 	} \
@@ -497,9 +499,9 @@ public:
 		paramAType A; \
 		paramBType B; \
 		paramCType C; \
-		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
-			Decode<paramBType>(__TEMP_BUFFER, B) && \
-			Decode<paramCType>(__TEMP_BUFFER, C)) \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A, GetDecodingContext()) && \
+			Decode<paramBType>(__TEMP_BUFFER, B, GetDecodingContext()) && \
+			Decode<paramCType>(__TEMP_BUFFER, C, GetDecodingContext())) \
 			func(A, B, C); \
 		return true; \
 	} \
@@ -517,10 +519,10 @@ public:
 		paramBType B; \
 		paramCType C; \
 		paramDType D; \
-		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
-			Decode<paramBType>(__TEMP_BUFFER, B) && \
-			Decode<paramCType>(__TEMP_BUFFER, C) && \
-			Decode<paramDType>(__TEMP_BUFFER, D)) \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A, GetDecodingContext()) && \
+			Decode<paramBType>(__TEMP_BUFFER, B, GetDecodingContext()) && \
+			Decode<paramCType>(__TEMP_BUFFER, C, GetDecodingContext()) && \
+			Decode<paramDType>(__TEMP_BUFFER, D, GetDecodingContext())) \
 			func(A, B, C, D); \
 		return true; \
 	} \
@@ -539,11 +541,11 @@ public:
 		paramCType C; \
 		paramDType D; \
 		paramEType E; \
-		if(	Decode<paramAType>(__TEMP_BUFFER, A) && \
-			Decode<paramBType>(__TEMP_BUFFER, B) && \
-			Decode<paramCType>(__TEMP_BUFFER, C) && \
-			Decode<paramDType>(__TEMP_BUFFER, D) && \
-			Decode<paramEType>(__TEMP_BUFFER, E)) \
+		if(	Decode<paramAType>(__TEMP_BUFFER, A, GetDecodingContext()) && \
+			Decode<paramBType>(__TEMP_BUFFER, B, GetDecodingContext()) && \
+			Decode<paramCType>(__TEMP_BUFFER, C, GetDecodingContext()) && \
+			Decode<paramDType>(__TEMP_BUFFER, D, GetDecodingContext()) && \
+			Decode<paramEType>(__TEMP_BUFFER, E, GetDecodingContext())) \
 			func(A, B, C, D, E); \
 		return true; \
 	} \
@@ -567,7 +569,7 @@ public:
 */
 #define SYNCVAR_EXEC(var) \
 	if (__TEMP_ID == 0) \
-		return Decode(__TEMP_BUFFER, var); \
+		return Decode(__TEMP_BUFFER, var, GetDecodingContext()); \
 	else \
 		--__TEMP_ID;
 
@@ -578,8 +580,7 @@ public:
 #define SYNCVAR_EXEC_Callback(var, callback) \
 	if (__TEMP_ID == 0) \
 	{ \
-		const bool decoded = Decode(__TEMP_BUFFER, var); \
-		if(!decoded) return false; \
+		if(!Decode(__TEMP_BUFFER, var, GetDecodingContext())) return false; \
 		if(!__TEMP_SKIP_CALLBACKS) callback(); \
 		return true; \
 	} \

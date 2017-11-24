@@ -7,6 +7,7 @@ class ABBomb : public ABTileableActor
 	CLASS_BODY()
 private:
 	friend class ABCharacter;
+	friend class ABLevelArena;
 	ABCharacter* m_parent = nullptr;
 
 	const vec2 m_drawSize;
@@ -16,12 +17,17 @@ private:
 	/// How long until this explodes
 	float m_explodeTimer;
 	/// How long to wait until exploding
-	float m_explodeLength = 5.0f;
+	const float m_explodeLength = 4.0f;
 
 	/// How long (after the explosion) until going inactive
 	float m_damageTimer;
 	/// How long (after the explosion) this will remain before going inactive
-	float m_damageLength = 1.0f;
+	const float m_damageLength = 0.5f;
+
+	/// How many tiles from the source this bomb will travel when exploding
+	uint32 m_explosionSize = 1;
+	/// Has this bomb exploded yet
+	bool bHasExploded = false;
 
 public:
 	ABBomb();
@@ -50,8 +56,8 @@ protected:
 	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
 
-	//virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
-	//virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
+	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
+	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
 
 
 	/**
@@ -61,6 +67,13 @@ protected:
 	* @returns If successful
 	*/
 	bool AttemptToPlace(const ivec2& location);
+
+protected:
+	/**
+	* Causes this bomb to explode at it's current location
+	* @returns If this call was successful
+	*/
+	bool Explode();
 	/**
 	* Called when this bomb is placed in world 
 	* (Lets clients sync up for animations
