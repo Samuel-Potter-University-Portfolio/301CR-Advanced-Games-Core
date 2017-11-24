@@ -375,6 +375,7 @@
     <ClCompile Include="AssetController.cpp" />
     <ClCompile Include="ByteBuffer.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DefaultNetLayer.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="InputController.cpp" />
@@ -383,6 +384,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="ManagedClass.cpp" />
     <ClCompile Include="NetHostSession.cpp" />
+    <ClCompile Include="NetLayer.cpp" />
     <ClCompile Include="NetRemoteSession.cpp" />
     <ClCompile Include="NetSerializableBase.cpp" />
     <ClCompile Include="NetSession.cpp" />
@@ -402,6 +404,7 @@
     <ClInclude Include="Includes\Core\Common.h" />
     <ClInclude Include="Includes\Core\Core-Common.h" />
     <ClInclude Include="Includes\Core\CoreDefs.h" />
+    <ClInclude Include="Includes\Core\DefaultNetLayer.h" />
     <ClInclude Include="Includes\Core\Encoding.h" />
     <ClInclude Include="Includes\Core\Engine.h" />
     <ClInclude Include="Includes\Core\EngineMemory.h" />
@@ -412,6 +415,7 @@
     <ClInclude Include="Includes\Core\Logger.h" />
     <ClInclude Include="Includes\Core\ManagedClass.h" />
     <ClInclude Include="Includes\Core\NetHostSession.h" />
+    <ClInclude Include="Includes\Core\NetLayer.h" />
     <ClInclude Include="Includes\Core\NetRemoteSession.h" />
     <ClInclude Include="Includes\Core\NetSerializableBase.h" />
     <ClInclude Include="Includes\Core\NetSession.h" />

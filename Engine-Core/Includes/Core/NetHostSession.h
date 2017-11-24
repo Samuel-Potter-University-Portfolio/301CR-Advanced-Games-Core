@@ -10,6 +10,13 @@ struct NetPlayerConnection
 	NetIdentity			identity;
 	OPlayerController*	controller = nullptr;
 	float				inactivityTimer = 0;
+	
+	enum State : uint8
+	{
+		Intialized,			// Only just created
+		Waiting,			// Waiting for something to internally finish (Probably NetLayer upstream logic)
+		Connected,			// Fully connected into the game
+	} state = State::Intialized;
 };
 
 
@@ -39,6 +46,21 @@ public:
 	virtual void NetUpdate(const float& deltaTime) override;
 
 private:
+	/**
+	* Decode the client handshake that has been received by server
+	* @param source				The player that is currently trying to connect
+	* @param inbuffer			Where to read the handshake from
+	* @param outPlayer			Where to store the resulting player controller
+	* @returns The response code that will be sent to the client
+	*/
+	NetResponseCode DecodeHandshake(const NetIdentity& source, ByteBuffer& inBuffer, OPlayerController*& outPlayer);
+	/**
+	* Encode a handshake response to be returned
+	* @param code				The status code of the response to write
+	* @param outBuffer			Where to write the response
+	* @param player				The player controller (If code is Accepted, null otherwise)
+	*/
+	void EncodeHandshakeResponse(const NetResponseCode& code, ByteBuffer& outBuffer, OPlayerController* player);
 
 	/**
 	* Fetch a player's network id from their connecting identity

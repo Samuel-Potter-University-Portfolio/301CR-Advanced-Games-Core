@@ -4,6 +4,8 @@
 #include "Includes\Core\PlayerController.h"
 #include "Includes\Core\LevelController.h"
 
+#include "Includes\Core\DefaultNetLayer.h"
+
 
 Game::Game(string name, Version version) :
 	m_name(name),
@@ -11,6 +13,8 @@ Game::Game(string name, Version version) :
 {
 	RegisterClass(OPlayerController::StaticClass());
 	RegisterClass(ALevelController::StaticClass());
+
+	netLayerClass = DefaultNetLayer::StaticClass();
 }
 
 Game::~Game()

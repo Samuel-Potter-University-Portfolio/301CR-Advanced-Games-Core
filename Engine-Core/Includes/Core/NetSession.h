@@ -8,37 +8,10 @@
 #include "Actor.h"
 #include "PlayerController.h"
 
+#include "NetLayer.h"
+
 
 class Game;
-
-
-/**
-* What sort of requests can be performed during a handshake
-*/
-enum class NetRequestType : uint16
-{
-	Ping		= 0,
-	Connect		= 200,
-	Query		= 201
-};
-
-/**
-* Response codes used in the initial handshake
-*/
-enum class NetResponseCode : uint16
-{
-	Unknown			= 0,
-
-	Accepted		= 200,
-	Responded		= 201,
-
-	BadRequest		= 400,
-	Banned			= 401,
-	BadPassword		= 403,
-	BadVersions		= 426,
-
-	ServerFull		= 512
-};
 
 
 
@@ -80,6 +53,7 @@ struct NetObjectDeletion
 };
 
 
+
 /**
 * Represents the connection between a player and a server or a server and players
 */
@@ -101,6 +75,7 @@ protected:
 	NetSocketTcp m_TcpSocket;
 	NetSocketUdp m_UdpSocket;
 
+	NetLayer* m_netLayer;
 	uint16 m_sessionNetId;
 	bool bIsHost = false;
 	bool bIsConnected = false;
@@ -146,29 +121,6 @@ protected:
 	* Callback for after a net update occurs
 	*/
 	void PostNetUpdate();
-
-
-
-	/**
-	* Encode the client handshake to be sent to a server
-	* @param outBuffer			Where to store the handshake
-	*/
-	void EncodeHandshake_ClientToServer(ByteBuffer& outBuffer);
-	/**
-	* Decode the client handshake that has been received by server
-	* @param inbuffer			Where to read the handshake from
-	* @param outBuffer			Where to store the response
-	* @param outPlayer			Where to store the controller, if the handshake is successful
-	* @returns The response code that was sent to the client
-	*/
-	NetResponseCode DecodeHandshake_ClientToServer(ByteBuffer& inBuffer, ByteBuffer& outBuffer, OPlayerController*& outPlayer);
-	/**
-	* Decode the server's response to the client handshake
-	* @param inbuffer			Where to read the handshake from
-	* @param outPlayer			Where to store the controller, if the handshake is successful
-	* @returns The response code that was sent to the client
-	*/
-	NetResponseCode DecodeHandshake_ServerToClient(ByteBuffer& inBuffer, OPlayerController*& outPlayer);
 
 
 protected:

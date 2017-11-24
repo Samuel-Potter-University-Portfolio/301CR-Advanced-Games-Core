@@ -153,6 +153,8 @@ class CORE_API NetSerializableBase
 {
 private:
 	friend class NetSession;
+	friend class NetHostSession;
+	friend class NetRemoteSession;
 	friend class Game;
 	friend class LLevel;
 

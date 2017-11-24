@@ -17,10 +17,15 @@ NetSession::NetSession(Game* game, const NetIdentity identity) :
 	m_playerIdCounter = 1;
 	m_objectNetIdCounter = 1; 
 	m_actorNetIdCounter = 1;
+
+	LOG("Using '%s' NetLayer", game->netLayerClass->GetName().c_str());
+	m_netLayer = game->netLayerClass->New<NetLayer>();
+	m_netLayer->Initialize(game, this);
 }
 
 NetSession::~NetSession()
 {
+	delete m_netLayer;
 }
 
 
@@ -34,7 +39,10 @@ void NetSession::MainUpdate(const float& deltaTime)
 		LOG_WARNING("Net update falling behind");
 
 	PreNetUpdate();
+
+	m_netLayer->OnNetTick(m_tickTimer);
 	NetUpdate(m_tickTimer);
+
 	PostNetUpdate();
 	m_tickTimer = 0;
 }
@@ -124,221 +132,6 @@ void NetSession::OnNetObjectDestroy(const OObject* object)
 	info.netId = object->GetNetworkID();
 	m_deletionQueue.emplace_back(info);
 }
-
-
-void NetSession::EncodeHandshake_ClientToServer(ByteBuffer& outBuffer) 
-{
-	// Version numbers
-	Encode(outBuffer, GetGame()->GetEngine()->GetVersionNo());
-	Encode(outBuffer, GetGame()->GetVersionNo());
-
-	// Request type
-	Encode<uint16>(outBuffer, (uint16)NetRequestType::Connect);
-
-	// Encode player name
-	auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
-	if (playerList.size() != 0)
-		Encode<string>(outBuffer, playerList[0]->GetPlayerName());
-	else
-		Encode<const char*>(outBuffer, "__PLAYER__");
-
-	// TODO - 200 Content
-	//   - Password
-}
-
-NetResponseCode NetSession::DecodeHandshake_ClientToServer(ByteBuffer& inBuffer, ByteBuffer& outBuffer, OPlayerController*& outPlayer)
-{
-	NetRequestType requestType;
-
-	{
-		Version engineVersion, gameVersion;
-		uint16 rawRequestType;
-
-		// Invalid header
-		if (!Decode<Version>(inBuffer, engineVersion) ||
-			!Decode<Version>(inBuffer, gameVersion) ||
-			!Decode<uint16>(inBuffer, rawRequestType))
-		{
-			Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadRequest);
-			return NetResponseCode::BadRequest;
-		}
-
-		// Missmatching versions
-		if (GetGame()->GetEngine()->GetVersionNo() != engineVersion || GetGame()->GetVersionNo() != gameVersion)
-		{
-			Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadVersions);
-			return NetResponseCode::BadVersions;
-		}
-
-		// TODO - Ban checks
-		// TODO - Whitelist checks
-
-		requestType = (NetRequestType)rawRequestType;
-	}
-
-
-	switch (requestType)
-	{
-		// Acknowledge by pinging back
-		case NetRequestType::Ping:
-		{
-			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Responded);
-			return NetResponseCode::Responded;
-		}
-
-
-		// Attempt to accept the player
-		case NetRequestType::Connect:
-		{
-			string playerName;
-			string password; // TODO
-
-			// Invalid information provided
-			if (!Decode<string>(inBuffer, playerName))
-			{
-				Encode<uint16>(outBuffer, (uint16)NetResponseCode::BadRequest);
-				return NetResponseCode::BadRequest;
-			}
-			
-
-			// Server is full
-			if (m_playerControllers.size() >= GetMaxPlayerCount())
-			{
-				Encode<uint16>(outBuffer, (uint16)NetResponseCode::ServerFull);
-				return NetResponseCode::ServerFull;
-			}
-
-			// TODO - Password checks
-
-
-			// Create new player
-			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
-			outPlayer->m_playerName = playerName;
-			outPlayer->m_networkOwnerId = NewPlayerID();
-			outPlayer->m_networkId = NewObjectID();
-			outPlayer->bFirstNetUpdate = true;
-			outPlayer->UpdateRole(this);
-			m_playerControllers.emplace_back(outPlayer);
-			GetGame()->AddObject(outPlayer);
-			outPlayer->OnPostNetInitialize();
-
-
-			// Encode new player connection information
-			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Accepted);
-			Encode<uint16>(outBuffer, outPlayer->m_networkOwnerId);
-			Encode<uint16>(outBuffer, outPlayer->m_networkId);
-
-			// Encode current level info
-			LLevel* level = GetGame()->GetCurrentLevel();
-			if (level != nullptr)
-			{
-				Encode<uint16>(outBuffer, level->GetClass()->GetID());
-				Encode<uint32>(outBuffer, level->GetInstanceID());
-			}
-			else
-			{
-				Encode<uint16>(outBuffer, 0);
-				Encode<uint32>(outBuffer, 0);
-			}
-		
-			outPlayer->EncodeSyncVarRequests(outPlayer->m_networkOwnerId, outBuffer, TCP, true);
-			return NetResponseCode::Accepted;
-		}
-
-
-		// Return server information
-		case NetRequestType::Query:
-		{
-			Encode<uint16>(outBuffer, (uint16)NetResponseCode::Responded);
-			Encode<uint16>(outBuffer, m_playerControllers.size());		// Players connected 
-			Encode<uint16>(outBuffer, m_maxPlayerCount);				// Player limit
-			Encode<string>(outBuffer, "Unnamed Server");				// TODO - Server name
-			Encode<uint8>(outBuffer, 0);								// TODO - Bitflags
-			return NetResponseCode::Responded;
-		}
-
-	}
-
-	return NetResponseCode::Unknown;
-}
-
-NetResponseCode NetSession::DecodeHandshake_ServerToClient(ByteBuffer& inBuffer, OPlayerController*& outPlayer)
-{
-	uint16 rawResponse;
-	if(!Decode<uint16>(inBuffer, rawResponse))
-		return NetResponseCode::Unknown;
-
-	const NetResponseCode response = (NetResponseCode)rawResponse;
-
-	// Retrieve connection info
-	if (response == NetResponseCode::Accepted)
-	{
-		uint16 netId;
-		uint16 controllerId;
-		uint16 levelClassId;
-		uint32 levelInstanceId;
-
-		// Decode information
-		if (!Decode<uint16>(inBuffer, netId) ||
-			!Decode<uint16>(inBuffer, controllerId) ||
-			!Decode<uint16>(inBuffer, levelClassId) ||
-			!Decode<uint32>(inBuffer, levelInstanceId)
-		)
-		{
-			LOG_ERROR("Server's response to handshake is unparsable.");
-			return NetResponseCode::BadRequest;
-		}
-
-
-		// Use an existing controller
-		auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
-		if (playerList.size() >= 1)
-		{
-			outPlayer = playerList[0];
-
-			// Cleaup any other controllers that may exist for some reason
-			for (uint32 i = 1; i < playerList.size(); ++i)
-				OObject::Destroy(playerList[i]);
-
-			// As we are reusing this controller, let level cleanup
-			LLevel* level = GetGame()->GetCurrentLevel();
-			if (level != nullptr)
-				level->GetLevelController()->OnPlayerDisconnect(outPlayer);
-		}
-		else if (playerList.size() == 0)
-			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
-		
-
-		// Setup new player controller
-		m_sessionNetId = netId;
-		outPlayer->m_networkOwnerId = netId;
-		outPlayer->m_networkId = controllerId;
-		outPlayer->bFirstNetUpdate = true;
-		outPlayer->UpdateRole(this);
-		outPlayer->DecodeSyncVarRequests(netId, inBuffer, TCP, true);
-		GetGame()->AddObject(outPlayer);
-		outPlayer->OnPostNetInitialize();
-
-
-
-		// Switch to desired level
-		LLevel::s_instanceCounter = levelInstanceId - 100000; // Make sure is decently away from server's instance counter
-		if (!GetGame()->SwitchLevel(levelClassId)) 
-		{
-			LOG_ERROR("Unable to switch to server requested level");
-			return NetResponseCode::BadRequest;
-		}
-		else 
-		{
-			// Set level's instance id (Works because levels don't load asynchronously)
-			LLevel* level = GetGame()->GetCurrentLevel();
-			level->m_instanceId = levelInstanceId;
-		}
-	}
-
-	return response;
-}
-
 
 
 void NetSession::EncodeNetObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType)
@@ -624,7 +417,7 @@ void NetSession::NetDecode(const OPlayerController* source, ByteBuffer& buffer, 
 	const bool levelIsValid = (level != nullptr && levelId == level->GetInstanceID());
 
 
-	// Decode all  object messages
+	// Decode all object messages
 	for (uint32 i = 0; i < messageCount; ++i)
 	{
 		uint8 rawMsgType;

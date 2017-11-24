@@ -39,6 +39,19 @@ public:
 
 private:
 	/**
+	* Encode the client handshake to be sent to a server
+	* @param outBuffer			Where to store the handshake
+	*/
+	void EncodeHandshake(ByteBuffer& outBuffer);
+	/**
+	* Decode the server's response to the client handshake
+	* @param inbuffer			Where to read the handshake from
+	* @param outPlayer			Where to store the controller, if the handshake is successful
+	* @returns The response code that was sent to the client
+	*/
+	NetResponseCode DecodeHandshakeResponse(ByteBuffer& inBuffer, OPlayerController*& outPlayer);
+
+	/**
 	* Make sure that the client is connected to the server
 	* @returns If this player is currently connected to the server
 	*/

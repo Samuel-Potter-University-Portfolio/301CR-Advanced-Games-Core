@@ -18,6 +18,8 @@ class CORE_API LLevel : public ManagedObject
 {
 	CLASS_BODY()
 	friend class NetSession;
+	friend class NetHostSession;
+	friend class NetRemoteSession;
 private:
 	static uint32 s_instanceCounter;
 	uint32 m_instanceId;

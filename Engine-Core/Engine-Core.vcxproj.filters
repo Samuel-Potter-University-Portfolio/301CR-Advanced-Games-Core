@@ -67,6 +67,10 @@
     <ClCompile Include="InputController.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="NetLayer.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="DefaultNetLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -182,5 +186,9 @@
     <ClInclude Include="Includes\Core\InputController.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="Includes\Core\NetLayer.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\DefaultNetLayer.h" />
   </ItemGroup>
 </Project>

@@ -41,6 +41,8 @@
     <ClInclude Include="BBomb.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="Utils.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

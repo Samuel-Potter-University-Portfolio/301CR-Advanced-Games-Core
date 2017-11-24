@@ -3,6 +3,8 @@
 #include "Version.h"
 #include "AssetController.h"
 
+#include "NetLayer.h"
+
 #include "Level.h"
 #include "Actor.h"
 #include "Object.h"
@@ -44,6 +46,8 @@ public:
 	/// Level to load at start (For server)
 	SubClassOf<LLevel> defaultNetLevel;
 
+	/// Class type to use when creating a net layer
+	SubClassOf<NetLayer> netLayerClass;
 	/// Class type to use for any player connections
 	SubClassOf<OPlayerController> playerControllerClass;
 

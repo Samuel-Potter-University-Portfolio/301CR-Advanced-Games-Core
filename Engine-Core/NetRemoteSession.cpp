@@ -100,7 +100,7 @@ bool NetRemoteSession::EnsureConnection()
 	if (m_clientStatus == PreHandshake)
 	{
 		ByteBuffer content;
-		EncodeHandshake_ClientToServer(content);
+		EncodeHandshake(content);
 		if (!m_TcpSocket.Send(content.Data(), content.Size()))
 		{
 			LOG_ERROR("Failed to send handshake");
@@ -122,41 +122,47 @@ bool NetRemoteSession::EnsureConnection()
 			for (RawNetPacket& p : packets)
 			{
 				p.buffer.Flip();
-				switch (DecodeHandshake_ServerToClient(p.buffer, m_localController))
+				switch (DecodeHandshakeResponse(p.buffer, m_localController))
 				{
+					m_clientStatus = Disconnected;
+
 					// Unknown should never be returned, so just rubbish?
-				case NetResponseCode::Unknown:
-					LOG_ERROR("Unknown connection error");
-					break;
+					case NetResponseCode::Unknown:
+						LOG_ERROR("Unknown connection error");
+						break;
 
-				case NetResponseCode::Accepted:
-					m_clientStatus = Connected;
-					LOG("Connected to server as Player(%i)", m_localController->GetNetworkOwnerID());
-					break;
+					case NetResponseCode::Accepted:
+						LOG("Connected to server as Player(%i)", m_localController->GetNetworkOwnerID());
+						m_clientStatus = Connected;
+						break;
 
-				case NetResponseCode::Responded:
-					LOG("Server acknowledged");
-					break;
+					case NetResponseCode::Responded:
+						LOG("Server acknowledged");
+						break;
 
-				case NetResponseCode::BadRequest:
-					LOG_ERROR("BadRequest connecting to server");
-					break;
+					case NetResponseCode::BadRequest:
+						LOG_ERROR("BadRequest connecting to server");
+						break;
 
-				case NetResponseCode::Banned:
-					LOG("Banned from server");
-					break;
+					case NetResponseCode::Banned:
+						LOG("Banned from server");
+						break;
 
-				case NetResponseCode::BadPassword:
-					LOG("Bad password provided when connecting to server");
-					break;
+					case NetResponseCode::BadAuthentication:
+						LOG("Bad authentication provided when connecting to server");
+						break;
 
-				case NetResponseCode::BadVersions:
-					LOG("Version missmatch between client and server");
-					break;
+					case NetResponseCode::BadVersions:
+						LOG("Version missmatch between client and server");
+						break;
 
-				case NetResponseCode::ServerFull:
-					LOG("Server full");
-					break;
+					case NetResponseCode::ServerInternalError:
+						LOG("Server internal error");
+						break;
+
+					case NetResponseCode::ServerFull:
+						LOG("Server full"); 
+						break;
 				}
 			}
 		}
@@ -175,4 +181,96 @@ bool NetRemoteSession::EnsureConnection()
 	}
 
 	return true;
+}
+
+
+void NetRemoteSession::EncodeHandshake(ByteBuffer& outBuffer)
+{
+	// Version numbers
+	Encode(outBuffer, GetGame()->GetEngine()->GetVersionNo());
+	Encode(outBuffer, GetGame()->GetVersionNo());
+
+	// Request type
+	Encode<uint16>(outBuffer, (uint16)NetRequestType::Connect);
+
+	// Let layer encode any extra data
+	m_netLayer->OnEncodeHandshake(GetSessionIdentity(), outBuffer);
+}
+
+
+NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, OPlayerController*& outPlayer)
+{
+	uint16 rawResponse;
+	if (!Decode<uint16>(inBuffer, rawResponse))
+		return NetResponseCode::Unknown;
+
+	const NetResponseCode response = (NetResponseCode)rawResponse;
+
+	// Retrieve connection info
+	if (response == NetResponseCode::Accepted)
+	{
+		uint16 netId;
+		uint16 controllerId;
+		uint16 levelClassId;
+		uint32 levelInstanceId;
+
+		// Decode information
+		if (!Decode<uint16>(inBuffer, netId) ||
+			!Decode<uint16>(inBuffer, controllerId) ||
+			!Decode<uint16>(inBuffer, levelClassId) ||
+			!Decode<uint32>(inBuffer, levelInstanceId)
+			)
+		{
+			LOG_ERROR("Server's response to handshake is unparsable.");
+			return NetResponseCode::BadRequest;
+		}
+
+
+		// Use an existing controller
+		auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
+		if (playerList.size() >= 1)
+		{
+			outPlayer = playerList[0];
+
+			// Cleaup any other controllers that may exist for some reason
+			for (uint32 i = 1; i < playerList.size(); ++i)
+				OObject::Destroy(playerList[i]);
+
+			// As we are reusing this controller, let level cleanup
+			LLevel* level = GetGame()->GetCurrentLevel();
+			if (level != nullptr)
+				level->GetLevelController()->OnPlayerDisconnect(outPlayer);
+		}
+		else if (playerList.size() == 0)
+			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
+
+
+		// Setup new player controller
+		m_sessionNetId = netId;
+		outPlayer->m_networkOwnerId = netId;
+		outPlayer->m_networkId = controllerId;
+		outPlayer->bFirstNetUpdate = true;
+		outPlayer->UpdateRole(this);
+		outPlayer->DecodeSyncVarRequests(0, inBuffer, TCP, true);
+		GetGame()->AddObject(outPlayer);
+		outPlayer->OnPostNetInitialize();
+
+
+
+		// Switch to desired level
+		LLevel::s_instanceCounter = levelInstanceId - 100000; // Make sure is decently away from server's instance counter
+		if (!GetGame()->SwitchLevel(levelClassId))
+		{
+			LOG_ERROR("Unable to switch to server requested level");
+			return NetResponseCode::BadRequest;
+		}
+		else
+		{
+			// Set level's instance id (Works because levels don't load asynchronously)
+			LLevel* level = GetGame()->GetCurrentLevel();
+			level->m_instanceId = levelInstanceId;
+		}
+	}
+
+	return response;
 }
