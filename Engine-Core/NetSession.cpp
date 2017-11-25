@@ -305,7 +305,8 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				return;
 			}
 			OObject* object = isActor ? GetGame()->GetCurrentLevel()->GetActorByNetID(netId) : GetGame()->GetObjectByNetID(netId);
-			OObject::Destroy(object);
+			if(object != nullptr)
+				OObject::Destroy(object);
 			return;
 		}
 

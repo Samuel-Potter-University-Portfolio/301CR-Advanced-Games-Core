@@ -197,7 +197,7 @@ void ABCharacter::OnTick(const float& deltaTime)
 		if (m_rightKey.IsHeld())
 			AttemptMove(Direction::Right);
 
-		if (m_bombKey.IsPressed())
+		if (m_bombKey.IsHeld())
 			CallRPC_OneParam(this, PlaceBomb, GetClosestTileLocation());
 	}
 }

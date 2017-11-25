@@ -1,119 +1,103 @@
 #include "MainMenuHUD.h"
+#include "MainLevel.h"
 
 
 CLASS_SOURCE(AMainMenuHUD)
 
 
-class UTempGUI : public UGUIBase 
-{
-	CLASS_BODY()
-private:
-	string str;
-public:
-	UTempGUI() 
-	{
-		bIsTickable = true;
-	}
-
-protected:
-	virtual void OnTick(const float&)
-	{
-		/*
-		string input = GetHUD()->GetInputController()->GetTypedString();
-		if (!input.empty())
-		{
-			str.reserve(str.size() + input.size());
-			for (const char& c : input)
-			{
-				if (c == '\b')
-					str.erase(str.size() - 1);
-				else if (c == '\r')
-					str += '\n';
-				else
-					str += c;
-			}
-
-			LOG("%s", str.c_str());
-		}
-		*/
-	}
-
-	virtual void OnMouseOver() override
-	{
-	}
-
-	virtual void OnMouseEnter() override 
-	{
-		SetColour(Colour::Green);
-		LOG("Enter")
-	}
-
-	virtual void OnMouseExit() override 
-	{
-		SetColour(Colour::Red);
-		LOG("Exit")
-	}
-
-	virtual void OnMousePressed() override 
-	{
-		SetColour(Colour::Green);
-		LOG("Press")
-	}
-
-	virtual void OnMouseReleased() override 
-	{
-		LOG("Released")
-	}
-};
-CLASS_SOURCE(UTempGUI)
-
 void AMainMenuHUD::OnBegin()
 {
 	Super::OnBegin();
+	const sf::Font* defaultFont = GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf");
+	const ULabel::ScalingMode& defaultScaling = ULabel::ScalingMode::Expand;
 
-	UInputField* elem0 = AddElement<UInputField>();
-	elem0->SetAnchor(vec2(-1, -1));
-	elem0->SetSize(vec2(200, 40));
-	elem0->SetOrigin(vec2(0, 0));
-	elem0->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
-	elem0->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
-	elem0->SetCallback(
-		[elem0](string value)
+	// Title
+	{
+		ULabel* title = AddElement<ULabel>();
+		title->SetFont(defaultFont);
+		title->SetScalingMode(defaultScaling);
+		title->SetText("Bomber Boy");
+		title->SetTextColour(Colour::Blue);
+		title->SetFontSize(100);
+		title->SetHorizontalAlignment(ULabel::HorizontalAlignment::Centre);
+		title->SetVerticalAlignment(ULabel::VerticalAlignment::Top);
+
+		title->SetLocation(vec2(0, 30));
+		title->SetOrigin(vec2(5, 5));
+		title->SetSize(vec2(10, 10));
+		title->SetAnchor(vec2(0, -1));
+
+
+		ULabel* icon = AddElement<ULabel>();
+		icon->SetScalingMode(defaultScaling);
+		icon->SetTexture(GetAssetController()->GetTexture("Resources\\Items\\Default_Bomb.png.0"));
+		icon->SetDrawBackground(true);
+
+		icon->SetLocation(vec2(-156, 110));
+		icon->SetSize(vec2(80, 80));
+		icon->SetOrigin(vec2(50, 50));
+		icon->SetAnchor(vec2(0, -1));
+	}
+
+	// Left nav menu
+	{
+		uint32 buttonIndex = 0;
+		auto makeButton = 
+		[this, defaultFont, defaultScaling, buttonIndex]() mutable -> UButton*
 		{
-			LOG("v: '%s'", value.c_str());
-			//elem0->SetText("");
-		}
-	);
+			uint32& b = buttonIndex;
+			UButton* button = AddElement<UButton>();
+			button->SetFont(defaultFont);
+			button->SetScalingMode(defaultScaling);
+			button->SetVerticalAlignment(ULabel::VerticalAlignment::Top);
+
+			button->SetLocation(vec2(10, (buttonIndex++) * 50.0f));
+			button->SetSize(vec2(200, 40));
+			button->SetOrigin(vec2(0, 40));
+			button->SetAnchor(vec2(-1, -0.25f));
+			return button;
+		};
 
 
-	UButton* button = AddElement<UButton>();
-	button->SetAnchor(vec2(0, 0));
-	button->SetSize(vec2(200, 60));
-	button->SetOrigin(vec2(100, 30));
-	button->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
-	button->SetFontSize(30);
-	button->SetText("Button");
-	button->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
-	button->SetCallback(
-		[button]()
-		{
-			button->SetDisabled(true);
-			LOG("WOOO");
-		}
-	);
 
-	/*
-	ULabel* label = AddElement<ULabel>();
-	label->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
-	label->SetText("Hello World");
-	//label->SetSize(vec2(300, 60));
-	label->SetSize(vec2(200, 60));
-	label->SetOrigin(vec2(100, 30));
-	label->SetHorizontalAlignment(ULabel::HorizontalAlignment::Right);
-	label->SetVerticalAlignment(ULabel::VerticalAlignment::Top);
-	//label->SetScalingMode(UGUIBase::ScalingMode::Expand);
-	label->SetTextColour(Colour::Red);
-	label->SetDrawBackground(true);
-	*/
+		UButton* login = makeButton();
+		login->SetText("Login");
+		login->SetCallback([this]() { GetGame()->SwitchLevel(LMainLevel::StaticClass()); });
+
+		UButton* connect = makeButton();
+		connect->SetText("Connect");
+		connect->SetCallback(
+			[this]()
+			{
+				GetGame()->GetEngine()->GetNetController()->JoinSession(GetGame()->GetEngine()->GetDefaultNetIdentity());
+			}
+		);
+
+		UButton* host = makeButton();
+		host->SetText("Host");
+		host->SetCallback(
+			[this]() 
+			{ 
+				if(GetGame()->GetEngine()->GetNetController()->HostSession(GetGame()->GetEngine()->GetDefaultNetIdentity()))
+					GetGame()->SwitchLevel(LMainLevel::StaticClass());
+			}
+		);
+
+		UButton* server = makeButton();
+		server->SetText("Server List");
+
+		UButton* settings = makeButton();
+		settings->SetText("Settings");
+		settings->SetDisabled(true);
+
+		UButton* exit = makeButton();
+		exit->SetText("Exit");
+		exit->SetCallback([this]() { GetGame()->GetEngine()->Close(); });
+	}
+
+	// Left nav menu
+	{
+	
+	}
 }
 

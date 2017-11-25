@@ -137,7 +137,7 @@ void AssetController::RegisterFont(const string& path, sf::Font* font)
 		//LOG("\t-Registered font at '%s'", key.c_str());
 	}
 #else
-	delete texture;
+	delete font;
 #endif
 }
 
