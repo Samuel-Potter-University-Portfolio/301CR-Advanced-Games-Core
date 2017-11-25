@@ -4,6 +4,8 @@
 #include <SFML/Graphics.hpp>
 
 
+class AHUD;
+
 
 /**
 * GUIs are graphical elements that will only be spawned on clients
@@ -28,6 +30,7 @@ protected:
 	uint8 m_drawingLayer;
 
 private:
+	AHUD* m_parent = nullptr;
 	bool bMouseWasOver = false;
 
 	ScalingMode m_scalingMode = ScalingMode::PixelPerfect;
@@ -42,6 +45,13 @@ private:
 public:
 	UGUIBase();
 	virtual ~UGUIBase() {}
+
+
+	/**
+	* Called when this element is loaded into HUD
+	* @param hud			The hud that this is a part of
+	*/
+	void OnLoaded(AHUD* hud);
 
 
 	/**
@@ -116,6 +126,9 @@ protected:
 public:
 	inline uint8 GetDrawingLayer() const { return m_drawingLayer; }
 	inline bool IsTickable() const { return bIsTickable; }
+
+	inline AHUD* GetHUD() const { return m_parent; }
+	inline bool IsMouseOver() const { return bMouseWasOver; }
 
 	inline bool IsVisible() const { return bIsVisible; }
 	inline void SetVisible(const bool& value) { bIsVisible = value; }

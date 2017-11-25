@@ -122,9 +122,11 @@ void Engine::DisplayLoop()
 	while (bUpdateDisplay && m_renderWindow->isOpen())
 	{
 		// Poll any pending events
+		m_inputController->PrePoll(m_game);
 		sf::Event event;
 		while (m_renderWindow->pollEvent(event))
 			HandleDisplayEvent(event);
+		m_inputController->PostPoll(m_game);
 
 
 		// Clear window
@@ -133,7 +135,6 @@ void Engine::DisplayLoop()
 
 		// Tick rendering 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
-		m_inputController->HandleUpdate(m_game, deltaTime);
 		m_game->DisplayUpdate(deltaTime);
 
 		// Update display (Performs any syncing aswell)

@@ -10,6 +10,8 @@ uint32 LLevel::s_instanceCounter = 0;
 LLevel::LLevel() :
 	m_instanceId(s_instanceCounter++)
 {
+	// Work around: TODO - Proper memory management to stop ptr errors
+	m_drawnActors.reserve(200); 
 }
 
 LLevel::~LLevel()

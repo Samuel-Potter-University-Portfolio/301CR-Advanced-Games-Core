@@ -22,19 +22,13 @@ AHUD::~AHUD()
 
 void AHUD::OnTick(const float& deltaTime) 
 {
-	// Update all elements
-	for (UGUIBase* elem : m_elements)
-	{
-		if(elem->IsTickable())
-			elem->OnTick(deltaTime);
-	}
 }
 
 void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 {
 	// Attempt to handle mouse events
 	{
-		m_mouse.location = GetGame()->GetEngine()->GetInputController()->GetMouseLocation();
+		m_mouse.location = GetInputController()->GetMouseLocation();
 
 		// Update the mouse event state of all elements
 		bool hit = false;
@@ -59,6 +53,13 @@ void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 		}
 	}
 
+	// Update all elements
+	for (UGUIBase* elem : m_elements)
+	{
+		if (elem->IsTickable())
+			elem->OnTick(deltaTime);
+	}
+
 
 	// TODO - Just store elements in layers to start with
 	for (uint32 layer = 0; layer < 10; ++layer)
@@ -74,5 +75,11 @@ UGUIBase* AHUD::AddElement(SubClassOf<UGUIBase> type)
 { 
 	UGUIBase* gui = type->New<UGUIBase>();
 	m_elements.push_back(gui); 
+	gui->OnLoaded(this);
 	return gui;
+}
+
+const InputController* AHUD::GetInputController() const 
+{ 
+	return GetGame()->GetEngine()->GetInputController(); 
 }

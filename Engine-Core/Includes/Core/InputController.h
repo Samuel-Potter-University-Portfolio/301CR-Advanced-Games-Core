@@ -54,6 +54,7 @@ private:
 class InputController
 {
 private:
+	string m_typedString; // The current key board input (For typing)
 	bool m_keyStates[sf::Keyboard::Key::KeyCount]{ false };
 	bool m_mouseStates[sf::Mouse::Button::ButtonCount]{ false };
 	ivec2 m_mousePosition;
@@ -63,11 +64,15 @@ public:
 	~InputController();
 
 	/**
-	* Callback from engine for every tick by main
+	* Callback from engine before an event poll takes place
 	* @param game			The game that is currently active
-	* @param deltaTime		Time since last update (In seconds)
 	*/
-	void HandleUpdate(class Game* game, const float& deltaTime);
+	void PrePoll(class Game* game);
+	/**
+	* Callback from engine after an event poll takes place
+	* @param game			The game that is currently active
+	*/
+	void PostPoll(class Game* game);
 
 	/**
 	* Handles an SFML event
@@ -80,6 +85,8 @@ public:
 	* Getters & Setters
 	*/
 public:
+	inline const string& GetTypedString() const { return m_typedString; }
+
 	inline bool GetKeyState(const sf::Keyboard::Key& key) const { return m_keyStates[key]; }
 
 	inline const ivec2& GetMouseLocation() const { return m_mousePosition; }

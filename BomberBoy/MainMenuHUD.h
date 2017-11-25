@@ -6,6 +6,6 @@ class AMainMenuHUD : public AHUD
 {
 	CLASS_BODY()
 public:
-	AMainMenuHUD();
+	virtual void OnBegin() override;
 };
 

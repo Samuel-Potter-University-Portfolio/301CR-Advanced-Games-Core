@@ -13,6 +13,7 @@ class CORE_API AssetController
 {
 private:
 	std::unordered_map<string, sf::Texture*> m_textures;
+	std::unordered_map<string, sf::Font*> m_fonts;
 	std::unordered_map<string, AnimationSheet*> m_animations;
 public:
 	~AssetController();
@@ -47,6 +48,7 @@ public:
 	const sf::Texture* GetTexture(const string& path) const;
 
 
+
 	/**
 	* Registers this animation sheet (Forfeits memory rights over this animation to asset controller)
 	* @param path			URL to this animation
@@ -60,5 +62,26 @@ public:
 	* @returns The animation or nullptr if not registered
 	*/
 	const AnimationSheet* GetAnimation(const string& path) const;
+
+
+
+	/**
+	* Loads and registers this font
+	* @param path			URL to this font
+	*/
+	void RegisterFont(const string& path);
+	/**
+	* Registers this font (Forfeits memory rights over this texture to asset controller)
+	* @param path		URL to this font
+	* @param font		The font to register
+	*/
+	void RegisterFont(const string& path, sf::Font* font);
+
+	/**
+	* Retreives a font at this given path
+	* @param path		URL to the image file
+	* @returns The font or nullptr if not registered
+	*/
+	const sf::Font* GetFont(const string& path) const;
 };
 

@@ -13,6 +13,8 @@ struct MouseContainer
 	KeyBinding	leftButton		= KeyBinding(sf::Mouse::Button::Left);
 	KeyBinding	rightButton		= KeyBinding(sf::Mouse::Button::Right);
 	KeyBinding	middleButton	= KeyBinding(sf::Mouse::Button::Middle);
+
+	inline bool HasAnyInput() const { return leftButton.IsHeld() || rightButton.IsHeld() || middleButton.IsHeld(); }
 };
 
 /**
@@ -50,5 +52,7 @@ public:
 	* Getters & Setters
 	*/
 public:
+	const InputController* GetInputController() const;
+	inline const MouseContainer* GetMouse() const { return &m_mouse; }
 };
 

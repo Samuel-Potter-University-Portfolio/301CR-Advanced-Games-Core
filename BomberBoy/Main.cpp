@@ -42,6 +42,7 @@ static inline int entry(std::vector<string>& args)
 		// Register assets
 		ABCharacter::RegisterAssets(&game);
 		ABLevelArena::RegisterAssets(&game);
+		game.GetAssetController()->RegisterFont("Resources\\UI\\coolvetica.ttf");
 		
 
 		// Register actors

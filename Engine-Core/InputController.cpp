@@ -10,7 +10,12 @@ InputController::~InputController()
 {
 }
 
-void InputController::HandleUpdate(Game* game, const float& deltaTime)
+void InputController::PrePoll(Game* game) 
+{
+	m_typedString.clear();
+}
+
+void InputController::PostPoll(Game* game)
 {
 	LLevel* level = game->GetCurrentLevel();
 	if (level != nullptr)
@@ -48,6 +53,11 @@ void InputController::UpdateEvent(const sf::Event& event)
 			break;
 		case sf::Event::KeyReleased:
 			m_keyStates[event.key.code] = false;
+			break;
+
+		case sf::Event::TextEntered:
+			if(event.text.unicode < 128)
+				m_typedString += static_cast<char>(event.text.unicode);
 			break;
 
 		case sf::Event::MouseButtonPressed:

@@ -12,6 +12,11 @@ UGUIBase::UGUIBase() :
 {
 }
 
+void UGUIBase::OnLoaded(AHUD* hud) 
+{
+	m_parent = hud;
+}
+
 void UGUIBase::Draw(sf::RenderWindow* window, const float& deltaTime) 
 {
 	vec2 drawSize = GetDrawSize(window);
@@ -88,12 +93,14 @@ bool UGUIBase::IntersectRay(const ivec2& ray, const sf::RenderWindow* window) co
 
 	// Transform box into NDC
 	sf::Transform view = sf::View(vec2(0,0), drawSize).getTransform();
-	vec2 location = m_location - m_origin;
+	vec2 location = m_location;
+	location.x -= m_origin.x;
+	location.y += m_origin.y;
 
 	// Transfrom into corrected pixel space
 	sf::FloatRect rect = view.transformRect(sf::FloatRect(location, m_size));
 	rect.left += (0.5f + (rect.left + m_anchor.x) * 0.5f) * windowSize.x;
-	rect.top += (0.5f + (rect.top + m_anchor.x) * 0.5f) * windowSize.y;
+	rect.top += (0.5f + (rect.top + m_anchor.y + rect.height) * 0.5f) * windowSize.y;
 	rect.width *= windowSize.x * 0.5f;
 	rect.height *= windowSize.y * 0.5f;
 	return rect.contains(vec2(ray.x, ray.y));
