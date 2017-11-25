@@ -373,6 +373,7 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="AnimationSheet.cpp" />
     <ClCompile Include="AssetController.cpp" />
+    <ClCompile Include="Button.cpp" />
     <ClCompile Include="ByteBuffer.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DefaultNetLayer.cpp" />
@@ -402,6 +403,7 @@
     <ClInclude Include="Includes\Core\Actor.h" />
     <ClInclude Include="Includes\Core\AnimationSheet.h" />
     <ClInclude Include="Includes\Core\AssetController.h" />
+    <ClInclude Include="Includes\Core\Button.h" />
     <ClInclude Include="Includes\Core\ByteBuffer.h" />
     <ClInclude Include="Includes\Core\Camera.h" />
     <ClInclude Include="Includes\Core\Common.h" />

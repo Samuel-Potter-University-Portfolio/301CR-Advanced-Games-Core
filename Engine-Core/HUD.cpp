@@ -41,7 +41,7 @@ void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 				if (elem->GetDrawingLayer() == 9 - layer)
 				{
 					// Attempt to cast ray at topmost element
-					if (!hit && elem->IntersectRay(m_mouse.location, window))
+					if (!hit && elem->BlocksRaycasts() && elem->IntersectRay(m_mouse.location, window))
 					{
 						elem->HandleMouseOver(m_mouse);
 						hit = true;

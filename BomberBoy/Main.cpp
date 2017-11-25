@@ -4,10 +4,12 @@
 
 
 #include "MainLevel.h"
-#include "BCharacter.h"
+#include "MainMenuLevel.h"
 
 #include "MainMenuHUD.h"
 #include "BLevelControllerBase.h"
+
+#include "BCharacter.h"
 #include "BPlayerController.h"
 #include "BLevelArena.h"
 
@@ -34,8 +36,9 @@ static inline int entry(std::vector<string>& args)
 
 		// Add levels
 		game.RegisterClass(LMainLevel::StaticClass());
+		game.RegisterClass(LMainMenuLevel::StaticClass());
 
-		game.defaultLevel = LMainLevel::StaticClass();
+		game.defaultLevel = LMainMenuLevel::StaticClass();
 		game.defaultNetLevel = LMainLevel::StaticClass();
 
 

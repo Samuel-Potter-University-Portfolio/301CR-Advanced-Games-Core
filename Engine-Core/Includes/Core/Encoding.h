@@ -150,7 +150,7 @@ inline bool Decode<bool>(ByteBuffer& buffer, bool& out, void* context)
 	if (buffer.Size() < sizeof(int8))
 		return false;
 
-	out = (bool)buffer.Pop();
+	out = (buffer.Pop() != 0);
 	return true;
 }
 

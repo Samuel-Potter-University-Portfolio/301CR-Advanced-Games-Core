@@ -15,6 +15,7 @@
     <ClCompile Include="BTileableActor.cpp" />
     <ClCompile Include="BBomb.cpp" />
     <ClCompile Include="MainMenuHUD.cpp" />
+    <ClCompile Include="MainMenuLevel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -42,6 +43,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="MainMenuHUD.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuLevel.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

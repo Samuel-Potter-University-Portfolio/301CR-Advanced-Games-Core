@@ -7,7 +7,9 @@ UInputField* UInputField::s_currentFocus = nullptr;
 
 
 UInputField::UInputField() :
-	m_textColour(0,0,0,255)
+	m_textColour(0, 0, 0, 255),
+	m_defaultColour(210, 210, 210, 255),
+	m_disabledColour(50, 50, 50, 255)
 {
 	bIsTickable = true;
 }
@@ -52,6 +54,11 @@ void UInputField::OnTick(const float& deltaTime)
 
 void UInputField::OnMousePressed()
 {
+	if (IsDisabled())
+		return;
+
+	if (s_currentFocus != this && s_currentFocus != nullptr)
+		s_currentFocus->OnInputDefocus();
 	s_currentFocus = this;
 	OnInputFocus();
 }
@@ -59,6 +66,12 @@ void UInputField::OnMousePressed()
 
 void UInputField::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
+	// Change colour of button
+	if (IsDisabled())
+		SetColour(m_disabledColour);
+	else
+		SetColour(m_defaultColour);
+
 	DrawDefaultRect(window);
 	DrawDefaultText(window);
 }
@@ -78,7 +91,7 @@ void UInputField::DrawDefaultText(sf::RenderWindow* window)
 
 	text.setFont(*m_font);
 	text.setFillColor(IsFocused() ? m_textColour : Colour(m_textColour.r, m_textColour.g, m_textColour.b, 150));
-	text.setStyle(IsFocused() ? sf::Text::Regular : sf::Text::Italic);
+	text.setStyle(sf::Text::Regular);
 
 	text.setCharacterSize(m_fontSize);
 	// Leaving scale as default, will scale with window
@@ -91,6 +104,7 @@ void UInputField::DrawDefaultText(sf::RenderWindow* window)
 	if (!IsFocused() && m_value.empty())
 	{
 		text.setString(m_defaultValue);
+		text.setStyle(sf::Text::Italic);
 	}
 	else
 	{

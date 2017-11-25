@@ -26,12 +26,14 @@ public:
 
 protected:
 	bool bIsTickable = false;
-	bool bIsVisible = true;
 	uint8 m_drawingLayer;
 
 private:
 	AHUD* m_parent = nullptr;
 	bool bMouseWasOver = false;
+	bool bBlockRaycasts = true;
+	bool bIsVisible = true;
+	bool bIsDisabled = false;
 
 	ScalingMode m_scalingMode = ScalingMode::PixelPerfect;
 	vec2 m_location;
@@ -127,11 +129,17 @@ public:
 	inline uint8 GetDrawingLayer() const { return m_drawingLayer; }
 	inline bool IsTickable() const { return bIsTickable; }
 
+	inline void SetDisabled(const bool& value) { bIsDisabled = value; }
+	inline const bool& IsDisabled() const { return bIsDisabled; }
+
 	inline AHUD* GetHUD() const { return m_parent; }
 	inline bool IsMouseOver() const { return bMouseWasOver; }
 
 	inline bool IsVisible() const { return bIsVisible; }
 	inline void SetVisible(const bool& value) { bIsVisible = value; }
+
+	inline bool BlocksRaycasts() const { return bBlockRaycasts; }
+	inline void SetBlocksRaycasts(const bool& value) { bBlockRaycasts = value; }
 
 	inline void SetScalingMode(const ScalingMode& value) { m_scalingMode = value; }
 	inline ScalingMode GetScalingMode() const { return m_scalingMode; }

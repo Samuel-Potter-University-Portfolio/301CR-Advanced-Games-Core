@@ -82,6 +82,9 @@
     <ClCompile Include="InputField.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -210,6 +213,9 @@
       <Filter>Includes\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Includes\Core\InputField.h">
+      <Filter>Includes\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\Button.h">
       <Filter>Includes\Graphics</Filter>
     </ClInclude>
   </ItemGroup>

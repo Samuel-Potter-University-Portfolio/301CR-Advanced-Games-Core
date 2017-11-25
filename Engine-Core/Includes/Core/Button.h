@@ -1,41 +1,40 @@
 #pragma once
 #include "GUIBase.h"
+#include <functional>
+
+
+typedef std::function<void()> ButtonCallback;
+
 
 /**
-* Represents a text input field that the user may focus on and type in
+* A button which will call a specific callback when pressed
 */
-class CORE_API UInputField : public UGUIBase
+class CORE_API UButton : public UGUIBase
 {
 	CLASS_BODY()
 private:
-	static UInputField* s_currentFocus;
+	ButtonCallback m_callback;
+	bool bPressedOnThis = false;
 
 	Colour m_defaultColour;
+	Colour m_enteredColour;
+	Colour m_pressedColour;
 	Colour m_disabledColour;
 
-	string m_value;
-	string m_defaultValue = "Input";
+
+	string m_text;
 	Colour m_textColour;
 
 	const sf::Font* m_font = nullptr;
 	uint32 m_fontSize = 24;
 
 public:
-	UInputField();
+	UButton();
 
+	virtual void OnMouseExit() override;
 
-	virtual void OnTick(const float& deltaTime) override;
 	virtual void OnMousePressed() override;
-
-	/**
-	* Callback for when the user focuses on this field
-	*/
-	virtual void OnInputFocus() {}
-	/**
-	* Callback for when the user defocusses on this field
-	* May be called for user pressing return or clicking off of the field
-	*/
-	virtual void OnInputDefocus() {}
+	virtual void OnMouseReleased() override;
 
 	/**
 	* Called when this GUI should be drawn to the screen
@@ -47,27 +46,30 @@ public:
 	* Draw the default text using applied settings
 	* @param window			The window to draw to
 	*/
-	void DrawDefaultText(sf::RenderWindow* window);
-
+	void DrawDefaultButtonText(sf::RenderWindow* window);
 
 	/**
 	* Getters & Setters
 	*/
 public:
-	inline bool IsFocused() const { return s_currentFocus == this && !IsDisabled(); }
+	inline void SetCallback(ButtonCallback callback) { m_callback = callback; }
+
 
 	inline void SetDefaultColour(const Colour& value) { m_defaultColour = value; }
 	inline const Colour& GetDefaultColour() const { return m_defaultColour; }
+
+	inline void SetEnteredColour(const Colour& value) { m_enteredColour = value; }
+	inline const Colour& GetEnteredColour() const { return m_enteredColour; }
+
+	inline void SetPressedColour(const Colour& value) { m_pressedColour = value; }
+	inline const Colour& GetPressedColour() const { return m_pressedColour; }
 
 	inline void SetDisabledColour(const Colour& value) { m_disabledColour = value; }
 	inline const Colour& GetDisabledColour() const { return m_disabledColour; }
 
 
-	inline void SetValue(const string& value) { m_value = value; }
-	inline const string& GetValue() const { return m_value; }
-
-	inline void SetDefaultValue(const string& value) { m_defaultValue = value; }
-	inline const string& GetDefaultValue() const { return m_defaultValue; }
+	inline void SetText(const string& value) { m_text = value; }
+	inline const string& GetText() const { return m_text; }
 
 	inline void SetTextColour(const Colour& value) { m_textColour = value; }
 	inline const Colour& GetTextColour() const { return m_textColour; }

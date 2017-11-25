@@ -73,10 +73,26 @@ void AMainMenuHUD::OnBegin()
 
 	UInputField* elem0 = (UInputField*)AddElement(UInputField::StaticClass());
 	elem0->SetAnchor(vec2(-1, -1));
-	elem0->SetSize(vec2(200, 60));
+	elem0->SetSize(vec2(200, 40));
 	elem0->SetOrigin(vec2(0, 0));
 	elem0->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
 	elem0->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
+	elem0->SetDisabled(true);
+
+
+	UButton* button = (UButton*)AddElement(UButton::StaticClass());
+	button->SetAnchor(vec2(0, 0));
+	button->SetSize(vec2(200, 60));
+	button->SetOrigin(vec2(100, 30));
+	button->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
+	button->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
+	button->SetCallback(
+		[this]() 
+		{
+			LOG("WOOO");
+		}
+	);
+	button->SetDisabled(true);
 
 	//UGUIBase* elem1 = AddElement(UTempGUI::StaticClass());
 	//elem1->SetAnchor(vec2(1, 1));

@@ -44,6 +44,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="MainMenuHUD.cpp" />
+    <ClCompile Include="MainMenuLevel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BBomb.h" />
@@ -54,6 +55,7 @@
     <ClInclude Include="BTileableActor.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="MainMenuHUD.h" />
+    <ClInclude Include="MainMenuLevel.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
