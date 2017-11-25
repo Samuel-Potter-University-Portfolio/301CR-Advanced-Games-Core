@@ -1,5 +1,6 @@
 #pragma once
-#include "Core\Level.h"
+#include "Core\Core-Common.h"
+
 
 class LMainLevel : public LLevel
 {

@@ -8,3 +8,5 @@
 #include "Actor.h"
 
 #include "AnimationSheet.h"
+
+#include "DefaultNetLayer.h"

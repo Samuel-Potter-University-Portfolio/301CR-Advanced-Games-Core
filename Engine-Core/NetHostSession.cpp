@@ -92,6 +92,7 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 					EncodeHandshakeResponse(NetResponseCode::Accepted, response, it->second->controller);
 					m_TcpSocket.SendTo(response.Data(), response.Size(), it->first);
 					it->second->inactivityTimer = 0; // Reset timer
+					it->second->state = NetPlayerConnection::State::Connected;
 					LOG("Player(%i) connected from %s:%i", it->second->controller->GetNetworkOwnerID(), it->first.ip.toString().c_str(), it->first.port);
 				}
 
@@ -104,7 +105,6 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 
 					// Forcefully destroy as it wasn't added to the game yet
 					m_playerControllers.erase(std::remove(m_playerControllers.begin(), m_playerControllers.end(), it->second->controller), m_playerControllers.end());
-					it->second->controller->OnDestroy();
 					delete it->second->controller;
 					delete it->second;
 					m_connectionLookup.erase(it++);

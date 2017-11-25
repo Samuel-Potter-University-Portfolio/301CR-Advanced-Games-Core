@@ -26,7 +26,16 @@ void LMainLevel::OnBuildLevel()
 	// DEBUG: TEST
 	if (GetGame()->GetSession() == nullptr)
 	{
-		GetGame()->GetEngine()->GetNetController()->JoinSession(GetGame()->GetEngine()->GetDefaultNetIdentity());
+		GetGame()->GetEngine()->GetNetController()->JoinSession(GetGame()->GetEngine()->GetDefaultNetIdentity(), 
+			[](NetLayer* layerPtr) 
+			{
+				DefaultNetLayer* layer = dynamic_cast<DefaultNetLayer*>(layerPtr);
+				if (layer == nullptr)
+					return;
+
+				layer->SetPassword("Test");
+			}
+		);
 	}
 #endif
 }

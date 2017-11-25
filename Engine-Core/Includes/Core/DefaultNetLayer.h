@@ -10,13 +10,16 @@
 *  -Player controller naming in handshake
 *  -Passworded connections
 */
-class DefaultNetLayer : public NetLayer
+class CORE_API DefaultNetLayer : public NetLayer
 {
 	CLASS_BODY()
 protected:
 	string m_password;
 
 public:
+	DefaultNetLayer();
+
+protected:
 	/**
 	* Callback for when this layer starts to be used
 	*/

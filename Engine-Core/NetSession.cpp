@@ -18,14 +18,19 @@ NetSession::NetSession(Game* game, const NetIdentity identity) :
 	m_objectNetIdCounter = 1; 
 	m_actorNetIdCounter = 1;
 
-	LOG("Using '%s' NetLayer", game->netLayerClass->GetName().c_str());
-	m_netLayer = game->netLayerClass->New<NetLayer>();
-	m_netLayer->Initialize(game, this);
+	m_netLayer = nullptr;
 }
 
 NetSession::~NetSession()
 {
 	delete m_netLayer;
+}
+
+void NetSession::SetupLayer(SubClassOf<NetLayer> layerType, ConfigLayer configLayer) 
+{
+	LOG("Using '%s' as NetLayer", layerType->GetName().c_str());
+	m_netLayer = layerType->New<NetLayer>();
+	m_netLayer->Initialize(GetGame(), this, configLayer);
 }
 
 

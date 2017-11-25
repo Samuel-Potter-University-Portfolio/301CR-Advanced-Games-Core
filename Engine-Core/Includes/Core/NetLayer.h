@@ -6,6 +6,9 @@
 #include "NetSocket.h"
 
 
+#include <functional>
+typedef std::function<void(class NetLayer*)> ConfigLayer;
+
 
 /**
 * What sort of requests can be performed during a handshake
@@ -61,8 +64,9 @@ public:
 	* Initializes this layer
 	* @param game			The game currently in use
 	* @param session		The session this layer is being used on
+	* @param configLayer	Callback to configure the layer with the given settings
 	*/
-	void Initialize(Game* game, NetSession* session);
+	void Initialize(Game* game, NetSession* session, ConfigLayer configLayer);
 	virtual ~NetLayer();
 
 

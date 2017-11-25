@@ -1,5 +1,7 @@
 #include "Includes\Core\NetController.h"
 
+#include "Includes\Core\Game.h"
+
 #include "Includes\Core\NetHostSession.h"
 #include "Includes\Core\NetRemoteSession.h"
 
@@ -50,7 +52,7 @@ void NetController::HandleUpdate(const float& deltaTime)
 	}
 }
 
-bool NetController::HostSession(const NetIdentity& host)
+bool NetController::HostSession(const NetIdentity& host, ConfigLayer configLayer)
 {
 	if (m_activeSession != nullptr)
 	{
@@ -59,6 +61,8 @@ bool NetController::HostSession(const NetIdentity& host)
 	}
 
 	NetHostSession* session = new NetHostSession(m_engine->GetGame(), host);
+	session->SetupLayer(m_engine->GetGame()->netLayerClass, configLayer);
+
 	if (!session->Start())
 	{
 		delete session;
@@ -69,7 +73,7 @@ bool NetController::HostSession(const NetIdentity& host)
 	return true;
 }
 
-bool NetController::JoinSession(const NetIdentity& remote)
+bool NetController::JoinSession(const NetIdentity& remote, ConfigLayer configLayer)
 {
 	if (m_activeSession != nullptr)
 	{
@@ -78,6 +82,8 @@ bool NetController::JoinSession(const NetIdentity& remote)
 	}
 
 	NetRemoteSession* session = new NetRemoteSession(m_engine->GetGame(), remote);
+	session->SetupLayer(m_engine->GetGame()->netLayerClass, configLayer);
+
 	if (!session->Start())
 	{
 		delete session;

@@ -70,7 +70,9 @@
     <ClCompile Include="NetLayer.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
-    <ClCompile Include="DefaultNetLayer.cpp" />
+    <ClCompile Include="DefaultNetLayer.cpp">
+      <Filter>Source\Net</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -189,6 +191,8 @@
     <ClInclude Include="Includes\Core\NetLayer.h">
       <Filter>Includes\Net</Filter>
     </ClInclude>
-    <ClInclude Include="Includes\Core\DefaultNetLayer.h" />
+    <ClInclude Include="Includes\Core\DefaultNetLayer.h">
+      <Filter>Includes\Net</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

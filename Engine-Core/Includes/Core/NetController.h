@@ -7,6 +7,7 @@
 #include "NetSocketTcp.h"
 #include "NetSocketUdp.h"
 #include "NetSession.h"
+#include "NetLayer.h"
 
 
 #include <list>
@@ -53,16 +54,18 @@ public:
 	/**
 	* Attempt to host a new game session over this network identity
 	* @param host			The ip:port to host over
+	* @param configLayer	Callback for when the layer comes into use
 	* @returns If host session successfully opens
 	*/
-	bool HostSession(const NetIdentity& host);
+	bool HostSession(const NetIdentity& host, ConfigLayer configLayer = ConfigLayer());
 
 	/**
 	* Attempt to connect to a remotely hosted game session at this network identity
 	* @param remote			The ip:port to connect to
+	* @param configLayer	Callback for when the layer comes into use
 	* @returns If successfully attempt to talk to remote session
 	*/
-	bool JoinSession(const NetIdentity& remote);
+	bool JoinSession(const NetIdentity& remote, ConfigLayer configLayer = ConfigLayer());
 
 
 	/**

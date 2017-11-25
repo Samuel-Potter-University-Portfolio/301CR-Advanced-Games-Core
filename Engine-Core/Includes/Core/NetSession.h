@@ -90,6 +90,13 @@ public:
 	virtual ~NetSession();
 
 	/**
+	* Setup the NetLayer to use for this session
+	* @param layerType			The layer class to use
+	* @param configLayer		Callback to use to configure this layer
+	*/
+	void SetupLayer(SubClassOf<NetLayer> layerType, ConfigLayer configLayer);
+
+	/**
 	* Attempt to start up the session at/on this identity
 	* @returns If setup correctly
 	*/

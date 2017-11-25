@@ -7,10 +7,14 @@
 CLASS_SOURCE(DefaultNetLayer, CORE_API)
 
 
-void DefaultNetLayer::OnBegin() 
+DefaultNetLayer::DefaultNetLayer() 
 {
 	m_connFlags = 0;
 	m_password = "";
+}
+
+void DefaultNetLayer::OnBegin() 
+{
 }
 
 void DefaultNetLayer::OnEncodeHandshake(const NetIdentity& host, ByteBuffer& outBuffer)
@@ -24,21 +28,32 @@ void DefaultNetLayer::OnEncodeHandshake(const NetIdentity& host, ByteBuffer& out
 	
 
 	Encode<string>(outBuffer, playerName);
-	Encode<string>(outBuffer, m_password); // Password
+	Encode<string>(outBuffer, m_password);
 }
 
+static int i = 0;
 NetResponseCode DefaultNetLayer::OnDecodeHandshake(const NetIdentity& connection, ByteBuffer& inBuffer, OPlayerController*& outPlayer)
 {
-	string playerName;
-	string password;
+	if (i == 0)
+	{
 
-	if (!Decode(inBuffer, playerName) || !Decode(inBuffer, password))
-		return NetResponseCode::BadRequest;
+		string playerName;
+		string password;
 
-	if (!m_password.empty() && m_password != password)
-		return NetResponseCode::BadAuthentication;
+		if (!Decode(inBuffer, playerName) || !Decode(inBuffer, password))
+			return NetResponseCode::BadRequest;
 
-	outPlayer->SetPlayerName(playerName);
+		if (!m_password.empty() && m_password != password)
+			return NetResponseCode::BadAuthentication;
+
+		++i;
+		outPlayer->SetPlayerName(playerName);
+		return NetResponseCode::WaitingOnUpStream;
+	}
+
+	if(++i < 100)
+		return NetResponseCode::WaitingOnUpStream;
+
 	return NetResponseCode::Accepted;
 }
 
