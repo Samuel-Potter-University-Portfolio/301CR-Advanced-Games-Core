@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include <SFML\Graphics.hpp>
 
 
@@ -7,15 +8,25 @@
 */
 struct KeyBinding 
 {
-public:
+private:
+	friend class InputController;
 	// The key to listen for 
-	sf::Keyboard::Key key;	
+	sf::Keyboard::Key m_key;
+	// The mouse button to listen for 
+	sf::Mouse::Button m_button;
 
-	KeyBinding(const sf::Keyboard::Key& key = sf::Keyboard::Unknown) : key(key)
+	enum BindingMode
 	{
-		bIsPressed = false;
-		bIsReleased = false;
-		bIsHeld = false;
+		Keyboard, Mouse
+	} m_bindingMode;
+public:
+	KeyBinding(const sf::Keyboard::Key& key) : m_key(key), m_button(sf::Mouse::Button::ButtonCount)
+	{
+		m_bindingMode = BindingMode::Keyboard;
+	}
+	KeyBinding(const sf::Mouse::Button& button) : m_key(sf::Keyboard::Unknown), m_button(button)
+	{
+		m_bindingMode = BindingMode::Mouse;
 	}
 
 
@@ -30,9 +41,9 @@ public:
 
 private:
 	friend class InputController;
-	bool bIsPressed;
-	bool bIsReleased;
-	bool bIsHeld;
+	bool bIsPressed = false;
+	bool bIsReleased = false;
+	bool bIsHeld = false;
 };
 
 
@@ -44,6 +55,8 @@ class InputController
 {
 private:
 	bool m_keyStates[sf::Keyboard::Key::KeyCount]{ false };
+	bool m_mouseStates[sf::Mouse::Button::ButtonCount]{ false };
+	ivec2 m_mousePosition;
 
 public:
 	InputController();
@@ -57,10 +70,19 @@ public:
 	void HandleUpdate(class Game* game, const float& deltaTime);
 
 	/**
-	* Internally updates the state of this key 
-	* @param event			Information about the key event
-	* @param pressed		Was this a keypressed event (Or a released, if false)
+	* Handles an SFML event
+	* @param event			Information about the event
 	*/
-	void UpdateKeystate(const sf::Event::KeyEvent& event, const bool& pressed);
+	void UpdateEvent(const sf::Event& event);
+
+
+	/**
+	* Getters & Setters
+	*/
+public:
+	inline bool GetKeyState(const sf::Keyboard::Key& key) const { return m_keyStates[key]; }
+
+	inline const ivec2& GetMouseLocation() const { return m_mousePosition; }
+	inline bool GetMouseButtonState(const sf::Mouse::Button& key) const { return m_mouseStates[key]; }
 };
 

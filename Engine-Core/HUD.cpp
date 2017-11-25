@@ -9,6 +9,9 @@ CLASS_SOURCE(AHUD, CORE_API)
 AHUD::AHUD()
 {
 	bIsNetSynced = false;
+	RegisterKeybinding(&m_mouse.leftButton);
+	RegisterKeybinding(&m_mouse.rightButton);
+	RegisterKeybinding(&m_mouse.middleButton);
 }
 
 AHUD::~AHUD()
@@ -17,17 +20,53 @@ AHUD::~AHUD()
 		delete gui;
 }
 
+void AHUD::OnTick(const float& deltaTime) 
+{
+	// Update all elements
+	for (UGUIBase* elem : m_elements)
+	{
+		if(elem->IsTickable())
+			elem->OnTick(deltaTime);
+	}
+}
+
 void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 {
-	// TODO - Update GUI logic!
-	// Mouse update: GetGame()->GetEngine()->GetInputerController()
+	// Attempt to handle mouse events
+	{
+		m_mouse.location = GetGame()->GetEngine()->GetInputController()->GetMouseLocation();
+
+		// Update the mouse event state of all elements
+		bool hit = false;
+		for (uint32 layer = 0; layer < 10; ++layer)
+		{
+			for (uint32 i = 0; i < m_elements.size(); ++i)
+			{
+				// Go through layers from top to bottom
+				UGUIBase* elem = m_elements[i];
+				if (elem->GetDrawingLayer() == 9 - layer)
+				{
+					// Attempt to cast ray at topmost element
+					if (!hit && elem->IntersectRay(m_mouse.location, window))
+					{
+						elem->HandleMouseOver(m_mouse);
+						hit = true;
+					}
+					else
+						elem->HandleMouseMiss(m_mouse);
+				}
+			}
+		}
+	}
+
 
 	// TODO - Just store elements in layers to start with
 	for (uint32 layer = 0; layer < 10; ++layer)
 		for (uint32 i = 0; i < m_elements.size(); ++i)
 		{
-			if (m_elements[i]->GetDrawingLayer() == layer)
-				m_elements[i]->Draw(window, deltaTime);
+			UGUIBase* elem = m_elements[i];
+			if (elem->IsVisible() && elem->GetDrawingLayer() == layer)
+				elem->Draw(window, deltaTime);
 		}
 }
 

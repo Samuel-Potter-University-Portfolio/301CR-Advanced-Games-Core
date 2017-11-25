@@ -82,9 +82,6 @@ void Engine::MainLoop()
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
 		m_game->MainUpdate(deltaTime);
 		m_netController->HandleUpdate(deltaTime);
-#ifdef BUILD_CLIENT
-		m_inputController->HandleUpdate(m_game, deltaTime);
-#endif
 
 		// Sleep a little
 		// TODO - More elegant checks to compensate for large loops
@@ -136,6 +133,7 @@ void Engine::DisplayLoop()
 
 		// Tick rendering 
 		const float deltaTime = (float)(clock.restart().asMicroseconds()) / 1000000.0f;
+		m_inputController->HandleUpdate(m_game, deltaTime);
 		m_game->DisplayUpdate(deltaTime);
 
 		// Update display (Performs any syncing aswell)
@@ -157,36 +155,10 @@ void Engine::DisplayLoop()
 
 void Engine::HandleDisplayEvent(sf::Event& event) 
 {
-	switch (event.type)
-	{
-	case sf::Event::Closed:
+	if (event.type == sf::Event::Closed)
 		Close();
-		break;
-		
-	case sf::Event::KeyPressed:
-		m_inputController->UpdateKeystate(event.key, true);
-		break;
-	case sf::Event::KeyReleased:
-		m_inputController->UpdateKeystate(event.key, false);
-		break;
-
-	case sf::Event::MouseButtonPressed:
-		break;
-	case sf::Event::MouseButtonReleased:
-		break;
-	case sf::Event::MouseWheelMoved:
-		break;
-	case sf::Event::MouseMoved:
-		break;
-
-	case sf::Event::JoystickButtonPressed:
-		break;
-	case sf::Event::JoystickButtonReleased:
-		break;
-	case sf::Event::JoystickMoved:
-		break;
-		
-	}
+	else
+		m_inputController->UpdateEvent(event);
 }
 
 #endif

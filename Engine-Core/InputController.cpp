@@ -25,7 +25,13 @@ void InputController::HandleUpdate(Game* game, const float& deltaTime)
 				for (KeyBinding* binding : actor->GetKeyBindings()) 
 				{
 					const bool lastState = binding->bIsHeld;
-					const bool currentState = m_keyStates[binding->key];
+					bool currentState;
+
+					if (binding->m_bindingMode == KeyBinding::BindingMode::Keyboard)
+						currentState = m_keyStates[binding->m_key];
+					else
+						currentState = m_mouseStates[binding->m_button];
+
 					binding->bIsPressed = !lastState && currentState;
 					binding->bIsReleased = lastState && !currentState;
 					binding->bIsHeld = currentState;
@@ -33,7 +39,37 @@ void InputController::HandleUpdate(Game* game, const float& deltaTime)
 	}
 }
 
-void InputController::UpdateKeystate(const sf::Event::KeyEvent& event, const bool& pressed)
+void InputController::UpdateEvent(const sf::Event& event)
 {
-	m_keyStates[event.code] = pressed;
+	switch (event.type)
+	{
+		case sf::Event::KeyPressed:
+			m_keyStates[event.key.code] = true;
+			break;
+		case sf::Event::KeyReleased:
+			m_keyStates[event.key.code] = false;
+			break;
+
+		case sf::Event::MouseButtonPressed:
+			m_mouseStates[event.mouseButton.button] = true;
+			break;
+		case sf::Event::MouseButtonReleased:
+			m_mouseStates[event.mouseButton.button] = false;
+			break;
+
+		case sf::Event::MouseWheelMoved:
+			break;
+
+		case sf::Event::MouseMoved:
+			m_mousePosition.x = event.mouseMove.x;
+			m_mousePosition.y = event.mouseMove.y;
+			break;
+
+		case sf::Event::JoystickButtonPressed:
+			break;
+		case sf::Event::JoystickButtonReleased:
+			break;
+		case sf::Event::JoystickMoved:
+			break;
+	}
 }

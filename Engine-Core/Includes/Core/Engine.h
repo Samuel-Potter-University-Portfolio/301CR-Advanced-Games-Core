@@ -84,7 +84,7 @@ public:
 	inline const Version& GetVersionNo() const { return m_version; }
 
 	inline NetController* GetNetController() const { return m_netController; }
-	inline InputController* GetInputerController() const { return m_inputController; }
+	inline InputController* GetInputController() const { return m_inputController; }
 
 	inline const NetIdentity& GetDefaultNetIdentity() const { return m_defaultNetIdentity; }
 
