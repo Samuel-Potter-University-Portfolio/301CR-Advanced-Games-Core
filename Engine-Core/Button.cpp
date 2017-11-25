@@ -8,12 +8,14 @@ UButton::UButton() :
 	m_defaultColour(210, 210, 210, 255),
 	m_enteredColour(225, 225, 225, 255),
 	m_pressedColour(255, 255, 255, 255), 
-	m_disabledColour(50, 50, 50, 255),
-
-	m_text("Button"),
-	m_textColour(0, 0, 0, 255)
+	m_disabledColour(50, 50, 50, 255)
 {
 	SetColour(m_defaultColour);
+	SetText("Button");
+	SetDrawBackground(true);
+
+	SetHorizontalAlignment(ULabel::HorizontalAlignment::Centre);
+	SetVerticalAlignment(ULabel::VerticalAlignment::Middle);
 }
 
 
@@ -49,40 +51,19 @@ void UButton::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	else
 		SetColour(m_defaultColour);
 
-	DrawDefaultRect(window);
-	DrawDefaultButtonText(window);
-}
-
-void UButton::DrawDefaultButtonText(sf::RenderWindow* window) 
-{
-	// SFML won't render it anyway, so just exit early
-	if (m_font == nullptr)
-		return;
-
-
-	sf::Text text;
-	text.setString(m_text);
-	text.setOrigin(GetOrigin());
-	text.setPosition(GetLocation() + GetSize() * 0.5f);
-
-	text.setFont(*m_font);
-	text.setFillColor(m_textColour);
-
+	// Change style of text, if disabled
 	if (IsDisabled())
 	{
-		text.setFillColor(Colour(m_textColour.r, m_textColour.g, m_textColour.b, 150));
-		text.setStyle(sf::Text::Italic);
+		Colour col = GetTextColour();
+		col.a = 150;
+		SetTextColour(col);
+	}
+	else
+	{
+		Colour col = GetTextColour();
+		col.a = 255;
+		SetTextColour(col);
 	}
 
-	text.setCharacterSize(m_fontSize);
-	// Leaving scale as default, will scale with window
-	if (GetScalingMode() == ScalingMode::PixelPerfect)
-		text.setScale(vec2(1, 1));
-
-
-	// Move to get text in centre of box
-	sf::FloatRect bounds = text.getGlobalBounds();
-	text.setPosition(text.getPosition() - vec2(bounds.width * 0.5f, bounds.height));
-
-	window->draw(text);
+	Super::OnDraw(window, deltaTime);
 }

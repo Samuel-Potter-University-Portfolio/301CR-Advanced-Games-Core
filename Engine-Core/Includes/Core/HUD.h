@@ -49,6 +49,13 @@ public:
 	UGUIBase* AddElement(SubClassOf<UGUIBase> type);
 
 	/**
+	* Add a GUI element to the HUD
+	* @returns The new object (Or nullptr if failed)
+	*/
+	template<class Type>
+	inline Type* AddElement() { return static_cast<Type*>(AddElement(Type::StaticClass())); }
+
+	/**
 	* Getters & Setters
 	*/
 public:

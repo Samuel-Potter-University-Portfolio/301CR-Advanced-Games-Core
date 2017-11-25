@@ -85,6 +85,9 @@
     <ClCompile Include="Button.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Label.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -216,6 +219,9 @@
       <Filter>Includes\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Includes\Core\Button.h">
+      <Filter>Includes\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\Label.h">
       <Filter>Includes\Graphics</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,24 +1,25 @@
 #pragma once
-#include "GUIBase.h"
+#include "Label.h"
+#include <functional>
+
+
+typedef std::function<void(string)> FieldCallback;
+
 
 /**
 * Represents a text input field that the user may focus on and type in
 */
-class CORE_API UInputField : public UGUIBase
+class CORE_API UInputField : public ULabel
 {
 	CLASS_BODY()
 private:
 	static UInputField* s_currentFocus;
+	FieldCallback m_callback;
 
 	Colour m_defaultColour;
 	Colour m_disabledColour;
 
-	string m_value;
-	string m_defaultValue = "Input";
-	Colour m_textColour;
-
-	const sf::Font* m_font = nullptr;
-	uint32 m_fontSize = 24;
+	string m_defaultText = "Input";
 
 public:
 	UInputField();
@@ -35,7 +36,7 @@ public:
 	* Callback for when the user defocusses on this field
 	* May be called for user pressing return or clicking off of the field
 	*/
-	virtual void OnInputDefocus() {}
+	virtual void OnInputDefocus();
 
 	/**
 	* Called when this GUI should be drawn to the screen
@@ -43,18 +44,21 @@ public:
 	* @param deltaTime		Time since last draw in seconds
 	*/
 	void OnDraw(sf::RenderWindow* window, const float& deltaTime) override;
+
 	/**
-	* Draw the default text using applied settings
-	* @param window			The window to draw to
+	* Get the clamped texts to display
+	* @returns Text that is safe to display
 	*/
-	void DrawDefaultText(sf::RenderWindow* window);
+	string GetClampedText() const;
 
 
 	/**
 	* Getters & Setters
 	*/
 public:
+	inline void SetCallback(FieldCallback callback) { m_callback = callback; }
 	inline bool IsFocused() const { return s_currentFocus == this && !IsDisabled(); }
+
 
 	inline void SetDefaultColour(const Colour& value) { m_defaultColour = value; }
 	inline const Colour& GetDefaultColour() const { return m_defaultColour; }
@@ -62,20 +66,7 @@ public:
 	inline void SetDisabledColour(const Colour& value) { m_disabledColour = value; }
 	inline const Colour& GetDisabledColour() const { return m_disabledColour; }
 
-
-	inline void SetValue(const string& value) { m_value = value; }
-	inline const string& GetValue() const { return m_value; }
-
-	inline void SetDefaultValue(const string& value) { m_defaultValue = value; }
-	inline const string& GetDefaultValue() const { return m_defaultValue; }
-
-	inline void SetTextColour(const Colour& value) { m_textColour = value; }
-	inline const Colour& GetTextColour() const { return m_textColour; }
-
-	inline void SetFont(const sf::Font* value) { m_font = value; }
-	inline const sf::Font* GetFont() const { return m_font; }
-
-	inline void SetFontSize(const uint32& value) { m_fontSize = value; }
-	inline const uint32& GetFontSize() const { return m_fontSize; }
+	inline void SetDefaultText(const string& value) { m_defaultText = value; }
+	inline const string& GetDefaultText() const { return m_defaultText; }
 };
 

@@ -383,6 +383,7 @@
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="InputController.cpp" />
     <ClCompile Include="InputField.cpp" />
+    <ClCompile Include="Label.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="LevelController.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -418,6 +419,7 @@
     <ClInclude Include="Includes\Core\HUD.h" />
     <ClInclude Include="Includes\Core\InputController.h" />
     <ClInclude Include="Includes\Core\InputField.h" />
+    <ClInclude Include="Includes\Core\Label.h" />
     <ClInclude Include="Includes\Core\Level.h" />
     <ClInclude Include="Includes\Core\LevelController.h" />
     <ClInclude Include="Includes\Core\Logger.h" />

@@ -9,6 +9,7 @@
 
 #include "AnimationSheet.h"
 
+#include "Label.h"
 #include "InputField.h"
 #include "Button.h"
 

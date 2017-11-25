@@ -1,5 +1,5 @@
 #pragma once
-#include "GUIBase.h"
+#include "Label.h"
 #include <functional>
 
 
@@ -9,7 +9,7 @@ typedef std::function<void()> ButtonCallback;
 /**
 * A button which will call a specific callback when pressed
 */
-class CORE_API UButton : public UGUIBase
+class CORE_API UButton : public ULabel
 {
 	CLASS_BODY()
 private:
@@ -20,13 +20,6 @@ private:
 	Colour m_enteredColour;
 	Colour m_pressedColour;
 	Colour m_disabledColour;
-
-
-	string m_text;
-	Colour m_textColour;
-
-	const sf::Font* m_font = nullptr;
-	uint32 m_fontSize = 24;
 
 public:
 	UButton();
@@ -41,12 +34,7 @@ public:
 	* @param window			The window to draw to
 	* @param deltaTime		Time since last draw in seconds
 	*/
-	void OnDraw(sf::RenderWindow* window, const float& deltaTime) override;
-	/**
-	* Draw the default text using applied settings
-	* @param window			The window to draw to
-	*/
-	void DrawDefaultButtonText(sf::RenderWindow* window);
+	virtual void OnDraw(sf::RenderWindow* window, const float& deltaTime) override;
 
 	/**
 	* Getters & Setters
@@ -66,18 +54,5 @@ public:
 
 	inline void SetDisabledColour(const Colour& value) { m_disabledColour = value; }
 	inline const Colour& GetDisabledColour() const { return m_disabledColour; }
-
-
-	inline void SetText(const string& value) { m_text = value; }
-	inline const string& GetText() const { return m_text; }
-
-	inline void SetTextColour(const Colour& value) { m_textColour = value; }
-	inline const Colour& GetTextColour() const { return m_textColour; }
-
-	inline void SetFont(const sf::Font* value) { m_font = value; }
-	inline const sf::Font* GetFont() const { return m_font; }
-
-	inline void SetFontSize(const uint32& value) { m_fontSize = value; }
-	inline const uint32& GetFontSize() const { return m_fontSize; }
 };
 

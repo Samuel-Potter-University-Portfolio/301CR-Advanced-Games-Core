@@ -34,6 +34,7 @@ private:
 	bool bBlockRaycasts = true;
 	bool bIsVisible = true;
 	bool bIsDisabled = false;
+	bool bIsActive = true;
 
 	ScalingMode m_scalingMode = ScalingMode::PixelPerfect;
 	vec2 m_location;
@@ -127,18 +128,21 @@ protected:
 	*/
 public:
 	inline uint8 GetDrawingLayer() const { return m_drawingLayer; }
-	inline bool IsTickable() const { return bIsTickable; }
+	inline bool IsTickable() const { return bIsTickable && bIsActive; }
+
+	inline void SetActive(const bool& value) { bIsActive = value; }
+	inline const bool& IsActive() const { return bIsActive; }
 
 	inline void SetDisabled(const bool& value) { bIsDisabled = value; }
-	inline const bool& IsDisabled() const { return bIsDisabled; }
+	inline const bool& IsDisabled() const { return bIsDisabled || !bIsActive; }
 
 	inline AHUD* GetHUD() const { return m_parent; }
-	inline bool IsMouseOver() const { return bMouseWasOver; }
+	inline bool IsMouseOver() const { return bMouseWasOver && bIsActive; }
 
-	inline bool IsVisible() const { return bIsVisible; }
+	inline bool IsVisible() const { return bIsVisible && bIsActive; }
 	inline void SetVisible(const bool& value) { bIsVisible = value; }
 
-	inline bool BlocksRaycasts() const { return bBlockRaycasts; }
+	inline bool BlocksRaycasts() const { return bBlockRaycasts && bIsActive; }
 	inline void SetBlocksRaycasts(const bool& value) { bBlockRaycasts = value; }
 
 	inline void SetScalingMode(const ScalingMode& value) { m_scalingMode = value; }

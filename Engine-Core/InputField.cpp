@@ -7,11 +7,16 @@ UInputField* UInputField::s_currentFocus = nullptr;
 
 
 UInputField::UInputField() :
-	m_textColour(0, 0, 0, 255),
 	m_defaultColour(210, 210, 210, 255),
 	m_disabledColour(50, 50, 50, 255)
 {
 	bIsTickable = true;
+
+	SetDrawBackground(true);
+	SetPadding(2.4f);
+
+	SetHorizontalAlignment(ULabel::HorizontalAlignment::Left);
+	SetVerticalAlignment(ULabel::VerticalAlignment::Top);
 }
 
 void UInputField::OnTick(const float& deltaTime) 
@@ -29,6 +34,7 @@ void UInputField::OnTick(const float& deltaTime)
 		}
 
 		// Handle input
+		string text = GetText();
 		string input = GetHUD()->GetInputController()->GetTypedString();
 		if (!input.empty())
 		{
@@ -36,19 +42,22 @@ void UInputField::OnTick(const float& deltaTime)
 			{
 				if (c == '\b')
 				{
-					if (m_value.size() != 0)
-						m_value.erase(m_value.size() - 1);
+					if (text.size() != 0)
+						text.erase(text.size() - 1);
 				}
 				else if (c == '\r')
 				{
 					s_currentFocus = nullptr;
+					SetText(text);
 					OnInputDefocus();
 					return;
 				}
 				else
-					m_value += c;
+					text += c;
 			}
 		}
+
+		SetText(text);
 	}
 }
 
@@ -63,6 +72,11 @@ void UInputField::OnMousePressed()
 	OnInputFocus();
 }
 
+void UInputField::OnInputDefocus() 
+{
+	if (!IsDisabled() && m_callback)
+		m_callback(GetText());
+}
 
 void UInputField::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
@@ -71,64 +85,65 @@ void UInputField::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 		SetColour(m_disabledColour);
 	else
 		SetColour(m_defaultColour);
-
+	
 	DrawDefaultRect(window);
-	DrawDefaultText(window);
+
+
+	if (!IsFocused() && GetText().empty())
+	{
+		// Draw default text, if not active
+		Colour colour = GetTextColour();
+		colour.a = 150;
+		DrawText(window, m_defaultText, colour, sf::Text::Italic);
+	}
+	else
+	{
+		Colour colour = GetTextColour();
+		colour.a = 150;
+		DrawText(window, GetClampedText(), IsFocused() ? GetTextColour() : colour, GetTextStyle());
+	}
 }
 
-void UInputField::DrawDefaultText(sf::RenderWindow* window) 
+string UInputField::GetClampedText() const
 {
-	const float padding = 5.0f;
+	const string& msg = GetText();
 
-	// SFML won't render it anyway, so just exit early
-	if (m_font == nullptr)
-		return;
+	if (GetFont() == nullptr || msg.empty())
+		return msg;
 
 
-	sf::Text text; 
-	text.setOrigin(GetOrigin());
-	text.setPosition(GetLocation() + vec2(padding, padding));
+	sf::Text text;
+	text.setFont(*GetFont());
 
-	text.setFont(*m_font);
-	text.setFillColor(IsFocused() ? m_textColour : Colour(m_textColour.r, m_textColour.g, m_textColour.b, 150));
-	text.setStyle(sf::Text::Regular);
-
-	text.setCharacterSize(m_fontSize);
+	text.setCharacterSize(GetFontSize());
 	// Leaving scale as default, will scale with window
 	if (GetScalingMode() == ScalingMode::PixelPerfect)
 		text.setScale(vec2(1, 1));
 
 
 
-	// Just display place holder text
-	if (!IsFocused() && m_value.empty())
-	{
-		text.setString(m_defaultValue);
-		text.setStyle(sf::Text::Italic);
-	}
-	else
-	{
-		// Make sure text doesn't overflow
-		text.setString(m_value);
-		const float maxWidth = GetSize().x - 30.0f;
+	// Make sure text doesn't overflow
+	text.setString("..");
+	const float maxWidth = GetSize().x - text.getLocalBounds().width * 2.0f - GetPadding();
 
-		if (text.getLocalBounds().width > maxWidth)
+	text.setString(msg);
+	if (text.getLocalBounds().width > maxWidth)
+	{
+		string clamped = "";
+		for (uint32 i = msg.size() - 1; i > 0; --i)
 		{
-			string value = "";
-			for (uint32 i = m_value.size() - 1; i > 0; --i)
+			text.setString(".." + msg[i] + clamped);
+			if (text.getLocalBounds().width >= maxWidth)
 			{
-				text.setString(".." + m_value[i] + value);
-				if (text.getLocalBounds().width >= maxWidth)
-				{
-					text.setString(".." + value);
-					break;
-				}
-				else
-					value = m_value[i] + value;
+				text.setString(".." + clamped);
+				break;
 			}
+			else
+				clamped = msg[i] + clamped;
 		}
 
+		return ".." + clamped;
 	}
-
-	window->draw(text);
+	else
+		return msg;
 }

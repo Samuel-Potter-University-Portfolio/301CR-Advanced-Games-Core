@@ -71,37 +71,49 @@ void AMainMenuHUD::OnBegin()
 {
 	Super::OnBegin();
 
-	UInputField* elem0 = (UInputField*)AddElement(UInputField::StaticClass());
+	UInputField* elem0 = AddElement<UInputField>();
 	elem0->SetAnchor(vec2(-1, -1));
 	elem0->SetSize(vec2(200, 40));
 	elem0->SetOrigin(vec2(0, 0));
 	elem0->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
 	elem0->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
-	elem0->SetDisabled(true);
+	elem0->SetCallback(
+		[elem0](string value)
+		{
+			LOG("v: '%s'", value.c_str());
+			//elem0->SetText("");
+		}
+	);
 
 
-	UButton* button = (UButton*)AddElement(UButton::StaticClass());
+	UButton* button = AddElement<UButton>();
 	button->SetAnchor(vec2(0, 0));
 	button->SetSize(vec2(200, 60));
 	button->SetOrigin(vec2(100, 30));
 	button->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
+	button->SetFontSize(30);
+	button->SetText("Button");
 	button->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
 	button->SetCallback(
-		[this]() 
+		[button]()
 		{
+			button->SetDisabled(true);
 			LOG("WOOO");
 		}
 	);
-	button->SetDisabled(true);
 
-	//UGUIBase* elem1 = AddElement(UTempGUI::StaticClass());
-	//elem1->SetAnchor(vec2(1, 1));
-	//elem1->SetScalingMode(UGUIBase::ScalingMode::Expand);
-	//elem1->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
-
-	//UInputField* elem2 = (UInputField*)AddElement(UInputField::StaticClass());
-	//elem2->SetSize(vec2(100, 30));
-	//elem2->SetFont(GetAssetController()->GetFont("Resources\\UI\\Pokemon Classic.ttf"));
-	//elem2->SetScalingMode(UGUIBase::ScalingMode::PixelPerfect);
+	/*
+	ULabel* label = AddElement<ULabel>();
+	label->SetFont(GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf"));
+	label->SetText("Hello World");
+	//label->SetSize(vec2(300, 60));
+	label->SetSize(vec2(200, 60));
+	label->SetOrigin(vec2(100, 30));
+	label->SetHorizontalAlignment(ULabel::HorizontalAlignment::Right);
+	label->SetVerticalAlignment(ULabel::VerticalAlignment::Top);
+	//label->SetScalingMode(UGUIBase::ScalingMode::Expand);
+	label->SetTextColour(Colour::Red);
+	label->SetDrawBackground(true);
+	*/
 }
 

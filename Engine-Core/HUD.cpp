@@ -37,7 +37,7 @@ void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 			for (uint32 i = 0; i < m_elements.size(); ++i)
 			{
 				// Go through layers from top to bottom
-				UGUIBase* elem = m_elements[i];
+				UGUIBase* elem = m_elements[m_elements.size() - i - 1];
 				if (elem->GetDrawingLayer() == 9 - layer)
 				{
 					// Attempt to cast ray at topmost element
@@ -72,7 +72,7 @@ void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 }
 
 UGUIBase* AHUD::AddElement(SubClassOf<UGUIBase> type)
-{ 
+{
 	UGUIBase* gui = type->New<UGUIBase>();
 	m_elements.push_back(gui); 
 	gui->OnLoaded(this);
