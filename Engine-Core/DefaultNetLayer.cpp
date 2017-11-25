@@ -31,29 +31,18 @@ void DefaultNetLayer::OnEncodeHandshake(const NetIdentity& host, ByteBuffer& out
 	Encode<string>(outBuffer, m_password);
 }
 
-static int i = 0;
 NetResponseCode DefaultNetLayer::OnDecodeHandshake(const NetIdentity& connection, ByteBuffer& inBuffer, OPlayerController*& outPlayer)
 {
-	if (i == 0)
-	{
+	string playerName;
+	string password;
 
-		string playerName;
-		string password;
+	if (!Decode(inBuffer, playerName) || !Decode(inBuffer, password))
+		return NetResponseCode::BadRequest;
 
-		if (!Decode(inBuffer, playerName) || !Decode(inBuffer, password))
-			return NetResponseCode::BadRequest;
+	if (!m_password.empty() && m_password != password)
+		return NetResponseCode::BadAuthentication;
 
-		if (!m_password.empty() && m_password != password)
-			return NetResponseCode::BadAuthentication;
-
-		++i;
-		outPlayer->SetPlayerName(playerName);
-		return NetResponseCode::WaitingOnUpStream;
-	}
-
-	if(++i < 100)
-		return NetResponseCode::WaitingOnUpStream;
-
+	outPlayer->SetPlayerName(playerName);
 	return NetResponseCode::Accepted;
 }
 
