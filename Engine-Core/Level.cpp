@@ -84,7 +84,7 @@ void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 				m_drawnActors.erase(m_drawnActors.begin() + i);
 				--i;
 				actor->bIsBeingDrawn = false;
-				continue; 
+				continue;
 			}
 
 
@@ -95,8 +95,12 @@ void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 	}
 
 	// Draw hud
-	if(m_hud != nullptr)
+	if (m_hud != nullptr)
+	{
+		m_hud->bIsBeingDrawn = true;
 		m_hud->DisplayUpdate(window, deltaTime);
+		m_hud->bIsBeingDrawn = false;
+	}
 }
 #endif
 

@@ -38,7 +38,12 @@ void Game::MainUpdate(const float& deltaTime)
 	m_assetController.HandleUpdate(deltaTime);
 
 
-	if (m_currentLevel != nullptr)
+	// Perform level switch
+	if (m_desiredLevel != nullptr)
+		PerformLevelSwitch();
+
+	// Update level
+	else if (m_currentLevel != nullptr)
 		m_currentLevel->MainUpdate(deltaTime);
 
 
@@ -127,33 +132,6 @@ void Game::RegisterClass(const MClass* classType)
 
 bool Game::SwitchLevel(const SubClassOf<LLevel>& levelType) 
 {
-	// Close current level
-	if (m_currentLevel != nullptr)
-	{
-		LOG("Closing level '%s'", m_currentLevel->GetClass()->GetName().c_str());
-		m_currentLevel->Destroy();
-		delete m_currentLevel;
-		m_currentLevel = nullptr;
-	}
-
-
-#ifdef BUILD_CLIENT
-	// Create player local player, if non-exists and not connected to server
-	NetSession* session = GetSession();
-	if (session == nullptr)
-	{
-		auto playerList = GetActiveObjects<OPlayerController>();
-		if (playerList.size() == 0)
-			SpawnObject(playerControllerClass);
-	}
-
-	// Recentre camera
-	sf::RenderWindow* window = m_engine->GetDisplayWindow();
-	if (window != nullptr)
-		window->setView(window->getDefaultView());
-#endif
-
-
 	// Check level is supported
 	if (!IsRegisteredLevel(levelType->GetID()))
 	{
@@ -161,12 +139,16 @@ bool Game::SwitchLevel(const SubClassOf<LLevel>& levelType)
 		return false;
 	}
 
+	// Make sure another request isn't already queued
+	if (m_desiredLevel != nullptr)
+	{
+		LOG_WARNING("Received multiple requests to switch level at once. (Using most recent)");
+		delete m_desiredLevel;
+		m_desiredLevel = nullptr;
+	}
 
-	// Attempt to load desired level
-	LOG("Loading level '%s'", levelType->GetName().c_str());
-	m_currentLevel = levelType->New<LLevel>();
-	m_currentLevel->OnLevelActive(this);
-	m_currentLevel->Build();
+	// Queue level to switch to
+	m_desiredLevel = levelType->New<LLevel>();
 	return true;
 }
 
@@ -180,6 +162,41 @@ bool Game::SwitchLevel(const uint16& levelId)
 	}
 	else
 		return SwitchLevel(m_registeredLevels[levelId]);
+}
+
+void Game::PerformLevelSwitch() 
+{
+	// Close current level
+	if (m_currentLevel != nullptr)
+	{
+		LOG("Closing level '%s'", m_currentLevel->GetClass()->GetName().c_str());
+		LLevel* old = m_currentLevel;
+		m_currentLevel = nullptr;
+		old->Destroy();
+		delete old;
+	}
+
+
+#ifdef BUILD_CLIENT
+	// Create player local player, if non-exists and not connected to server
+	NetSession* session = GetSession();
+	if (session == nullptr)
+	{
+		auto playerList = GetActiveObjects<OPlayerController>();
+		if (playerList.size() == 0)
+			SpawnObject(playerControllerClass);
+	}
+#endif
+
+
+	// Swap levels
+	m_currentLevel = m_desiredLevel;
+	m_desiredLevel = nullptr;
+
+	// Build new level
+	LOG("Loading level '%s'", m_currentLevel->GetClass()->GetName().c_str());
+	m_currentLevel->OnLevelActive(this);
+	m_currentLevel->Build();
 }
 
 void Game::AddObject(OObject* object)

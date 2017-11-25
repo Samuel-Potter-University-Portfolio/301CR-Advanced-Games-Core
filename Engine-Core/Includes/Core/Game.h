@@ -32,6 +32,7 @@ private:
 
 	AssetController m_assetController;
 	LLevel* m_currentLevel = nullptr;
+	LLevel* m_desiredLevel = nullptr;
 
 	std::unordered_map<uint16, SubClassOf<LLevel>> m_registeredLevels;
 	std::unordered_map<uint16, SubClassOf<OObject>> m_registeredObjectTypes;
@@ -131,18 +132,23 @@ public:
 
 
 	/**
-	* Switch level to this class (If registered)
+	* Queues a level switch by class (If registered)
 	* @param levelType			The class of the level to switch to
 	* @returns True if the level switches
 	*/
 	bool SwitchLevel(const SubClassOf<LLevel>& levelType);
 	/**
-	* Switch level to this id (If registered)
+	* Queues a level switch by id (If registered)
 	* @param levelId			The class of the level to switch to
 	* @returns True if the level switches
 	*/
 	bool SwitchLevel(const uint16& levelId);
-
+private:
+	/**
+	* Performs perviously queued level switch
+	*/
+	void PerformLevelSwitch();
+public:
 
 	/**
 	* Add an object to the game (Forfeits memory rights to level)

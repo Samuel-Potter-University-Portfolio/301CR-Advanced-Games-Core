@@ -36,6 +36,9 @@ void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 		{
 			for (uint32 i = 0; i < m_elements.size(); ++i)
 			{
+				if (IsDestroyed())
+					return;
+
 				// Go through layers from top to bottom
 				UGUIBase* elem = m_elements[m_elements.size() - i - 1];
 				if (elem->GetDrawingLayer() == 9 - layer)
@@ -54,8 +57,12 @@ void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 	}
 
 	// Update all elements
-	for (UGUIBase* elem : m_elements)
+	for (uint32 i = 0; i < m_elements.size(); ++i)
 	{
+		if (IsDestroyed())
+			return;
+
+		UGUIBase* elem = m_elements[i];
 		if (elem->IsTickable())
 			elem->OnTick(deltaTime);
 	}
@@ -65,6 +72,9 @@ void AHUD::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 	for (uint32 layer = 0; layer < 10; ++layer)
 		for (uint32 i = 0; i < m_elements.size(); ++i)
 		{
+			if (IsDestroyed())
+				return;
+
 			UGUIBase* elem = m_elements[i];
 			if (elem->IsVisible() && elem->GetDrawingLayer() == layer)
 				elem->Draw(window, deltaTime);
