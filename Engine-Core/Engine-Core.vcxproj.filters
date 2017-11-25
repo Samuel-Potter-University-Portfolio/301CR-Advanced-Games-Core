@@ -73,6 +73,12 @@
     <ClCompile Include="DefaultNetLayer.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
+    <ClCompile Include="GUIBase.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="HUD.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Includes">
@@ -193,6 +199,12 @@
     </ClInclude>
     <ClInclude Include="Includes\Core\DefaultNetLayer.h">
       <Filter>Includes\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\GUIBase.h">
+      <Filter>Includes\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes\Core\HUD.h">
+      <Filter>Includes\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

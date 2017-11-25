@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "LevelController.h"
+#include "HUD.h"
 
 
 class Game;
@@ -37,6 +38,10 @@ protected:
 	/// Class type to use for the level controller
 	SubClassOf<ALevelController> levelControllerClass;
 	ALevelController* m_levelController = nullptr;
+
+	/// Class type to use for the HUD
+	SubClassOf<AHUD> hudClass;
+	AHUD* m_hud = nullptr;
 
 public:
 	LLevel();
@@ -116,6 +121,7 @@ public:
 
 	inline Game* GetGame() const { return m_game; }
 	inline ALevelController* GetLevelController() const { return m_levelController; }
+	inline AHUD* GetHUD() const { return m_hud; }
 
 
 	/** 

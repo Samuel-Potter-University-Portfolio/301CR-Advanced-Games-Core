@@ -43,7 +43,7 @@
     <ClCompile Include="BTileableActor.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
-    <ClCompile Include="TestEntity.cpp" />
+    <ClCompile Include="MainMenuHUD.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BBomb.h" />
@@ -53,7 +53,7 @@
     <ClInclude Include="BPlayerController.h" />
     <ClInclude Include="BTileableActor.h" />
     <ClInclude Include="MainLevel.h" />
-    <ClInclude Include="TestEntity.h" />
+    <ClInclude Include="MainMenuHUD.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

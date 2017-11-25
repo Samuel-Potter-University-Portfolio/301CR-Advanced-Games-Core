@@ -9,10 +9,7 @@ ACamera::ACamera()
 #ifdef BUILD_CLIENT
 void ACamera::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 {
-	sf::View view = window->getView();
-	view.setCenter(GetLocation());
-	view.setSize(window->getSize().x, window->getSize().y);
+	sf::View view = sf::View(GetLocation(), vec2(window->getSize().x, window->getSize().y));
 	window->setView(view);
-
 }
 #endif

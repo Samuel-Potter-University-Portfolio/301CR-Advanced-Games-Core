@@ -23,6 +23,7 @@ private:
 
 public:
 	OObject();
+	virtual ~OObject() {}
 
 	/**
 	* Callback for when object gets loaded into the game

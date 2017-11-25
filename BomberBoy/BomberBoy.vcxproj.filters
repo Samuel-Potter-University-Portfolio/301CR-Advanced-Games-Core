@@ -8,19 +8,16 @@
   <ItemGroup>
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="TestEntity.cpp" />
     <ClCompile Include="BLevelControllerBase.cpp" />
     <ClCompile Include="BPlayerController.cpp" />
     <ClCompile Include="BCharacter.cpp" />
     <ClCompile Include="BLevelArena.cpp" />
     <ClCompile Include="BTileableActor.cpp" />
     <ClCompile Include="BBomb.cpp" />
+    <ClCompile Include="MainMenuHUD.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="TestEntity.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="BLevelControllerBase.h">
@@ -42,6 +39,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuHUD.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>

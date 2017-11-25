@@ -378,6 +378,8 @@
     <ClCompile Include="DefaultNetLayer.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GUIBase.cpp" />
+    <ClCompile Include="HUD.cpp" />
     <ClCompile Include="InputController.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="LevelController.cpp" />
@@ -409,6 +411,8 @@
     <ClInclude Include="Includes\Core\Engine.h" />
     <ClInclude Include="Includes\Core\EngineMemory.h" />
     <ClInclude Include="Includes\Core\Game.h" />
+    <ClInclude Include="Includes\Core\GUIBase.h" />
+    <ClInclude Include="Includes\Core\HUD.h" />
     <ClInclude Include="Includes\Core\InputController.h" />
     <ClInclude Include="Includes\Core\Level.h" />
     <ClInclude Include="Includes\Core\LevelController.h" />

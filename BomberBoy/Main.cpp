@@ -6,12 +6,12 @@
 #include "MainLevel.h"
 #include "BCharacter.h"
 
+#include "MainMenuHUD.h"
 #include "BLevelControllerBase.h"
 #include "BPlayerController.h"
 #include "BLevelArena.h"
 
 #include "Core\Camera.h"
-#include "TestEntity.h"
 
 
 static inline int entry(std::vector<string>& args)
@@ -46,6 +46,7 @@ static inline int entry(std::vector<string>& args)
 
 		// Register actors
 		game.RegisterClass(ACamera::StaticClass());
+		game.RegisterClass(AMainMenuHUD::StaticClass());
 
 
 		game.playerControllerClass = OBPlayerController::StaticClass();

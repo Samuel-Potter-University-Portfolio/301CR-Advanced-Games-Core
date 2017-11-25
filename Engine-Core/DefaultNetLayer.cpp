@@ -50,7 +50,7 @@ void DefaultNetLayer::SetPassword(const string& pass)
 {
 	m_password = pass;
 
-	// Bit flag
+	// Set password bit flag
 	if (m_password.empty())
 		m_connFlags &= ~LAYER_FLAG_PASSWORD;
 	else

@@ -64,6 +64,7 @@ void LLevel::MainUpdate(const float& deltaTime)
 #ifdef BUILD_CLIENT
 void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 {
+	// Draw all actors by layer
 	for (uint32 layer = 0; layer <= 10; ++layer)
 	{
 		for (uint32 i = 0; i < m_drawnActors.size(); ++i)
@@ -90,6 +91,10 @@ void LLevel::DisplayUpdate(sf::RenderWindow* window, const float& deltaTime)
 			actor->bIsBeingDrawn = false;
 		}
 	}
+
+	// Draw hud
+	if(m_hud != nullptr)
+		m_hud->DisplayUpdate(window, deltaTime);
 }
 #endif
 
@@ -99,6 +104,7 @@ void LLevel::Build()
 	AActor::s_instanceCounter = 1;
 	bIsBuilding = true;
 
+	// Spawn level controller while building to give unique id between all clients
 	m_levelController = SpawnActor<ALevelController>(*levelControllerClass);
 	m_levelController->UpdateRole(GetGame()->GetSession());
 
@@ -106,7 +112,15 @@ void LLevel::Build()
 
 	bIsBuilding = false;
 
-	// Call player connect callback
+
+	// Spawn hud after building to not conflict with unique ids
+#ifdef BUILD_CLIENT
+	m_hud = SpawnActor<AHUD>(*hudClass);
+	m_hud->UpdateRole(GetGame()->GetSession());
+#endif
+
+	
+	// Call player connect callback for any players who are already here
 	auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
 	for (OPlayerController* player : playerList)
 		m_levelController->OnPlayerConnect(player, false);

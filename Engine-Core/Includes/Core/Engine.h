@@ -83,10 +83,11 @@ public:
 	inline Game* GetGame() const { return m_game; }
 	inline const Version& GetVersionNo() const { return m_version; }
 
-	inline NetController* GetNetController() { return m_netController; }
+	inline NetController* GetNetController() const { return m_netController; }
+	inline InputController* GetInputerController() const { return m_inputController; }
 
 	inline const NetIdentity& GetDefaultNetIdentity() const { return m_defaultNetIdentity; }
 
-	inline const uint32& GetMainTickRate() const { return m_mainTickRate; }
+	inline uint32 GetMainTickRate() const { return m_mainTickRate; }
 	inline void SetMainTickRate(const uint32& v) { m_mainTickRate = (v == 0 ? 1 : v); m_mainSleepRate = 1000 / m_mainTickRate; }
 };

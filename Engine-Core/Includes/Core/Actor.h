@@ -84,7 +84,6 @@ public:
 	* Called when this actor should be drawn to the screen
 	* @param window			The window to draw to
 	* @param deltaTime		Time since last draw in seconds)
-	* @param layer			The layer that is currently being drawn (From 0-10, where 10 is the last drawn/on top)
 	*/
 	virtual void OnDraw(sf::RenderWindow* window, const float& deltaTime) {}
 #endif

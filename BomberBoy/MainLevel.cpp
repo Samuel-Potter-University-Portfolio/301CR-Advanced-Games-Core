@@ -6,14 +6,15 @@ CLASS_SOURCE(LMainLevel)
 
 #include "Core\Camera.h"
 #include "BCharacter.h"
-#include "BLevelControllerBase.h"
 
-#include "TestEntity.h"
+#include "MainMenuHUD.h"
+#include "BLevelControllerBase.h"
 #include "BLevelArena.h"
 
 
 LMainLevel::LMainLevel()
 {
+	hudClass = AMainMenuHUD::StaticClass();
 	levelControllerClass = ABLevelControllerBase::StaticClass();
 }
 
