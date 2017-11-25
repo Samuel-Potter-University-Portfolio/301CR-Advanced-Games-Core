@@ -98,23 +98,19 @@ void UInputField::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	}
 	else
 	{
-		Colour colour = GetTextColour();
-		colour.a = 150;
-		DrawText(window, GetClampedText(), IsFocused() ? GetTextColour() : colour, GetTextStyle());
+		// TODO - Cache clamped text
+		DrawText(window, GetClampedText(GetText(), !IsFocused()), GetTextColour(), IsFocused() ? GetTextStyle() : sf::Text::Italic);
 	}
 }
 
-string UInputField::GetClampedText() const
+string UInputField::GetClampedText(const string& msg, const bool& clampFront) const
 {
-	const string& msg = GetText();
-
 	if (GetFont() == nullptr || msg.empty())
 		return msg;
 
 
 	sf::Text text;
 	text.setFont(*GetFont());
-
 	text.setCharacterSize(GetFontSize());
 	// Leaving scale as default, will scale with window
 	if (GetScalingMode() == ScalingMode::PixelPerfect)
@@ -125,25 +121,42 @@ string UInputField::GetClampedText() const
 	// Make sure text doesn't overflow
 	text.setString("..");
 	const float maxWidth = GetSize().x - text.getLocalBounds().width * 2.0f - GetPadding();
-
 	text.setString(msg);
+
 	if (text.getLocalBounds().width > maxWidth)
 	{
-		string clamped = "";
-		for (uint32 i = msg.size() - 1; i > 0; --i)
+		// Clamp from back
+		if (!clampFront)
 		{
-			text.setString(".." + msg[i] + clamped);
-			if (text.getLocalBounds().width >= maxWidth)
+			string clamped = "";
+			for (uint32 i = msg.size() - 1; i > 0; --i)
 			{
-				text.setString(".." + clamped);
-				break;
+				text.setString(".." + msg[i] + clamped);
+				if (text.getLocalBounds().width >= maxWidth)
+					break;
+				else
+					clamped = msg[i] + clamped;
 			}
-			else
-				clamped = msg[i] + clamped;
+
+			return ".." + clamped;
 		}
 
-		return ".." + clamped;
+		// Clamp from front
+		else
+		{
+			string clamped = "";
+			text.setString("");
+			for (const char& c : msg)
+			{
+				text.setString(clamped + c + "..");
+				if (text.getLocalBounds().width >= maxWidth)
+					break;
+				else
+					clamped += c;
+			}
+			return clamped + "..";
+		}
+
 	}
-	else
-		return msg;
+	return msg;
 }

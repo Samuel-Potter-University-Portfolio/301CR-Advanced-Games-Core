@@ -130,7 +130,7 @@ void Engine::DisplayLoop()
 
 
 		// Clear window
-		m_renderWindow->clear();
+		m_renderWindow->clear(Colour(36, 37, 47, 255));
 
 
 		// Tick rendering 

@@ -5,8 +5,8 @@ CLASS_SOURCE(UButton, CORE_API)
 
 
 UButton::UButton() :
-	m_defaultColour(210, 210, 210, 255),
-	m_enteredColour(225, 225, 225, 255),
+	m_defaultColour(200, 200, 200, 255),
+	m_enteredColour(235, 235, 235, 255),
 	m_pressedColour(255, 255, 255, 255), 
 	m_disabledColour(50, 50, 50, 255)
 {
@@ -33,6 +33,7 @@ void UButton::OnMouseReleased()
 {
 	if (bPressedOnThis && !IsDisabled() && m_callback)
 		m_callback();
+	bPressedOnThis = false;
 }
 
 void UButton::OnDraw(sf::RenderWindow* window, const float& deltaTime) 

@@ -3,11 +3,11 @@
 
 
 CLASS_SOURCE(UGUIBase, CORE_API)
-const vec2 UGUIBase::s_canvasSize(1000, 1000);
+const vec2 UGUIBase::s_canvasSize(800, 800);
 
 
 UGUIBase::UGUIBase() :
-	m_location(0,0), m_size(100,100), m_anchor(0,0), m_origin(50,50),
+	m_location(0,0), m_size(100,100), m_anchor(0,0), m_origin(0,0),
 	m_drawingLayer(0), m_colour(Colour::White), m_texture(nullptr)
 {
 }
@@ -93,9 +93,9 @@ bool UGUIBase::IntersectRay(const ivec2& ray, const sf::RenderWindow* window) co
 
 	// Transform box into NDC
 	sf::Transform view = sf::View(vec2(0,0), drawSize).getTransform();
-	vec2 location = m_location;
-	location.x -= m_origin.x;
-	location.y += m_origin.y;
+	vec2 location;
+	location.x = m_location.x - m_origin.x;
+	location.y = m_origin.y - m_location.y;
 
 	// Transfrom into corrected pixel space
 	sf::FloatRect rect = view.transformRect(sf::FloatRect(location, m_size));

@@ -43,7 +43,7 @@ private:
 	vec2 m_anchor;
 
 	Colour m_colour;
-	sf::Texture* m_texture = nullptr;
+	const sf::Texture* m_texture = nullptr;
 	
 public:
 	UGUIBase();
@@ -164,6 +164,6 @@ public:
 	inline void SetColour(const Colour& value) { m_colour = value; }
 	inline const Colour& GetColour() const { return m_colour; }
 
-	inline void SetTexture(sf::Texture* value) { m_texture = value; }
-	inline sf::Texture* GetTexture() const { return m_texture; }
+	inline void SetTexture(const sf::Texture* value) { m_texture = value; }
+	inline const sf::Texture* GetTexture() const { return m_texture; }
 };

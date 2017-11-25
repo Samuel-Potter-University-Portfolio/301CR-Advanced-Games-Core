@@ -49,7 +49,7 @@ public:
 	* Get the clamped texts to display
 	* @returns Text that is safe to display
 	*/
-	string GetClampedText() const;
+	string GetClampedText(const string& msg, const bool& clampFront) const;
 
 
 	/**
