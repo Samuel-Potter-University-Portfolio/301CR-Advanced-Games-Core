@@ -3,6 +3,9 @@
 #include <functional>
 
 
+/**
+* Callback for when a field either loses focus or has it's data entered
+*/
 typedef std::function<void(string)> FieldCallback;
 
 
@@ -40,6 +43,11 @@ public:
 	virtual void OnInputDefocus();
 
 	/**
+	* Callback for when the user types anything in this field
+	*/
+	virtual void OnType() {}
+
+	/**
 	* Called when this GUI should be drawn to the screen
 	* @param window			The window to draw to
 	* @param deltaTime		Time since last draw in seconds
@@ -48,9 +56,12 @@ public:
 
 	/**
 	* Get the clamped texts to display
+	* @param msg				The message to clamp
+	* @param clampFront			To clamp from the front or back
+	* @param indicateTrail		Put elipsis at the trail
 	* @returns Text that is safe to display
 	*/
-	string GetClampedText(const string& msg, const bool& clampFront) const;
+	string GetClampedText(const string& msg, const bool& clampFront, const bool& indicateTrail = true) const;
 
 
 	/**

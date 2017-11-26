@@ -49,17 +49,18 @@ void UInputField::OnTick(const float& deltaTime)
 				}
 				else if (c == '\r')
 				{
-					s_currentFocus = nullptr;
 					SetText(text);
 					OnInputDefocus();
+					s_currentFocus = nullptr;
 					return;
 				}
 				else
 					text += c;
 			}
-		}
 
-		SetText(text);
+			SetText(text);
+			OnType();
+		}
 	}
 }
 
@@ -69,12 +70,17 @@ void UInputField::OnMousePressed()
 		return;
 
 	if (s_currentFocus != this && s_currentFocus != nullptr)
-		s_currentFocus->OnInputDefocus();
+	{
+		UInputField* other = s_currentFocus;
+		s_currentFocus = nullptr;
+		other->OnInputDefocus(); // Must call without focus
+	}
 	s_currentFocus = this;
+
 	OnInputFocus();
 }
 
-void UInputField::OnInputDefocus() 
+void UInputField::OnInputDefocus()
 {
 	if (!IsDisabled() && m_callback)
 		m_callback(GetText());
@@ -110,7 +116,7 @@ void UInputField::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	}
 }
 
-string UInputField::GetClampedText(const string& msg, const bool& clampFront) const
+string UInputField::GetClampedText(const string& msg, const bool& clampFront, const bool& indicateTrail) const
 {
 	if (GetFont() == nullptr || msg.empty())
 		return msg;
@@ -126,7 +132,7 @@ string UInputField::GetClampedText(const string& msg, const bool& clampFront) co
 
 
 	// Make sure text doesn't overflow
-	text.setString("..");
+	text.setString((indicateTrail ? ".." : ""));
 	const float maxWidth = GetSize().x - text.getLocalBounds().width * 2.0f - GetPadding();
 	text.setString(msg);
 
@@ -138,14 +144,14 @@ string UInputField::GetClampedText(const string& msg, const bool& clampFront) co
 			string clamped = "";
 			for (uint32 i = msg.size() - 1; i > 0; --i)
 			{
-				text.setString(".." + msg[i] + clamped);
+				text.setString((indicateTrail ? ".." : "") + msg[i] + clamped);
 				if (text.getLocalBounds().width >= maxWidth)
 					break;
 				else
 					clamped = msg[i] + clamped;
 			}
 
-			return ".." + clamped;
+			return (indicateTrail ? ".." : "") + clamped;
 		}
 
 		// Clamp from front
@@ -155,13 +161,13 @@ string UInputField::GetClampedText(const string& msg, const bool& clampFront) co
 			text.setString("");
 			for (const char& c : msg)
 			{
-				text.setString(clamped + c + "..");
+				text.setString(clamped + c + (indicateTrail ? ".." : ""));
 				if (text.getLocalBounds().width >= maxWidth)
 					break;
 				else
 					clamped += c;
 			}
-			return clamped + "..";
+			return clamped + (indicateTrail ? ".." : "");
 		}
 
 	}

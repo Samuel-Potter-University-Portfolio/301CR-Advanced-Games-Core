@@ -14,7 +14,7 @@ CLASS_SOURCE(LMainLevel)
 
 LMainLevel::LMainLevel()
 {
-	//hudClass = AMainMenuHUD::StaticClass();
+	hudClass = AMainMenuHUD::StaticClass();
 	levelControllerClass = ABLevelControllerBase::StaticClass();
 }
 

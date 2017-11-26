@@ -15,6 +15,7 @@ UGUIBase::UGUIBase() :
 void UGUIBase::OnLoaded(AHUD* hud) 
 {
 	m_parent = hud;
+	OnBegin();
 }
 
 void UGUIBase::Draw(sf::RenderWindow* window, const float& deltaTime) 

@@ -400,6 +400,7 @@ void NetSession::EncodeNetUpdate(NetPlayerConnection* target, ByteBuffer& buffer
 
 
 
+
 	// Encode level information
 	messageCount = 0;
 	messageBuffer.Clear();
@@ -481,7 +482,7 @@ void NetSession::DecodeNetUpdate(NetPlayerConnection* source, ByteBuffer& buffer
 	// Decode object messages
 	for (uint32 i = 0; i < messageCount; ++i)
 		DecodeNetObject(source, false, buffer, socketType);
-
+	
 
 
 	// Fetch level information

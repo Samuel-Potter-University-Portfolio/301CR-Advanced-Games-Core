@@ -57,13 +57,8 @@ void InputController::UpdateEvent(const sf::Event& event)
 
 		case sf::Event::TextEntered:
 			if (event.text.unicode < 128)
-			{
-				try
-				{
-					m_typedString += static_cast<char>(event.text.unicode);
-				}
-				catch (std::invalid_argument e) {}
-			}
+				m_typedString += (char)(event.text.unicode);
+
 			break;
 
 		case sf::Event::MouseButtonPressed:

@@ -136,7 +136,6 @@ public:
 * Generates required function signatures for managed objects
 */
 #define CLASS_BODY() \
-	friend class ClassName ## _Class; \
 public: \
 	static const MClass* StaticClass(); \
 	static const MClass* ParentStaticClass(); \

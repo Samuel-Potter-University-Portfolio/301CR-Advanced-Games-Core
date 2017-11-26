@@ -58,6 +58,10 @@ public:
 
 
 	/**
+	* Callback for when this element is loaded
+	*/
+	virtual void OnBegin() {}
+	/**
 	* Called after before this is drawn
 	* @param deltaTime		Time since last draw in seconds)
 	*/

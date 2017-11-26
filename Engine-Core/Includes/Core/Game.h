@@ -225,6 +225,22 @@ public:
 		return output;
 	}
 
+	/**
+	* Get the first object of this type
+	* @param onlyOwned		Ignore objects that aren't owned by this client
+	*/
+	template<class ObjectType>
+	inline ObjectType* GetFirstObject(const bool& onlyOwned = false) const
+	{
+		for (uint32 i = 0; i < m_activeObjects.size(); ++i)
+		{
+			ObjectType* casted = dynamic_cast<ObjectType*>(m_activeObjects[i]);
+			if (casted != nullptr && (!onlyOwned || casted->IsNetOwner()))
+				return casted;
+		}
+		return nullptr;
+	}
+
 
 	/**
 	* Retrieve an object from it's network id

@@ -52,8 +52,9 @@ public:
 	* @param window			The window to draw to
 	* @param text			The text to draw
 	* @param sytle			The style to use when drawing
+	* @param offset			The offset to use when drawing this text
 	*/
-	void DrawText(sf::RenderWindow* window, const string& text, const Colour& colour, const uint32& style);
+	void DrawText(sf::RenderWindow* window, const string& text, const Colour& colour, const uint32& style, const vec2& offset = vec2(0,0));
 
 
 	/**

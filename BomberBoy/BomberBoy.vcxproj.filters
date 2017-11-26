@@ -54,6 +54,9 @@
     <ClCompile Include="ConnectMenu.cpp">
       <Filter>Source\UI</Filter>
     </ClCompile>
+    <ClCompile Include="ChatWidget.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -93,6 +96,9 @@
       <Filter>Includes\UI</Filter>
     </ClInclude>
     <ClInclude Include="ConnectMenu.h">
+      <Filter>Includes\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatWidget.h">
       <Filter>Includes\UI</Filter>
     </ClInclude>
   </ItemGroup>

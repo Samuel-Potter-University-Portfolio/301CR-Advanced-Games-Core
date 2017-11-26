@@ -228,23 +228,28 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 		}
 
 
-		// Use an existing controller
-		auto playerList = GetGame()->GetActiveObjects<OPlayerController>();
-		if (playerList.size() >= 1)
-		{
-			outPlayer = playerList[0];
+		// Remove existing controllers
+		bool reused = false;
+		std::vector<OPlayerController*> players = GetGame()->GetActiveObjects<OPlayerController>();
 
-			// Cleaup any other controllers that may exist for some reason
-			for (uint32 i = 1; i < playerList.size(); ++i)
-				OObject::Destroy(playerList[i]);
+		if (players.size() != 0)
+		{
+			reused = true;
+			outPlayer = players[0]; // Use first controller
+
+			// Clean up the rest of them
+			for (uint32 i = 1; i < players.size(); ++i)
+				OObject::Destroy(players[i]);
+
 
 			// As we are reusing this controller, let level cleanup
 			LLevel* level = GetGame()->GetCurrentLevel();
 			if (level != nullptr)
 				level->GetLevelController()->OnPlayerDisconnect(outPlayer);
 		}
-		else if (playerList.size() == 0)
+		else
 			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
+
 
 
 		// Setup new player controller
@@ -254,7 +259,19 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 		outPlayer->bFirstNetUpdate = true;
 		outPlayer->UpdateRole(this);
 		outPlayer->DecodeSyncVarRequests(0, inBuffer, TCP, true);
-		GetGame()->AddObject(outPlayer);
+
+
+		// Don't re-add the same controller
+		if (reused)
+		{
+			LLevel* level = GetGame()->GetCurrentLevel();
+			if (level != nullptr)
+				level->GetLevelController()->OnPlayerConnect(outPlayer, true);
+		}
+		else
+			GetGame()->AddObject(outPlayer);
+
+
 		outPlayer->OnPostNetInitialize();
 	}
 

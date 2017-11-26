@@ -132,6 +132,7 @@ void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffe
 	for (uint32 i = 0; i < count; ++i)
 	{
 		RPCRequest request;
+		request.function.socket = socketType;
 		if (!Decode<RPCRequest>(buffer, request))
 			return;
 		if (skipExecution)
@@ -204,6 +205,7 @@ void NetSerializableBase::DecodeSyncVarRequests(const uint16& sourceNetId, ByteB
 	for (uint32 i = 0; i < count; ++i)
 	{
 		SyncVarRequest request;
+		request.variable.socket = socketType;
 		if (!Decode<SyncVarRequest>(buffer, request))
 			return;
 		if (skipExecution)

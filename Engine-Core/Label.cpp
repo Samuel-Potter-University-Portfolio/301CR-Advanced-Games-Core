@@ -16,7 +16,7 @@ void ULabel::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	DrawDefaultText(window);
 }
 
-void ULabel::DrawText(sf::RenderWindow* window, const string& msg, const Colour& colour, const uint32& style)
+void ULabel::DrawText(sf::RenderWindow* window, const string& msg, const Colour& colour, const uint32& style, const vec2& offset)
 {
 	// SFML won't render it anyway, so just exit early
 	if (m_font == nullptr || msg.empty())
@@ -25,7 +25,6 @@ void ULabel::DrawText(sf::RenderWindow* window, const string& msg, const Colour&
 	sf::Text text;
 	text.setString(msg);
 	text.setOrigin(GetOrigin());
-	text.setPosition(GetLocation());
 
 	text.setFont(*m_font);
 	text.setStyle(style);
@@ -51,13 +50,13 @@ void ULabel::DrawText(sf::RenderWindow* window, const string& msg, const Colour&
 
 
 	if (m_horiAlignment == HorizontalAlignment::Left)
-		text.setPosition(GetLocation() + vec2(m_padding, vertAlign));
+		text.setPosition(GetLocation() + vec2(m_padding, vertAlign) + offset);
 
 	else if (m_horiAlignment == HorizontalAlignment::Centre)
-		text.setPosition(GetLocation() + vec2((GetSize().x - bounds.width) * 0.5f, vertAlign));
+		text.setPosition(GetLocation() + vec2((GetSize().x - bounds.width) * 0.5f, vertAlign) + offset);
 
 	else if (m_horiAlignment == HorizontalAlignment::Right)
-		text.setPosition(GetLocation() + vec2(GetSize().x - bounds.width - m_padding, vertAlign));
+		text.setPosition(GetLocation() + vec2(GetSize().x - bounds.width - m_padding, vertAlign) + offset);
 
 	window->draw(text);
 }

@@ -590,6 +590,11 @@ public:
 		--__TEMP_ID;
 
 
+#ifdef BUILD_CLIENT
+#define THIS_IS_CLIENT 1
+#else
+#define THIS_IS_CLIENT 0
+#endif
 
 /**
 * GENERIC* Execute RPC with given settings
@@ -600,7 +605,7 @@ public:
 	RPCInfo __TEMP_INFO; \
 	if (__TEMP_NSB->RegisterRPCs(#func, __TEMP_INFO)) \
 	{ \
-		if(GetNetworkID() != 0) \
+		if(__TEMP_NSB->GetNetworkID() != 0) \
 		{ \
 			if ((__TEMP_NSB->IsNetHost() && __TEMP_INFO.callingMode == RPCCallingMode::Host) || (__TEMP_NSB->IsNetOwner() && __TEMP_INFO.callingMode == RPCCallingMode::Owner)) \
 				object->funcCall; \
@@ -609,6 +614,8 @@ public:
 				ByteBuffer __TEMP_BUFFER; \
 				funcEncode \
 				__TEMP_NSB->RemoteCallRPC(__TEMP_INFO, __TEMP_BUFFER); \
+				if(THIS_IS_CLIENT && __TEMP_NSB->IsNetHost() && __TEMP_INFO.callingMode == RPCCallingMode::Broadcast) \
+					object->funcCall; \
 			} \
 			else \
 				LOG_ERROR("Invalid rights to call function '" #func "'"); \
