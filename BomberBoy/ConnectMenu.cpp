@@ -17,17 +17,21 @@ void ConnectMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMo
 
 	m_joinButton->SetSize(vec2(200, 40));
 	m_joinButton->SetOrigin(vec2(0, 0));
-	m_joinButton->SetLocation(vec2(-240, 45));
+	m_joinButton->SetLocation(vec2(40, 135));
 	m_joinButton->SetAnchor(anchor);
 	m_joinButton->SetCallback([this, hud]()
 	{
 		Game* game = hud->GetGame();
 
 		const bool launched = game->GetNetController()->JoinSession(m_identity,
-		[](NetLayer* layer)
-		{
-			// TODO - Configure layer
-		}
+			[this](NetLayer* layer)
+			{
+				DefaultNetLayer* dlayer = dynamic_cast<DefaultNetLayer*>(layer);
+				if (dlayer != nullptr)
+				{
+					dlayer->SetPassword(m_pswrdField->GetText());
+				}
+			}
 		);
 
 		//if (launched)
@@ -82,6 +86,16 @@ void ConnectMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMo
 		}
 	});
 
+
+	m_pswrdField = AddElement<UInputField>(hud);
+	m_pswrdField->SetScalingMode(scalingMode);
+	m_pswrdField->SetFont(font);
+	m_pswrdField->SetDefaultText("Password");
+	m_pswrdField->SetSensitiveText(true);
+
+	m_pswrdField->SetLocation(vec2(40, -50));
+	m_pswrdField->SetDefaultColour(Colour::White);
+	m_pswrdField->SetAnchor(anchor);
 }
 
 void ConnectMenu::OnIdentityChange() 

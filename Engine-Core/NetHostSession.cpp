@@ -48,7 +48,6 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 			{
 				// Remove controller
 				LOG("%s:%i timed out..", it->second->identity.ip.toString().c_str(), it->second->identity.port);
-				m_playerControllers.erase(std::remove(m_playerControllers.begin(), m_playerControllers.end(), it->second->controller), m_playerControllers.end());
 				OObject::Destroy(it->second->controller);
 
 				delete it->second;
@@ -71,7 +70,6 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 				m_TcpSocket.SendTo(response.Data(), response.Size(), it->first);
 
 				// Forcefully destroy as it wasn't added to the game yet
-				m_playerControllers.erase(std::remove(m_playerControllers.begin(), m_playerControllers.end(), it->second->controller), m_playerControllers.end());
 				it->second->controller->OnDestroy();
 				delete it->second->controller;
 				delete it->second;
@@ -104,7 +102,6 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 					m_TcpSocket.SendTo(response.Data(), response.Size(), it->first);
 
 					// Forcefully destroy as it wasn't added to the game yet
-					m_playerControllers.erase(std::remove(m_playerControllers.begin(), m_playerControllers.end(), it->second->controller), m_playerControllers.end());
 					delete it->second->controller;
 					delete it->second;
 					m_connectionLookup.erase(it++);
@@ -260,7 +257,7 @@ NetResponseCode NetHostSession::DecodeHandshake(const NetIdentity& source, ByteB
 		case NetRequestType::Connect:
 		{
 			// Server is full
-			if (m_playerControllers.size() >= GetMaxPlayerCount())
+			if (GetPlayerCount() >= GetMaxPlayerCount())
 				return NetResponseCode::ServerFull;
 
 
@@ -301,7 +298,6 @@ void NetHostSession::EncodeHandshakeResponse(const NetResponseCode& code, ByteBu
 			player->m_networkId = NewObjectID();
 			player->bFirstNetUpdate = true;
 			player->UpdateRole(this);
-			m_playerControllers.emplace_back(player);
 			GetGame()->AddObject(player);
 			player->OnPostNetInitialize();
 
@@ -317,7 +313,7 @@ void NetHostSession::EncodeHandshakeResponse(const NetResponseCode& code, ByteBu
 		// Return server information
 		case NetResponseCode::Responded:
 		{
-			Encode<uint16>(outBuffer, m_playerControllers.size());			// Players connected 
+			Encode<uint16>(outBuffer, m_connectionLookup.size());			// Players connected 
 			Encode<uint16>(outBuffer, m_maxPlayerCount);					// Player limit
 			Encode<string>(outBuffer, "Unnamed Server");					// TODO - Server name
 			Encode<uint32>(outBuffer, m_netLayer->GetConnectionBitFlags());	// Connection Bitflags

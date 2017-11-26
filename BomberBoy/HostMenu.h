@@ -6,9 +6,12 @@ class HostMenu : public MenuContainer
 {
 private:
 	NetIdentity	m_identity;
+	uint16 playerCount = 10;
 
 	UInputField* m_ipField = nullptr;
 	UInputField* m_portField = nullptr;
+	UInputField* m_pswrdField = nullptr;
+	UInputField* m_playerCountField = nullptr;
 	UButton*	 m_launchButton = nullptr;
 
 public:

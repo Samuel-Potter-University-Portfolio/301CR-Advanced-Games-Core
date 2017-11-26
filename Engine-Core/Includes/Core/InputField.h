@@ -19,6 +19,7 @@ private:
 	Colour m_defaultColour;
 	Colour m_disabledColour;
 
+	bool bIsSensitiveText = false;
 	string m_defaultText = "Input";
 
 public:
@@ -59,6 +60,8 @@ public:
 	inline void SetCallback(FieldCallback callback) { m_callback = callback; }
 	inline bool IsFocused() const { return s_currentFocus == this && !IsDisabled(); }
 
+	inline void SetSensitiveText(const bool& value) { bIsSensitiveText = value; }
+	inline bool IsSensitiveText() const { return bIsSensitiveText; }
 
 	inline void SetDefaultColour(const Colour& value) { m_defaultColour = value; }
 	inline const Colour& GetDefaultColour() const { return m_defaultColour; }

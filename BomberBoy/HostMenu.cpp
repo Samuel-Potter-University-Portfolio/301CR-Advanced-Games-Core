@@ -20,16 +20,23 @@ void HostMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode&
 
 	m_launchButton->SetSize(vec2(200, 40));
 	m_launchButton->SetOrigin(vec2(0, 0));
-	m_launchButton->SetLocation(vec2(-240, 45));
+	m_launchButton->SetLocation(vec2(40, 135));
 	m_launchButton->SetAnchor(anchor);
 	m_launchButton->SetCallback([this, hud]()
 	{
 		Game* game = hud->GetGame();
 
 		const bool launched = game->GetNetController()->HostSession(m_identity,
-			[](NetLayer* layer)
+			[this](NetLayer* layer)
 			{
-				// TODO - Configure layer
+				layer->GetSession()->SetMaxPlayerCount(playerCount);
+
+				DefaultNetLayer* dlayer = dynamic_cast<DefaultNetLayer*>(layer);
+				if (dlayer != nullptr)
+				{
+					dlayer->SetPassword(m_pswrdField->GetText());
+					LOG("Using password..");
+				}
 			}
 		);
 
@@ -86,6 +93,36 @@ void HostMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode&
 		}
 	});
 
+
+	m_pswrdField = AddElement<UInputField>(hud);
+	m_pswrdField->SetScalingMode(scalingMode);
+	m_pswrdField->SetFont(font);
+	m_pswrdField->SetDefaultText("Password");
+	m_pswrdField->SetSensitiveText(true);
+
+	m_pswrdField->SetLocation(vec2(40, -50));
+	m_pswrdField->SetDefaultColour(Colour::White);
+	m_pswrdField->SetAnchor(anchor);
+
+
+	m_playerCountField = AddElement<UInputField>(hud);
+	m_playerCountField->SetScalingMode(scalingMode);
+	m_playerCountField->SetFont(font);
+	m_playerCountField->SetDefaultText("Max Players");
+
+	m_playerCountField->SetLocation(vec2(40, -5));
+	m_playerCountField->SetDefaultColour(Colour::White);
+	m_playerCountField->SetAnchor(anchor);
+	m_playerCountField->SetCallback([this](string value)
+	{
+		int32 count = 0;
+		try { count = std::stoi(value); }
+		catch (std::invalid_argument e) {}
+
+		// Count cannot be more than 16
+		playerCount = (uint16)std::min(16, std::max(2, count));
+		m_playerCountField->SetText(std::to_string(playerCount));
+	});
 }
 
 void HostMenu::OnIdentityChange()

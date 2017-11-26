@@ -100,8 +100,13 @@ void UInputField::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	}
 	else
 	{
+		string msg = GetText();
+		if (bIsSensitiveText)
+			for (char& c : msg)
+				c = '*';
+
 		// TODO - Cache clamped text
-		DrawText(window, GetClampedText(GetText(), !IsFocused()), GetTextColour(), IsFocused() ? GetTextStyle() : sf::Text::Italic);
+		DrawText(window, GetClampedText(msg, !IsFocused()), GetTextColour(), IsFocused() ? GetTextStyle() : sf::Text::Italic);
 	}
 }
 

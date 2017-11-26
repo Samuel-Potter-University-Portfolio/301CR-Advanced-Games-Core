@@ -31,7 +31,6 @@ class NetHostSession : public NetSession
 {
 private:
 	std::map<const NetIdentity, NetPlayerConnection*> m_connectionLookup;
-	std::vector<OPlayerController*> m_playerControllers;
 	const float m_maxInactivityTime = 15.0f;
 
 public:
@@ -74,4 +73,18 @@ private:
 	* @returns If id is succesfully fetched
 	*/
 	bool GetPlayerFromIdentity(const NetIdentity& identity, NetPlayerConnection*& outPlayer) const;
+
+
+	/**
+	* Getters & Setters
+	*/
+public:
+	inline uint32 GetPlayerCount() const
+	{
+#ifdef BUILD_CLIENT
+		return m_connectionLookup.size() + 1; // Include self (Only calls this if host)
+#else
+		return m_connectionLookup.size(); 
+#endif
+	}
 };

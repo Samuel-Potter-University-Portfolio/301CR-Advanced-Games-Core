@@ -10,6 +10,7 @@ private:
 
 	UInputField* m_ipField = nullptr;
 	UInputField* m_portField = nullptr;
+	UInputField* m_pswrdField = nullptr;
 	UButton*	 m_joinButton = nullptr;
 
 public:

@@ -122,10 +122,9 @@ bool NetRemoteSession::EnsureConnection()
 			for (RawNetPacket& p : packets)
 			{
 				p.buffer.Flip();
+
 				switch (DecodeHandshakeResponse(p.buffer, m_localController))
 				{
-					m_clientStatus = Disconnected;
-
 					// Unknown should never be returned, so just rubbish?
 					case NetResponseCode::Unknown:
 						LOG_ERROR("Unknown connection error");
@@ -138,30 +137,37 @@ bool NetRemoteSession::EnsureConnection()
 
 					case NetResponseCode::Responded:
 						LOG("Server acknowledged");
+						m_clientStatus = Disconnected;
 						break;
 
 					case NetResponseCode::BadRequest:
 						LOG_ERROR("BadRequest connecting to server");
+						m_clientStatus = Disconnected;
 						break;
 
 					case NetResponseCode::Banned:
 						LOG("Banned from server");
+						m_clientStatus = Disconnected;
 						break;
 
 					case NetResponseCode::BadAuthentication:
 						LOG("Bad authentication provided when connecting to server");
+						m_clientStatus = Disconnected;
 						break;
 
 					case NetResponseCode::BadVersions:
 						LOG("Version missmatch between client and server");
+						m_clientStatus = Disconnected;
 						break;
 
 					case NetResponseCode::ServerInternalError:
 						LOG("Server internal error");
+						m_clientStatus = Disconnected;
 						break;
 
 					case NetResponseCode::ServerFull:
-						LOG("Server full"); 
+						LOG("Server full");
+						m_clientStatus = Disconnected;
 						break;
 				}
 			}
