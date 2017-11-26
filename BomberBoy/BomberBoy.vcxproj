@@ -41,6 +41,7 @@
     <ClCompile Include="BCharacter.cpp" />
     <ClCompile Include="BPlayerController.cpp" />
     <ClCompile Include="BTileableActor.cpp" />
+    <ClCompile Include="ConnectMenu.cpp" />
     <ClCompile Include="HostMenu.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
@@ -55,6 +56,7 @@
     <ClInclude Include="BCharacter.h" />
     <ClInclude Include="BPlayerController.h" />
     <ClInclude Include="BTileableActor.h" />
+    <ClInclude Include="ConnectMenu.h" />
     <ClInclude Include="HostMenu.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="MainMenuHUD.h" />

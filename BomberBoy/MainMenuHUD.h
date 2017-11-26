@@ -3,6 +3,7 @@
 
 #include "MenuContainer.h"
 #include "HostMenu.h"
+#include "ConnectMenu.h"
 
 
 
@@ -12,7 +13,7 @@ class AMainMenuHUD : public AHUD
 private:
 	MenuContainer	m_loginMenu;
 	HostMenu		m_hostMenu;
-	MenuContainer	m_connectMenu;
+	ConnectMenu		m_connectMenu;
 	MenuContainer	m_serverMenu;
 	MenuContainer	m_settingsMenu;
 

@@ -1,15 +1,16 @@
 #pragma once
+#pragma once
 #include "MenuContainer.h"
 
 
-class HostMenu : public MenuContainer
+class ConnectMenu : public MenuContainer
 {
 private:
 	NetIdentity	m_identity;
 
 	UInputField* m_ipField = nullptr;
 	UInputField* m_portField = nullptr;
-	UButton*	 m_launchButton = nullptr;
+	UButton*	 m_joinButton = nullptr;
 
 public:
 	/**

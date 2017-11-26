@@ -1,40 +1,37 @@
-#include "HostMenu.h"
-
-#include "MainLevel.h"
+#include "ConnectMenu.h"
 
 
-void HostMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const vec2 anchor)
+void ConnectMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const vec2 anchor)
 {
-	m_identity.ip = "localhost";
 	const vec2 size(500, 300);
 
 
-	SetupDefaultMenu(hud, "Host", font, scalingMode, size, anchor);
-	
+	SetupDefaultMenu(hud, "Connect", font, scalingMode, size, anchor);
 
-	m_launchButton = AddElement<UButton>(hud);
-	m_launchButton->SetScalingMode(scalingMode);
-	m_launchButton->SetFont(font);
-	m_launchButton->SetText("Launch");
-	m_launchButton->SetDisabled(true);
 
-	m_launchButton->SetSize(vec2(200, 40));
-	m_launchButton->SetOrigin(vec2(0, 0));
-	m_launchButton->SetLocation(vec2(-240, 45));
-	m_launchButton->SetAnchor(anchor);
-	m_launchButton->SetCallback([this, hud]()
+	m_joinButton = AddElement<UButton>(hud);
+	m_joinButton->SetScalingMode(scalingMode);
+	m_joinButton->SetFont(font);
+	m_joinButton->SetText("Connect");
+	m_joinButton->SetDisabled(true);
+
+	m_joinButton->SetSize(vec2(200, 40));
+	m_joinButton->SetOrigin(vec2(0, 0));
+	m_joinButton->SetLocation(vec2(-240, 45));
+	m_joinButton->SetAnchor(anchor);
+	m_joinButton->SetCallback([this, hud]()
 	{
 		Game* game = hud->GetGame();
 
-		const bool launched = game->GetNetController()->HostSession(m_identity,
-			[](NetLayer* layer)
-			{
-				// TODO - Configure layer
-			}
+		const bool launched = game->GetNetController()->JoinSession(m_identity,
+		[](NetLayer* layer)
+		{
+			// TODO - Configure layer
+		}
 		);
 
-		if (launched)
-			game->SwitchLevel(LMainLevel::StaticClass());
+		//if (launched)
+		//	game->SwitchLevel(LMainLevel::StaticClass());
 	});
 
 
@@ -46,11 +43,10 @@ void HostMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode&
 	m_ipField->SetLocation(vec2(-240, -50));
 	m_ipField->SetDefaultColour(Colour::White);
 	m_ipField->SetAnchor(anchor);
-	m_ipField->SetText(m_identity.ip.toString());
 	m_ipField->SetCallback([this](string value)
 	{
 		m_identity.ip = value;
-		if (m_identity.ip.toInteger() == 0)
+		if(m_identity.ip.toInteger() == 0)
 			m_ipField->SetText("");
 
 		OnIdentityChange();
@@ -88,7 +84,7 @@ void HostMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode&
 
 }
 
-void HostMenu::OnIdentityChange()
+void ConnectMenu::OnIdentityChange() 
 {
-	m_launchButton->SetDisabled(m_identity.ip.toInteger() == 0 || m_identity.port < 1000);
+	m_joinButton->SetDisabled(m_identity.ip.toInteger() == 0 || m_identity.port < 1000);
 }

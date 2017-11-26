@@ -70,6 +70,7 @@ void AMainMenuHUD::OnBegin()
 			m_serverMenu.SetActive(false);
 			m_settingsMenu.SetActive(false);
 		});
+		login->SetDisabled(true);
 
 
 		UButton* connect = makeButton();
@@ -106,6 +107,7 @@ void AMainMenuHUD::OnBegin()
 			m_serverMenu.SetActive(true);
 			m_settingsMenu.SetActive(false);
 		});
+		server->SetDisabled(true);
 
 
 		UButton* settings = makeButton();
@@ -131,9 +133,7 @@ void AMainMenuHUD::OnBegin()
 		const vec2 anchor(0, -0.15f);
 
 		// Login menu
-		{
-			m_loginMenu.SetActive(false);
-		}
+		m_loginMenu.SetActive(false);
 
 
 		// Host menu
@@ -141,7 +141,11 @@ void AMainMenuHUD::OnBegin()
 		m_hostMenu.Build(this, defaultFont, defaultScaling, anchor);
 
 
+		// Connect menu
 		m_connectMenu.SetActive(false);
+		m_connectMenu.Build(this, defaultFont, defaultScaling, anchor);
+
+
 		m_serverMenu.SetActive(false);
 		m_settingsMenu.SetActive(false);
 	}
