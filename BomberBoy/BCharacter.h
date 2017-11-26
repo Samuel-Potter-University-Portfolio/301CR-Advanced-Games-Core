@@ -6,19 +6,6 @@
 #include "BBomb.h"
 
 
-/**
-* Represents a colour that players can be
-*/
-struct CharacterColour 
-{
-	const string	name;
-	const Colour	colour;
-
-	CharacterColour(const string& name, const Colour& colour)
-		: name(name), colour(colour) {}
-};
-
-
 
 /**
 * Represents player characters used in BomberBoy
@@ -27,7 +14,6 @@ class ABCharacter : public ABTileableActor
 {
 	CLASS_BODY()
 public:
-	static const std::vector<CharacterColour> s_supportedColours;
 	static const uint32 s_maxBombCount;
 
 private:

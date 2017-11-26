@@ -9,12 +9,16 @@
 /**
 * Reprensents a single player entry
 */
-class PlayerTag : public MenuContainer
+class PlayerCard : public MenuContainer
 {
 private:
 	friend class ALobbyHUD;
+
 	OBPlayerController* m_player = nullptr;
+
+	uint32 m_colourIndex = 17;
 	const AnimationSheet* m_animation;
+
 	ULabel* m_background;
 	ULabel* m_icon;
 	ULabel* m_name;
@@ -28,6 +32,12 @@ public:
 	* @param index			The index of the tag
 	*/
 	void Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const uint32& index);
+
+	/**
+	* Updates the display of this card
+	* @param hud			The hud this is under
+	*/
+	void UpdateDisplay(AHUD* hud);
 
 	/**
 	* Update the look of this tag based on the player
@@ -51,11 +61,12 @@ class ALobbyHUD : public AHUD
 private:
 	OBPlayerController* m_localPlayer = nullptr;
 	MenuContainer m_voteMenu;
-	PlayerTag m_playerTags[16];
+	PlayerCard m_playerCards[16];
 
 public:
 	ALobbyHUD();
 	virtual void OnBegin() override;
+	virtual void OnTick(const float& deltaTime) override;
 
 	void OnPlayerConnect(OBPlayerController* player);
 	void OnPlayerDisconnect(OBPlayerController* player);

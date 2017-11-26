@@ -2,22 +2,10 @@
 #include "BLevelArena.h"
 #include "Utils.h"
 
+#include "BPlayerController.h"
+
 
 CLASS_SOURCE(ABCharacter)
-
-
-const std::vector<CharacterColour> ABCharacter::s_supportedColours(
-{
-	CharacterColour("Red", sf::Color::Red),
-	CharacterColour("Green", sf::Color::Green),
-	CharacterColour("Blue", sf::Color::Blue),
-	CharacterColour("Yellow", sf::Color::Yellow),
-	CharacterColour("Black", sf::Color::Black),
-	CharacterColour("Magenta", sf::Color::Magenta),
-	CharacterColour("Orange", Colour(255, 128, 0)),
-	CharacterColour("Cyan", sf::Color::Cyan),
-}
-);
 const uint32 ABCharacter::s_maxBombCount = 10;
 
 
@@ -87,8 +75,8 @@ void ABCharacter::RegisterAssets(Game* game)
 			assets->RegisterTexture(defaultPath, false);
 
 			// Register player/team colours
-			// Asset gets registerd at path (Where path is xyz.png) xyz.png.<colour name>
-			for (const CharacterColour& colour : s_supportedColours)
+			// Asset gets registerd at path (Where path is xyz.png) xyz.png.<colour rgb value as string>
+			for (const Colour& colour : OBPlayerController::s_supportedColours)
 			{
 				// Get texture in desired colour
 				sf::Texture* texture = new sf::Texture;
@@ -97,10 +85,11 @@ void ABCharacter::RegisterAssets(Game* game)
 
 				sf::Image image;
 				image.loadFromFile(defaultPath);
-				CastColourFromCommonGrey(image, colour.colour);
+				CastColourFromCommonGrey(image, colour);
 				texture->loadFromImage(image);
 
-				assets->RegisterTexture(defaultPath + "." + colour.name, texture);
+				const string colourName = std::to_string(colour.r) + std::to_string(colour.g) + std::to_string(colour.b);
+				assets->RegisterTexture(defaultPath + "." + colourName, texture);
 			}
 		}
 
@@ -117,15 +106,16 @@ void ABCharacter::RegisterAssets(Game* game)
 
 		// Register player/team colours
 		// Asset gets registerd at path (Where path is xyz.anim) xyz.anim.<colour name>
-		for (const CharacterColour& colour : s_supportedColours)
+		for (const Colour& colour : OBPlayerController::s_supportedColours)
 		{
+			const string colourName = std::to_string(colour.r) + std::to_string(colour.g) + std::to_string(colour.b);
 			AnimationSheet* colAnim = new AnimationSheet;
 			colAnim->SetFrameDuration(0.15f);
-			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_0.png." + colour.name));
-			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_1.png." + colour.name));
-			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_0.png." + colour.name));
-			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_2.png." + colour.name));
-			assets->RegisterAnimation("Resources\\Character\\" + dir + ".anim." + colour.name, colAnim);
+			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_0.png." + colourName));
+			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_1.png." + colourName));
+			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_0.png." + colourName));
+			colAnim->AddFrame(game->GetAssetController()->GetTexture("Resources\\Character\\" + dir + "_2.png." + colourName));
+			assets->RegisterAnimation("Resources\\Character\\" + dir + ".anim." + colourName, colAnim);
 		}
 	}
 #endif

@@ -8,6 +8,7 @@ CLASS_SOURCE(ALobbyHUD)
 
 ALobbyHUD::ALobbyHUD()
 {
+	bIsTickable = true;
 }
 
 void ALobbyHUD::OnBegin() 
@@ -45,11 +46,11 @@ void ALobbyHUD::OnBegin()
 	}
 
 
-	// Setup all player tags
+	// Setup all player cards
 	for (uint32 i = 0; i < 16; ++i)
 	{
-		m_playerTags[i].Build(this, defaultFont, defaultScaling, i);
-		m_playerTags[i].SetPlayer(nullptr);
+		m_playerCards[i].Build(this, defaultFont, defaultScaling, i);
+		m_playerCards[i].SetPlayer(nullptr);
 	}
 
 
@@ -58,12 +59,21 @@ void ALobbyHUD::OnBegin()
 	if (session != nullptr)
 	{
 		for (uint32 i = 0; i < 16 - session->GetMaxPlayerCount(); ++i)
-			m_playerTags[15 - i].SetLockedStyle();
+			m_playerCards[15 - i].SetLockedStyle();
 	}
 
 
 	UChatWidget* chat = AddElement<UChatWidget>();
 	chat->SetFont(defaultFont);
+}
+
+void ALobbyHUD::OnTick(const float& deltaTime) 
+{
+	Super::OnTick(deltaTime);
+
+	// Update all cards
+	for (PlayerCard& card : m_playerCards)
+		card.UpdateDisplay(this);
 }
 
 void ALobbyHUD::OnPlayerConnect(OBPlayerController* player) 
@@ -74,9 +84,9 @@ void ALobbyHUD::OnPlayerConnect(OBPlayerController* player)
 	// Give the player a tag
 	for (uint32 i = 0; i < 16; ++i)
 	{
-		if (m_playerTags[i].m_player == nullptr)
+		if (m_playerCards[i].m_player == nullptr)
 		{
-			m_playerTags[i].SetPlayer(player);
+			m_playerCards[i].SetPlayer(player);
 			return;
 		}
 	}
@@ -90,16 +100,16 @@ void ALobbyHUD::OnPlayerDisconnect(OBPlayerController* player)
 	// Remove the player tag
 	for (uint32 i = 0; i < 16; ++i)
 	{
-		if (m_playerTags[i].m_player == player)
+		if (m_playerCards[i].m_player == player)
 		{
-			m_playerTags[i].SetPlayer(nullptr);
+			m_playerCards[i].SetPlayer(nullptr);
 			return;
 		}
 	}
 }
 
 
-void PlayerTag::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const uint32& index)
+void PlayerCard::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const uint32& index)
 {
 	const vec2 anchor(-1, -0.55f);
 	const vec2 location(10 + 310 * ((index) % 2), 60 * ((index) / 2));
@@ -143,7 +153,7 @@ void PlayerTag::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode
 	m_name->SetLocation(location + vec2(50, -5));
 }
 
-void PlayerTag::SetPlayer(OBPlayerController* player) 
+void PlayerCard::SetPlayer(OBPlayerController* player)
 {
 	if (player == nullptr)
 	{
@@ -164,7 +174,24 @@ void PlayerTag::SetPlayer(OBPlayerController* player)
 	m_player = player;
 }
 
-void PlayerTag::SetLockedStyle() 
+void PlayerCard::UpdateDisplay(AHUD* hud)
+{
+	if (m_player == nullptr)
+		return;
+
+	// Update colour of icon
+	if (m_colourIndex != m_player->GetColourIndex())
+	{
+		m_colourIndex = m_player->GetColourIndex();
+		string code = m_player->GetColourCode();
+		m_animation = hud->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim." + code);
+	}
+
+	// TODO - Only animate if ready
+	m_icon->SetTexture(m_animation->GetCurrentFrame());
+}
+
+void PlayerCard::SetLockedStyle()
 {
 	m_background->SetColour(Colour(30, 30, 30, 255));
 	m_icon->SetActive(false);
