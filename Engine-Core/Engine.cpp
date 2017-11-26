@@ -17,8 +17,6 @@ Engine::Engine(std::vector<string>& args) :
 	m_netController = new NetController(this);
 
 	m_desiredResolution = uvec2(800, 600);
-	m_defaultNetIdentity.ip = sf::IpAddress::getLocalAddress();
-	m_defaultNetIdentity.port = 20010;
 }
 
 Engine::~Engine()
@@ -45,7 +43,7 @@ void Engine::Launch(Game* game)
 
 #else
 	// Automatically open session on server
-	if (!m_netController->HostSession(m_defaultNetIdentity))
+	if (!m_netController->HostSession(m_netController->GetLocalIdentity()))
 	{
 		LOG_ERROR("Aborting launch (Failed to launch session)");
 		return;

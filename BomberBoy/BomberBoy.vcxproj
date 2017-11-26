@@ -41,10 +41,12 @@
     <ClCompile Include="BCharacter.cpp" />
     <ClCompile Include="BPlayerController.cpp" />
     <ClCompile Include="BTileableActor.cpp" />
+    <ClCompile Include="HostMenu.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="MainMenuHUD.cpp" />
     <ClCompile Include="MainMenuLevel.cpp" />
+    <ClCompile Include="MenuContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BBomb.h" />
@@ -53,9 +55,11 @@
     <ClInclude Include="BCharacter.h" />
     <ClInclude Include="BPlayerController.h" />
     <ClInclude Include="BTileableActor.h" />
+    <ClInclude Include="HostMenu.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="MainMenuHUD.h" />
     <ClInclude Include="MainMenuLevel.h" />
+    <ClInclude Include="MenuContainer.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

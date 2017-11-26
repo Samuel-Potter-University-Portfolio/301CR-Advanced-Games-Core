@@ -236,8 +236,14 @@ OObject* Game::SpawnObject(const SubClassOf<OObject>& objectClass, const OObject
 
 NetSession* Game::GetSession() const
 { 
-	return m_engine->GetNetController()->GetSession(); 
+	return GetNetController()->GetSession(); 
 }
+
+NetController* Game::GetNetController() const
+{
+	return m_engine->GetNetController();
+}
+
 
 OObject* Game::GetObjectByNetID(const uint32& id) const
 {

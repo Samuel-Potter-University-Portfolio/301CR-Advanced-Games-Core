@@ -41,6 +41,7 @@ void AMainMenuHUD::OnBegin()
 
 	// Left nav menu
 	{
+		// Use lambda for placing buttons, to make sure they are all in the correct place
 		uint32 buttonIndex = 0;
 		auto makeButton = 
 		[this, defaultFont, defaultScaling, buttonIndex]() mutable -> UButton*
@@ -59,45 +60,90 @@ void AMainMenuHUD::OnBegin()
 		};
 
 
-
 		UButton* login = makeButton();
 		login->SetText("Login");
-		login->SetCallback([this]() { GetGame()->SwitchLevel(LMainLevel::StaticClass()); });
+		login->SetCallback([this]() 
+		{
+			m_loginMenu.SetActive(true);
+			m_hostMenu.SetActive(false);
+			m_connectMenu.SetActive(false);
+			m_serverMenu.SetActive(false);
+			m_settingsMenu.SetActive(false);
+		});
+
 
 		UButton* connect = makeButton();
 		connect->SetText("Connect");
-		connect->SetCallback(
-			[this]()
-			{
-				GetGame()->GetEngine()->GetNetController()->JoinSession(GetGame()->GetEngine()->GetDefaultNetIdentity());
-			}
-		);
+		connect->SetCallback([this]()
+		{
+			m_loginMenu.SetActive(false);
+			m_hostMenu.SetActive(false);
+			m_connectMenu.SetActive(true);
+			m_serverMenu.SetActive(false);
+			m_settingsMenu.SetActive(false);
+		});
+
 
 		UButton* host = makeButton();
 		host->SetText("Host");
-		host->SetCallback(
-			[this]() 
-			{ 
-				if(GetGame()->GetEngine()->GetNetController()->HostSession(GetGame()->GetEngine()->GetDefaultNetIdentity()))
-					GetGame()->SwitchLevel(LMainLevel::StaticClass());
-			}
-		);
+		host->SetCallback([this]()
+		{
+			m_loginMenu.SetActive(false);
+			m_hostMenu.SetActive(true);
+			m_connectMenu.SetActive(false);
+			m_serverMenu.SetActive(false);
+			m_settingsMenu.SetActive(false);
+		});
+
 
 		UButton* server = makeButton();
 		server->SetText("Server List");
+		server->SetCallback([this]()
+		{
+			m_loginMenu.SetActive(false);
+			m_hostMenu.SetActive(false);
+			m_connectMenu.SetActive(false);
+			m_serverMenu.SetActive(true);
+			m_settingsMenu.SetActive(false);
+		});
+
 
 		UButton* settings = makeButton();
 		settings->SetText("Settings");
+		settings->SetCallback([this]()
+		{
+			m_loginMenu.SetActive(false);
+			m_hostMenu.SetActive(false);
+			m_connectMenu.SetActive(false);
+			m_serverMenu.SetActive(false);
+			m_settingsMenu.SetActive(true);
+		});
 		settings->SetDisabled(true);
+
 
 		UButton* exit = makeButton();
 		exit->SetText("Exit");
 		exit->SetCallback([this]() { GetGame()->GetEngine()->Close(); });
 	}
 
-	// Left nav menu
+	// Menus
 	{
-	
+		const vec2 anchor(0, -0.15f);
+
+		// Login menu
+		{
+			m_loginMenu.SetActive(false);
+		}
+
+
+		// Host menu
+		m_hostMenu.SetActive(false);
+		m_hostMenu.Build(this, defaultFont, defaultScaling, anchor);
+
+
+		m_connectMenu.SetActive(false);
+		m_serverMenu.SetActive(false);
+		m_settingsMenu.SetActive(false);
 	}
 }
 

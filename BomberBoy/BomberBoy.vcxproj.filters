@@ -4,18 +4,53 @@
     <Filter Include="Includes">
       <UniqueIdentifier>{74fe83da-d2f2-4990-9092-f9b621591c00}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Includes\UI">
+      <UniqueIdentifier>{fea2aad9-5e09-4ab4-b1a6-bc90e1509496}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{466e0bad-ca43-4dce-a3b6-55b3e62ccfda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\UI">
+      <UniqueIdentifier>{2e899a49-108e-4d8a-80ef-8da88c90f8cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MainLevel.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="BLevelControllerBase.cpp" />
-    <ClCompile Include="BPlayerController.cpp" />
-    <ClCompile Include="BCharacter.cpp" />
-    <ClCompile Include="BLevelArena.cpp" />
-    <ClCompile Include="BTileableActor.cpp" />
-    <ClCompile Include="BBomb.cpp" />
-    <ClCompile Include="MainMenuHUD.cpp" />
-    <ClCompile Include="MainMenuLevel.cpp" />
+    <ClCompile Include="BBomb.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BCharacter.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BLevelArena.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BLevelControllerBase.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BPlayerController.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BTileableActor.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MainLevel.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuHUD.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuContainer.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuLevel.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="HostMenu.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -42,11 +77,17 @@
     <ClInclude Include="Utils.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="MainMenuHUD.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="MainMenuLevel.h">
-      <Filter>Includes</Filter>
+      <Filter>Includes\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuHUD.h">
+      <Filter>Includes\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuContainer.h">
+      <Filter>Includes\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="HostMenu.h">
+      <Filter>Includes\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -41,7 +41,6 @@ static inline int entry(std::vector<string>& args)
 		game.defaultLevel = LMainMenuLevel::StaticClass();
 		game.defaultNetLevel = LMainLevel::StaticClass();
 		
-		game.netLayerClass = NetLayer::StaticClass();
 
 		// Register assets
 		ABCharacter::RegisterAssets(&game);

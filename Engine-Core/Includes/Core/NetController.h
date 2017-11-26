@@ -22,6 +22,9 @@ class Engine;
 class CORE_API NetController
 {
 private:
+	NetIdentity m_localIdentity;
+	NetIdentity m_publicIdentity;
+
 	std::list<NetSocket*> m_activeSockets;
 	const Engine* m_engine = nullptr;
 
@@ -73,6 +76,9 @@ public:
 	*/
 public:
 	inline NetSession* GetSession() const { return m_activeSession; }
+
+	inline const NetIdentity& GetLocalIdentity() const { return m_localIdentity; }
+	inline const NetIdentity& GetPublicIdentity() const { return m_publicIdentity; }
 };
 
 

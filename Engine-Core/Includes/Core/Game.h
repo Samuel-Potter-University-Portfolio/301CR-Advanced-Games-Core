@@ -189,6 +189,7 @@ public:
 	inline AssetController* GetAssetController() { return &m_assetController; }
 
 	NetSession* GetSession() const;
+	class NetController* GetNetController() const;
 
 	/**
 	* Returns all active objects

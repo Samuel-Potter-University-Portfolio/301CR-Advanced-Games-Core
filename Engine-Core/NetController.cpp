@@ -11,6 +11,13 @@ NetController::NetController(const Engine* engine) :
 	m_engine(engine)
 {
 	m_activeSession = nullptr;
+
+
+	m_localIdentity.ip = sf::IpAddress::getLocalAddress();
+	m_localIdentity.port = 20010;
+
+	m_publicIdentity.ip = sf::IpAddress::getPublicAddress();
+	m_publicIdentity.port = 20010;
 }
 
 

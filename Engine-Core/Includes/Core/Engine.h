@@ -20,7 +20,6 @@ class CORE_API Engine
 {
 private:
 	Version m_version;
-	NetIdentity m_defaultNetIdentity;
 
 	Game* m_game = nullptr;
 	NetController* m_netController = nullptr;
@@ -85,8 +84,6 @@ public:
 
 	inline NetController* GetNetController() const { return m_netController; }
 	inline InputController* GetInputController() const { return m_inputController; }
-
-	inline const NetIdentity& GetDefaultNetIdentity() const { return m_defaultNetIdentity; }
 
 	inline uint32 GetMainTickRate() const { return m_mainTickRate; }
 	inline void SetMainTickRate(const uint32& v) { m_mainTickRate = (v == 0 ? 1 : v); m_mainSleepRate = 1000 / m_mainTickRate; }

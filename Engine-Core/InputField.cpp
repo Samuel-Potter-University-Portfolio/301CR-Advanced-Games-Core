@@ -12,6 +12,8 @@ UInputField::UInputField() :
 {
 	bIsTickable = true;
 
+	SetOrigin(vec2(0, 0));
+	SetSize(vec2(200, 35));
 	SetDrawBackground(true);
 	SetPadding(2.4f);
 
