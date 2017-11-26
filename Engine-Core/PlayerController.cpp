@@ -1,4 +1,5 @@
 #include "Includes\Core\PlayerController.h"
+#include <Windows.h>
 
 #include "Includes\Core\Game.h"
 #include "Includes\Core\LevelController.h"
@@ -43,8 +44,17 @@ void OPlayerController::OnBegin()
 	Super::OnBegin();
 
 	// Set player name
-	if (IsNetHost() && m_playerName.empty())
-		m_playerName = "Player_" + std::to_string(GetNetworkOwnerID());
+	if (m_playerName.empty())
+	{
+		// Use PC name as player's name
+		string playerName;
+		TCHAR name[STR_MAX_ENCODE_LEN];
+		DWORD count = STR_MAX_ENCODE_LEN;
+		if (GetUserName(name, &count))
+			m_playerName = name;
+		else
+			m_playerName = "<_Player_>";
+	}
 
 
 	// Call player connect callback
