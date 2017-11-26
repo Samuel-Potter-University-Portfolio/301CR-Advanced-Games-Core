@@ -5,8 +5,6 @@
 CLASS_SOURCE(AMainMenuHUD)
 
 
-#include "ChatWidget.h"
-
 void AMainMenuHUD::OnBegin()
 {
 	Super::OnBegin();
@@ -151,9 +149,5 @@ void AMainMenuHUD::OnBegin()
 		m_serverMenu.SetActive(false);
 		m_settingsMenu.SetActive(false);
 	}
-
-
-	UChatWidget* chat = AddElement<UChatWidget>();
-	chat->SetFont(defaultFont);
 }
 

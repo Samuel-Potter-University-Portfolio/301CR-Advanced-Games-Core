@@ -13,6 +13,18 @@
     <Filter Include="Source\UI">
       <UniqueIdentifier>{2e899a49-108e-4d8a-80ef-8da88c90f8cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Includes\Levels">
+      <UniqueIdentifier>{9aae1b29-e8db-43c6-9cb2-6a213f51fa49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Levels">
+      <UniqueIdentifier>{9eb28a2e-7e68-429b-9319-3bf95debe6a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes\Levels\Lobby">
+      <UniqueIdentifier>{809c207c-f2e9-424e-99f1-b2ca0f166b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Levels\Lobby">
+      <UniqueIdentifier>{acca6524-68a5-4aef-9da1-d2d680c3335c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BBomb.cpp">
@@ -39,13 +51,7 @@
     <ClCompile Include="MainLevel.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="MainMenuHUD.cpp">
-      <Filter>Source\UI</Filter>
-    </ClCompile>
     <ClCompile Include="MenuContainer.cpp">
-      <Filter>Source\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="MainMenuLevel.cpp">
       <Filter>Source\UI</Filter>
     </ClCompile>
     <ClCompile Include="HostMenu.cpp">
@@ -56,6 +62,21 @@
     </ClCompile>
     <ClCompile Include="ChatWidget.cpp">
       <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuLevel.cpp">
+      <Filter>Source\Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuHUD.cpp">
+      <Filter>Source\Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyLevel.cpp">
+      <Filter>Source\Levels\Lobby</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyController.cpp">
+      <Filter>Source\Levels\Lobby</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyHUD.cpp">
+      <Filter>Source\Levels\Lobby</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,12 +104,6 @@
     <ClInclude Include="Utils.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="MainMenuLevel.h">
-      <Filter>Includes\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="MainMenuHUD.h">
-      <Filter>Includes\UI</Filter>
-    </ClInclude>
     <ClInclude Include="MenuContainer.h">
       <Filter>Includes\UI</Filter>
     </ClInclude>
@@ -100,6 +115,21 @@
     </ClInclude>
     <ClInclude Include="ChatWidget.h">
       <Filter>Includes\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuLevel.h">
+      <Filter>Includes\Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuHUD.h">
+      <Filter>Includes\Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyController.h">
+      <Filter>Includes\Levels\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyLevel.h">
+      <Filter>Includes\Levels\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyHUD.h">
+      <Filter>Includes\Levels\Lobby</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

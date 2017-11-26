@@ -1,7 +1,7 @@
 #include "Includes\Core\DefaultNetLayer.h"
 #include "Includes\Core\Encoding.h"
 #include "Includes\Core\PlayerController.h"
-#include <Windows.h>
+#include "Includes\Core\Game.h"
 
 
 CLASS_SOURCE(DefaultNetLayer, CORE_API)
@@ -19,13 +19,11 @@ void DefaultNetLayer::OnBegin()
 
 void DefaultNetLayer::OnEncodeHandshake(const NetIdentity& host, ByteBuffer& outBuffer)
 {
-	// Use PC name as player's name
-	string playerName;
-	TCHAR name[STR_MAX_ENCODE_LEN];
-	DWORD count = STR_MAX_ENCODE_LEN;
-	if (GetUserName(name, &count))
-		playerName = name;
-	
+	// Use default controller name
+	string playerName = "__PLAYER__";
+	OPlayerController* player = GetGame()->GetFirstObject<OPlayerController>();
+	if (player != nullptr)
+		playerName = player->GetPlayerName();
 
 	Encode<string>(outBuffer, playerName);
 	Encode<string>(outBuffer, m_password);

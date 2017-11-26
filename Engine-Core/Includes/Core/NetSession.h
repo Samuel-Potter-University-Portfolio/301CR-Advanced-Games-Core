@@ -62,6 +62,8 @@ protected:
 	bool bIsHost = false;
 	bool bIsConnected = false;
 	
+	string m_sessionName;
+
 	uint16 m_maxPlayerCount = 10;
 	std::vector<NetObjectDeletion> m_deletionQueue;
 
@@ -159,6 +161,9 @@ public:
 	inline const bool& IsHost() const { return bIsHost; }
 	inline const bool& IsRemote() const { return !bIsHost; }
 	inline const bool& IsConnected() const { return bIsConnected; }
+
+	inline void SetSessionName(const string& name) { m_sessionName = name; }
+	inline const string& GetSessionName() const { return m_sessionName; }
 
 	inline void SetMaxPlayerCount(const uint16& count) { m_maxPlayerCount = count; }
 	inline const uint16& GetMaxPlayerCount() const { return m_maxPlayerCount; }

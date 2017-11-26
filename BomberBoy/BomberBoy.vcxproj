@@ -44,6 +44,9 @@
     <ClCompile Include="ChatWidget.cpp" />
     <ClCompile Include="ConnectMenu.cpp" />
     <ClCompile Include="HostMenu.cpp" />
+    <ClCompile Include="LobbyController.cpp" />
+    <ClCompile Include="LobbyHUD.cpp" />
+    <ClCompile Include="LobbyLevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="MainMenuHUD.cpp" />
@@ -60,6 +63,9 @@
     <ClInclude Include="ChatWidget.h" />
     <ClInclude Include="ConnectMenu.h" />
     <ClInclude Include="HostMenu.h" />
+    <ClInclude Include="LobbyController.h" />
+    <ClInclude Include="LobbyHUD.h" />
+    <ClInclude Include="LobbyLevel.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="MainMenuHUD.h" />
     <ClInclude Include="MainMenuLevel.h" />

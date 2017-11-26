@@ -217,15 +217,22 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 	{
 		uint16 netOwnerId;
 		uint16 netControllerId;
+		uint16 playerLimit;
+		string serverName;
 
 		// Decode information
 		if (!Decode<uint16>(inBuffer, netOwnerId) ||
-			!Decode<uint16>(inBuffer, netControllerId)
+			!Decode<uint16>(inBuffer, netControllerId) ||
+			!Decode<uint16>(inBuffer, playerLimit) ||
+			!Decode<string>(inBuffer, serverName)
 		)
 		{
 			LOG_ERROR("Server's response to handshake is unparsable.");
 			return NetResponseCode::ServerInternalError;
 		}
+
+		m_sessionName = serverName;
+		m_maxPlayerCount = playerLimit;
 
 
 		// Remove existing controllers

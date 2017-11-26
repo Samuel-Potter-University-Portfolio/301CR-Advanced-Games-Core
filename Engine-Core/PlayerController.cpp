@@ -50,10 +50,12 @@ void OPlayerController::OnBegin()
 		string playerName;
 		TCHAR name[STR_MAX_ENCODE_LEN];
 		DWORD count = STR_MAX_ENCODE_LEN;
+		srand(time(nullptr));
+		uint32 id = rand() % 10000;
 		if (GetUserName(name, &count))
-			m_playerName = name;
+			m_playerName = string(name) + "_" + std::to_string(id);
 		else
-			m_playerName = "<_Player_>";
+			m_playerName = "Player_" + std::to_string(id);
 	}
 
 

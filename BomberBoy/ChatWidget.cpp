@@ -16,7 +16,7 @@ UChatWidget::UChatWidget()
 
 	SetDefaultColour(Colour(0, 0, 0, 255));
 	SetTextColour(Colour(255, 255, 255, 255));
-	SetDefaultText(" Click here chat >/");
+	SetDefaultText(" Click here chat");
 }
 
 UChatWidget::~UChatWidget() 
@@ -54,8 +54,9 @@ void UChatWidget::OnInputDefocus()
 	{
 		string message = GetText();
 		CallRPC_OneParam(m_localPlayer, SendMessage, message);
-		SetText("");
 	}
+
+	SetText("");
 }
 
 void UChatWidget::OnDraw(sf::RenderWindow* window, const float& deltaTime) 

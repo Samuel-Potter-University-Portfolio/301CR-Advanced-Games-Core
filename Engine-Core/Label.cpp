@@ -16,8 +16,10 @@ void ULabel::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	DrawDefaultText(window);
 }
 
-void ULabel::DrawText(sf::RenderWindow* window, const string& msg, const Colour& colour, const uint32& style, const vec2& offset)
+void ULabel::DrawText(sf::RenderWindow* window, const string& inMsg, const Colour& colour, const uint32& style, const vec2& offset)
 {
+	const string msg = inMsg;
+
 	// SFML won't render it anyway, so just exit early
 	if (m_font == nullptr || msg.empty())
 		return;

@@ -20,6 +20,8 @@ NetSession::NetSession(Game* game, const NetIdentity identity) :
 	m_actorNetIdCounter = 1;
 
 	m_netLayer = nullptr;
+
+	m_sessionName = game->GetName() + " Server";
 }
 
 NetSession::~NetSession()

@@ -305,6 +305,8 @@ void NetHostSession::EncodeHandshakeResponse(const NetResponseCode& code, ByteBu
 			// Encode new player connection information
 			Encode<uint16>(outBuffer, player->m_networkOwnerId);
 			Encode<uint16>(outBuffer, player->m_networkId);
+			Encode<uint16>(outBuffer, m_maxPlayerCount);					// Player limit
+			Encode<string>(outBuffer, m_sessionName);						// Server name
 			player->EncodeSyncVarRequests(player->m_networkOwnerId, outBuffer, TCP, true);
 			break;
 		}
@@ -315,7 +317,7 @@ void NetHostSession::EncodeHandshakeResponse(const NetResponseCode& code, ByteBu
 		{
 			Encode<uint16>(outBuffer, m_connectionLookup.size());			// Players connected 
 			Encode<uint16>(outBuffer, m_maxPlayerCount);					// Player limit
-			Encode<string>(outBuffer, "Unnamed Server");					// TODO - Server name
+			Encode<string>(outBuffer, m_sessionName);						// Server name
 			Encode<uint32>(outBuffer, m_netLayer->GetConnectionBitFlags());	// Connection Bitflags
 			break;
 		}

@@ -41,7 +41,7 @@ void HostMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode&
 		);
 
 		if (launched)
-			game->SwitchLevel(LMainLevel::StaticClass());
+			game->SwitchLevel(game->defaultNetLevel);
 	});
 
 

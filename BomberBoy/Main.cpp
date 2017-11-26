@@ -5,9 +5,13 @@
 
 #include "MainLevel.h"
 #include "MainMenuLevel.h"
+#include "LobbyLevel.h"
 
 #include "MainMenuHUD.h"
+#include "LobbyHUD.h"
+
 #include "BLevelControllerBase.h"
+#include "LobbyController.h"
 
 #include "BCharacter.h"
 #include "BPlayerController.h"
@@ -32,14 +36,16 @@ static inline int entry(std::vector<string>& args)
 		// Register misc.
 		game.RegisterClass(OBPlayerController::StaticClass());
 		game.RegisterClass(ABLevelControllerBase::StaticClass());
+		game.RegisterClass(ALobbyController::StaticClass());
 
 
 		// Add levels
 		game.RegisterClass(LMainLevel::StaticClass());
 		game.RegisterClass(LMainMenuLevel::StaticClass());
+		game.RegisterClass(LLobbyLevel::StaticClass());
 
 		game.defaultLevel = LMainMenuLevel::StaticClass();
-		game.defaultNetLevel = LMainLevel::StaticClass();
+		game.defaultNetLevel = LLobbyLevel::StaticClass();
 		
 
 		// Register assets
@@ -51,6 +57,7 @@ static inline int entry(std::vector<string>& args)
 		// Register actors
 		game.RegisterClass(ACamera::StaticClass());
 		game.RegisterClass(AMainMenuHUD::StaticClass());
+		game.RegisterClass(ALobbyHUD::StaticClass());
 
 
 		game.playerControllerClass = OBPlayerController::StaticClass();
