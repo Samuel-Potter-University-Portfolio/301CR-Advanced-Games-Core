@@ -142,13 +142,10 @@ void NetSerializableBase::DecodeRPCRequests(const uint16& sourceNetId, ByteBuffe
 		{
 			if (request.function.callingMode == RPCCallingMode::Host)
 				ExecuteRPC(request.function.index, request.params);
-
-			else if (request.function.callingMode == RPCCallingMode::Broadcast)
-				queue.emplace_back(request);
 		}
 		else 
 		{
-			if(request.function.callingMode != RPCCallingMode::Host)
+			if(request.function.callingMode == RPCCallingMode::Broadcast || (request.function.callingMode == RPCCallingMode::Owner && IsNetOwner()))
 				ExecuteRPC(request.function.index, request.params);
 		}
 	}

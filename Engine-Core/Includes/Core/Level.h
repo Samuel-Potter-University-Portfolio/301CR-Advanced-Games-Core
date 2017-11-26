@@ -136,7 +136,7 @@ public:
 	{
 		std::vector<AActor*> output;
 		for (uint32 i = 0; i < m_activeActors.size(); ++i)
-			if (m_activeActors[i]->GetClass()->IsChildOf(type))
+			if (m_activeActors[i]->GetClass()->IsChildOf(type) && !m_activeActors[i]->IsDestroyed())
 				output.emplace_back(m_activeActors[i]);
 		return output;
 	}
@@ -150,7 +150,7 @@ public:
 		for (uint32 i = 0; i < m_activeActors.size(); ++i)
 		{
 			ActorType* casted = dynamic_cast<ActorType*>(m_activeActors[i]);
-			if (casted != nullptr)
+			if (casted != nullptr && !casted->IsDestroyed())
 				output.emplace_back(casted);
 		}
 		return output;
@@ -158,14 +158,15 @@ public:
 
 	/**
 	* Get the first actor of this type
+	* @param onlyOwned		Ignore objects that aren't owned by this client
 	*/
 	template<class ActorType>
-	inline ActorType* GetFirstActor() const
+	inline ActorType* GetFirstActor(const bool& onlyOwned = false) const
 	{
 		for (uint32 i = 0; i < m_activeActors.size(); ++i)
 		{
 			ActorType* casted = dynamic_cast<ActorType*>(m_activeActors[i]);
-			if (casted != nullptr)
+			if (casted != nullptr && (!onlyOwned || casted->IsNetOwner()) && !casted->IsDestroyed())
 				return casted;
 		}
 		return nullptr;

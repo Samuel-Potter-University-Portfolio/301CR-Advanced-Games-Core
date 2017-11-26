@@ -26,6 +26,7 @@ class CORE_API Game
 {
 private:
 	friend NetSession;
+	friend NetRemoteSession;
 	string m_name;
 	Engine* m_engine = nullptr;
 	Version m_version;
@@ -204,7 +205,7 @@ public:
 	{
 		std::vector<OObject*> output;
 		for (uint32 i = 0; i < m_activeObjects.size(); ++i)
-			if (m_activeObjects[i]->GetClass()->IsChildOf(type))
+			if (m_activeObjects[i]->GetClass()->IsChildOf(type) && !m_activeObjects[i]->IsDestroyed())
 				output.emplace_back(m_activeObjects[i]);
 		return output;
 	}
@@ -219,7 +220,7 @@ public:
 		for (uint32 i = 0; i < m_activeObjects.size(); ++i)
 		{
 			ObjectType* casted = dynamic_cast<ObjectType*>(m_activeObjects[i]);
-			if (casted != nullptr)
+			if (casted != nullptr && !casted->IsDestroyed())
 				output.emplace_back(casted);
 		}
 		return output;
@@ -235,7 +236,7 @@ public:
 		for (uint32 i = 0; i < m_activeObjects.size(); ++i)
 		{
 			ObjectType* casted = dynamic_cast<ObjectType*>(m_activeObjects[i]);
-			if (casted != nullptr && (!onlyOwned || casted->IsNetOwner()))
+			if (casted != nullptr && (!onlyOwned || casted->IsNetOwner()) && !casted->IsDestroyed())
 				return casted;
 		}
 		return nullptr;

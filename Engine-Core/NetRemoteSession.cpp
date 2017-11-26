@@ -215,12 +215,12 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 	// Retrieve connection info
 	if (response == NetResponseCode::Accepted)
 	{
-		uint16 netId;
-		uint16 controllerId;
+		uint16 netOwnerId;
+		uint16 netControllerId;
 
 		// Decode information
-		if (!Decode<uint16>(inBuffer, netId) ||
-			!Decode<uint16>(inBuffer, controllerId) 
+		if (!Decode<uint16>(inBuffer, netOwnerId) ||
+			!Decode<uint16>(inBuffer, netControllerId)
 		)
 		{
 			LOG_ERROR("Server's response to handshake is unparsable.");
@@ -229,47 +229,22 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 
 
 		// Remove existing controllers
-		bool reused = false;
 		std::vector<OPlayerController*> players = GetGame()->GetActiveObjects<OPlayerController>();
 
-		if (players.size() != 0)
-		{
-			reused = true;
-			outPlayer = players[0]; // Use first controller
-
-			// Clean up the rest of them
-			for (uint32 i = 1; i < players.size(); ++i)
-				OObject::Destroy(players[i]);
-
-
-			// As we are reusing this controller, let level cleanup
-			LLevel* level = GetGame()->GetCurrentLevel();
-			if (level != nullptr)
-				level->GetLevelController()->OnPlayerDisconnect(outPlayer);
-		}
-		else
-			outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
-
+		for (uint32 i = 0; i < players.size(); ++i)
+			OObject::Destroy(players[i]);
+		
 
 
 		// Setup new player controller
-		m_sessionNetId = netId;
-		outPlayer->m_networkOwnerId = netId;
-		outPlayer->m_networkId = controllerId;
+		outPlayer = GetGame()->playerControllerClass->New<OPlayerController>();
+		m_sessionNetId = netOwnerId;
+		outPlayer->m_networkOwnerId = netOwnerId;
+		outPlayer->m_networkId = netControllerId;
 		outPlayer->bFirstNetUpdate = true;
 		outPlayer->UpdateRole(this);
 		outPlayer->DecodeSyncVarRequests(0, inBuffer, TCP, true);
-
-
-		// Don't re-add the same controller
-		if (reused)
-		{
-			LLevel* level = GetGame()->GetCurrentLevel();
-			if (level != nullptr)
-				level->GetLevelController()->OnPlayerConnect(outPlayer, true);
-		}
-		else
-			GetGame()->AddObject(outPlayer);
+		GetGame()->AddObject(outPlayer);
 
 
 		outPlayer->OnPostNetInitialize();

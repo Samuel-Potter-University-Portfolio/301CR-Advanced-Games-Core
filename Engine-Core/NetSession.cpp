@@ -318,6 +318,8 @@ void NetSession::DecodeNetObject(NetPlayerConnection* source, const bool& isActo
 
 			if (object != nullptr)
 				OObject::Destroy(object);
+			else
+				LOG_WARNING("Unable to find object to perform NetObjectMethod::Delete desync incoming.");
 			return;
 		}
 
@@ -351,6 +353,8 @@ void NetSession::DecodeNetObject(NetPlayerConnection* source, const bool& isActo
 				object->DecodeSyncVarRequests(sourceId, buffer, socketType, false);
 				object->DecodeRPCRequests(sourceId, buffer, socketType);
 			}
+			else
+				LOG_WARNING("Unable to find object to perform NetObjectMethod::Update desync incoming.");
 			return;
 		}
 	};
@@ -397,7 +401,6 @@ void NetSession::EncodeNetUpdate(NetPlayerConnection* target, ByteBuffer& buffer
 	Encode<uint16>(buffer, messageCount);
 	if(messageCount != 0)
 		buffer.Push(messageBuffer.Data(), messageBuffer.Size());
-
 
 
 
@@ -478,6 +481,7 @@ void NetSession::DecodeNetUpdate(NetPlayerConnection* source, ByteBuffer& buffer
 {
 	uint16 messageCount = 0;
 	if (!Decode<uint16>(buffer, messageCount)) return;
+
 
 	// Decode object messages
 	for (uint32 i = 0; i < messageCount; ++i)
