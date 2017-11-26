@@ -4,7 +4,7 @@
 
 
 CLASS_SOURCE(LLevel, CORE_API)
-uint32 LLevel::s_instanceCounter = 0;
+uint16 LLevel::s_instanceCounter = 0;
 
 
 LLevel::LLevel() :

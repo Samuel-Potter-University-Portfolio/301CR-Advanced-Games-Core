@@ -64,7 +64,7 @@ void NetRemoteSession::NetUpdate(const float& deltaTime)
 		for (RawNetPacket& packet : packets)
 		{
 			packet.buffer.Flip();
-			NetDecode(nullptr, packet.buffer, TCP);
+			DecodeNetUpdate(nullptr, packet.buffer, TCP);
 			m_inactivityTimer = 0;
 		}
 
@@ -74,7 +74,7 @@ void NetRemoteSession::NetUpdate(const float& deltaTime)
 		for (RawNetPacket& packet : packets)
 		{
 			packet.buffer.Flip();
-			NetDecode(nullptr, packet.buffer, UDP);
+			DecodeNetUpdate(nullptr, packet.buffer, UDP);
 			m_inactivityTimer = 0;
 		}
 
@@ -86,8 +86,8 @@ void NetRemoteSession::NetUpdate(const float& deltaTime)
 	ByteBuffer tcpContent;
 	ByteBuffer udpContent;
 
-	NetEncode(nullptr, tcpContent, TCP);
-	NetEncode(nullptr, udpContent, UDP);
+	EncodeNetUpdate(nullptr, tcpContent, TCP);
+	EncodeNetUpdate(nullptr, udpContent, UDP);
 
 	const NetIdentity& identity = GetSessionIdentity();
 	m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity); // Will return false in event of disconnect, so could use this?
@@ -211,18 +211,14 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 	{
 		uint16 netId;
 		uint16 controllerId;
-		uint16 levelClassId;
-		uint32 levelInstanceId;
 
 		// Decode information
 		if (!Decode<uint16>(inBuffer, netId) ||
-			!Decode<uint16>(inBuffer, controllerId) ||
-			!Decode<uint16>(inBuffer, levelClassId) ||
-			!Decode<uint32>(inBuffer, levelInstanceId)
-			)
+			!Decode<uint16>(inBuffer, controllerId) 
+		)
 		{
 			LOG_ERROR("Server's response to handshake is unparsable.");
-			return NetResponseCode::BadRequest;
+			return NetResponseCode::ServerInternalError;
 		}
 
 
@@ -254,22 +250,6 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 		outPlayer->DecodeSyncVarRequests(0, inBuffer, TCP, true);
 		GetGame()->AddObject(outPlayer);
 		outPlayer->OnPostNetInitialize();
-
-
-
-		// Switch to desired level
-		LLevel::s_instanceCounter = levelInstanceId - 100000; // Make sure is decently away from server's instance counter
-		if (!GetGame()->SwitchLevel(levelClassId))
-		{
-			LOG_ERROR("Unable to switch to server requested level");
-			return NetResponseCode::BadRequest;
-		}
-		else
-		{
-			// Set level's instance id (Works because levels don't load asynchronously)
-			LLevel* level = GetGame()->GetCurrentLevel();
-			level->m_instanceId = levelInstanceId;
-		}
 	}
 
 	return response;

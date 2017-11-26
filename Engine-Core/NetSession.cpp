@@ -1,5 +1,6 @@
 #include "Includes\Core\NetSession.h"
 #include "Includes\Core\NetController.h"
+#include "Includes\Core\NetHostSession.h"
 
 #include "Includes\Core\Engine.h"
 #include "Includes\Core\Game.h"
@@ -139,46 +140,42 @@ void NetSession::OnNetObjectDestroy(const OObject* object)
 }
 
 
-void NetSession::EncodeNetObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType)
+void NetSession::EncodeNetObject(NetPlayerConnection* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType, const bool& encodeAsNew)
 {
-	bool newConnection = (target != nullptr && target->bFirstNetUpdate);
+	const uint16 targetId = target == nullptr ? 0 : target->controller->GetNetworkOwnerID();
 
 	// New object
-	if (object->bFirstNetUpdate || newConnection)
+	if (object->bFirstNetUpdate || encodeAsNew)
 	{
-		// Ignore if client (Server has to create entities)
+		// Ignore if client (Server has to create all objects)
 		if (!IsHost())
 			return;
 
-
-		// Target already knows about itself
-		if (object == target)
-			return;
-
-		// Must initialize on TCP
+		// Must initialize over TCP
 		if (socketType == UDP)
 			return;
 
+		// Ignore, if trying to tell client about it's own controller
+		if (target != nullptr && object == target->controller)
+			return;
 
 		// Encode new object information
-		Encode<uint8>(buffer, (uint8)NetObjectMethod::New);	
-		Encode<uint16>(buffer, object->GetNetworkID());	
+		Encode<uint8>(buffer, (uint8)NetObjectMethod::New);
+		Encode<uint16>(buffer, object->GetNetworkID());
 		Encode<uint16>(buffer, object->GetNetworkOwnerID());
 		Encode<uint16>(buffer, object->GetClass()->GetID());
-		
+
 
 		// Attempt to encode unique instance id for actors built in level load
 		AActor* actor = dynamic_cast<AActor*>(object);
-		if(actor == nullptr || !actor->WasSpawnedWithLevel())
+		if (actor == nullptr || !actor->WasSpawnedWithLevel())
 			Encode<uint32>(buffer, 0);
 		else
 			Encode<uint32>(buffer, actor->GetInstanceID());
 
 
 		// Encode all sync var values for initial sync
-		const uint16 targetId = target == nullptr ? 0 : target->GetNetworkOwnerID();
 		object->EncodeSyncVarRequests(targetId, buffer, socketType, true);
-
 		return;
 	}
 
@@ -189,13 +186,14 @@ void NetSession::EncodeNetObject(const OPlayerController* target, OObject* objec
 
 	// Encode sync vars and rpcs
 	Encode<uint16>(buffer, object->GetNetworkID());
-	const uint16 targetId = target == nullptr ? 0 : target->GetNetworkOwnerID();
 	object->EncodeSyncVarRequests(targetId, buffer, socketType, false);
 	object->EncodeRPCRequests(targetId, buffer, socketType);
 }
 
-void NetSession::DecodeNetObject(const OPlayerController* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType, const bool& justCleanUp)
+void NetSession::DecodeNetObject(NetPlayerConnection* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType)
 {
+	const uint16 sourceId = source == nullptr ? 0 : source->controller->GetNetworkOwnerID();
+
 	uint8 rawMethod;
 	Decode(buffer, rawMethod);
 	NetObjectMethod method = (NetObjectMethod)rawMethod;
@@ -203,8 +201,8 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 	switch (method)
 	{
 		// Ignore this
-		case NetObjectMethod::Empty: 
-			break; 
+		case NetObjectMethod::Empty:
+			break;
 
 
 		// Create new object
@@ -223,11 +221,7 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				LOG_ERROR("Received invalid data at NetObjectMethod::New");
 				return;
 			}
-
-			// Cleared buffer, so leave
-			if (justCleanUp)
-				return;
-
+			
 
 			// Ignore if host
 			if (IsHost())
@@ -257,7 +251,6 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 						actor->m_networkOwnerId = ownerNetId;
 						actor->UpdateRole(this);
 
-						const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
 						actor->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 						GetGame()->GetCurrentLevel()->m_netActorLookup[actor->m_networkId] = actor;
 						actor->OnPostNetInitialize();
@@ -272,7 +265,6 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				actor->m_networkOwnerId = ownerNetId;
 				actor->UpdateRole(this);
 
-				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
 				GetGame()->GetCurrentLevel()->AddActor(dynamic_cast<AActor*>(actor));
 				actor->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 				actor->OnPostNetInitialize();
@@ -286,7 +278,6 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				object->m_networkOwnerId = ownerNetId;
 				object->UpdateRole(this);
 
-				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
 				GetGame()->AddObject(object);
 				object->DecodeSyncVarRequests(sourceId, buffer, socketType, true);
 				object->OnPostNetInitialize();
@@ -304,8 +295,28 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				LOG_ERROR("Received invalid data at NetObjectMethod::Delete");
 				return;
 			}
-			OObject* object = isActor ? GetGame()->GetCurrentLevel()->GetActorByNetID(netId) : GetGame()->GetObjectByNetID(netId);
-			if(object != nullptr)
+
+			// Only host can issue object deletes
+			if (IsHost())
+			{
+				LOG_ERROR("Received NetObjectMethod::Delete from client");
+				return;
+			}
+
+
+			// Get object
+			OObject* object = nullptr;
+			if (isActor)
+			{
+				LLevel* level = GetGame()->GetCurrentLevel();
+				if (level != nullptr)
+					object = level->GetActorByNetID(netId);
+
+			}
+			else
+				object = GetGame()->GetObjectByNetID(netId);;
+
+			if (object != nullptr)
 				OObject::Destroy(object);
 			return;
 		}
@@ -321,135 +332,217 @@ void NetSession::DecodeNetObject(const OPlayerController* source, const bool& is
 				return;
 			}
 
-			OObject* object = isActor ? GetGame()->GetCurrentLevel()->GetActorByNetID(netId) : GetGame()->GetObjectByNetID(netId);
+			// Get object
+			OObject* object = nullptr;
+			if (isActor)
+			{
+				LLevel* level = GetGame()->GetCurrentLevel();
+				if (level != nullptr)
+					object = level->GetActorByNetID(netId);
+
+			}
+			else
+				object = GetGame()->GetObjectByNetID(netId);;
+
+
+			// Update object
 			if (object != nullptr)
 			{
-				const uint16 sourceId = source == nullptr ? 0 : source->GetNetworkOwnerID();
 				object->DecodeSyncVarRequests(sourceId, buffer, socketType, false);
 				object->DecodeRPCRequests(sourceId, buffer, socketType);
 			}
 			return;
 		}
-	}
-
-	return;
+	};
 }
 
 
-
-void NetSession::NetEncode(const OPlayerController* target, ByteBuffer& buffer, const SocketType& socketType)
+void NetSession::EncodeNetUpdate(NetPlayerConnection* target, ByteBuffer& buffer, const SocketType& socketType)
 {
-	// Encode level header
-	LLevel* level = GetGame()->GetCurrentLevel();
-	Encode<uint16>(buffer, level == nullptr ? 0 : level->GetInstanceID());
-
+	const bool firstUpdate = target != nullptr && target->controller->bFirstNetUpdate;
 
 	uint16 messageCount = 0;
 	ByteBuffer messageBuffer;
 
 
-	// Encode any deleted net objects
-	if(socketType == TCP)
-		for (NetObjectDeletion& deletion : m_deletionQueue)
-		{
-			// Skip, if not in a level (Because we really don't care)
-			if (deletion.bIsActor && level == nullptr)
-				continue;
-
-			Encode<uint8>(messageBuffer, (uint8)NetMessage::NetObjectMessage);
-			Encode<uint8>(messageBuffer, deletion.bIsActor);
-			Encode<uint8>(messageBuffer, (uint8)NetObjectMethod::Delete);
-			Encode<uint16>(messageBuffer, deletion.netId);
-			++messageCount;
-		}
-
-	
-	// Encode objects
-	for (OObject* object : GetGame()->GetActiveObjects())
-		if (!object->IsDestroyed() && object->GetNetworkID() != 0 && (IsHost() || object->IsNetOwner()))
-		{
-			Encode<uint8>(messageBuffer, (uint8)NetMessage::NetObjectMessage); 
-			Encode<uint8>(messageBuffer, 0); // 0 - Object
-
-			const uint32 startSize = messageBuffer.Size();
-			EncodeNetObject(target, object, messageBuffer, socketType);
-
-			// Nothing changed, so just revert
-			if (messageBuffer.Size() == startSize)
+	// Encode all objects
+	{
+		for (OObject* object : GetGame()->GetActiveObjects())
+			if (!object->IsDestroyed() && object->GetNetworkID() != 0 && (IsHost() || object->IsNetOwner()))
 			{
-				messageBuffer.Pop();
-				messageBuffer.Pop();
-			}
-			else
-				++messageCount;
-		}
-
-	// Encode actors
-	if (level != nullptr)
-		for (AActor* actor : level->GetActiveActors())
-			if (!actor->IsDestroyed() && actor->GetNetworkID() != 0 && (IsHost() || actor->IsNetOwner()))
-			{
-				Encode<uint8>(messageBuffer, (uint8)NetMessage::NetObjectMessage);
-				Encode<uint8>(messageBuffer, 1); // 1 - Actor
-
 				const uint32 startSize = messageBuffer.Size();
-				EncodeNetObject(target, actor, messageBuffer, socketType);
+				EncodeNetObject(target, object, messageBuffer, socketType, firstUpdate);
 
-				// Nothing changed, so just revert
-				if (messageBuffer.Size() == startSize)
-				{
-					messageBuffer.Pop();
-					messageBuffer.Pop();
-				}
-				else
+				// Only count message, if something was encoded
+				if (messageBuffer.Size() != startSize)
 					++messageCount;
 			}
 
 
+		// Encode deleted objects
+		if (socketType == TCP)
+			for (NetObjectDeletion& deletion : m_deletionQueue)
+			{
+				// Ignore actors
+				if (deletion.bIsActor)
+					continue;
 
+				Encode<uint8>(messageBuffer, (uint8)NetObjectMethod::Delete);
+				Encode<uint16>(messageBuffer, deletion.netId);
+				++messageCount;
+			}
+	}
+
+	// Add messages to buffer
 	Encode<uint16>(buffer, messageCount);
 	if(messageCount != 0)
 		buffer.Push(messageBuffer.Data(), messageBuffer.Size());
-}
 
-void NetSession::NetDecode(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType)
-{
-	uint16 levelId;
-	uint16 messageCount;
-	Decode<uint16>(buffer, levelId);
-	Decode<uint16>(buffer, messageCount);
 
+
+	// Encode level information
+	messageCount = 0;
+	messageBuffer.Clear();
 	LLevel* level = GetGame()->GetCurrentLevel();
-	const bool levelIsValid = (level != nullptr && levelId == level->GetInstanceID());
+	const bool firstLevelUpdate = target != nullptr && target->bJustLoadedLevel;
 
 
-	// Decode all object messages
-	for (uint32 i = 0; i < messageCount; ++i)
+	// No level loaded, so fill with empty info
+	if (level == nullptr)
 	{
-		uint8 rawMsgType;
-		if (!Decode(buffer, rawMsgType))
-			return;
-		NetMessage msgType = (NetMessage)rawMsgType;
-		
-		switch (msgType)
+		Encode<uint16>(buffer, 0);
+		Encode<uint16>(buffer, 0);
+
+		Encode<uint16>(buffer, 0); // 0 Actor messages, as not loaded into any level!
+		return;
+	}
+	else
+	{
+		const uint16 levelClass = level->GetClass()->GetID();
+		const uint16 levelInstance = level->GetInstanceID();
+
+		Encode<uint16>(buffer, levelClass);
+		Encode<uint16>(buffer, levelInstance);
+
+		// Check client is on same level
+		if (target != nullptr)
 		{
-			case NetMessage::Nothing:
-				break;
-
-			// Decode any net object information
-			case NetMessage::NetObjectMessage:
+			if (target->currentLevelClass != levelClass || target->currentLevelInstance != levelInstance)
 			{
-				uint8 isActor = 0;
-				if (Decode(buffer, isActor))
-				{
-					const bool justCleanBuffer = isActor && !levelIsValid; // i.e. Ignore this message
-					DecodeNetObject(source, isActor, buffer, socketType, justCleanBuffer);
-				}
-				break;
+				// 0 Actor messages, as not loaded into correct level
+				Encode<uint16>(buffer, 0);
+				return;
 			}
-
-			default:
-				break;
 		}
 	}
+
+
+
+	// Encode all actors
+	{
+		for (AActor* actor : level->GetActiveActors())
+			if (!actor->IsDestroyed() && actor->GetNetworkID() != 0 && (IsHost() || actor->IsNetOwner()))
+			{
+				const uint32 startSize = messageBuffer.Size();
+				EncodeNetObject(target, actor, messageBuffer, socketType, firstLevelUpdate);
+
+				// Only count message, if something was encoded
+				if (messageBuffer.Size() != startSize)
+					++messageCount;
+			}
+
+		
+		// Encode deleted actors
+		if (socketType == TCP && IsHost())
+			for (NetObjectDeletion& deletion : m_deletionQueue)
+			{
+				// Ignore objects
+				if (!deletion.bIsActor)
+					continue;
+
+				Encode<uint8>(messageBuffer, (uint8)NetObjectMethod::Delete);
+				Encode<uint16>(messageBuffer, deletion.netId);
+				++messageCount;
+			}
+	}
+
+
+	// Add messages to buffer
+	Encode<uint16>(buffer, messageCount);
+	if (messageCount != 0)
+		buffer.Push(messageBuffer.Data(), messageBuffer.Size());
+}
+
+void NetSession::DecodeNetUpdate(NetPlayerConnection* source, ByteBuffer& buffer, const SocketType& socketType)
+{
+	uint16 messageCount = 0;
+	if (!Decode<uint16>(buffer, messageCount)) return;
+
+	// Decode object messages
+	for (uint32 i = 0; i < messageCount; ++i)
+		DecodeNetObject(source, false, buffer, socketType);
+
+
+
+	// Fetch level information
+	LLevel* level = GetGame()->GetCurrentLevel();
+	uint16 levelClass;
+	uint16 levelInstance;
+
+	if (!Decode<uint16>(buffer, levelClass) || !Decode<uint16>(buffer, levelInstance))
+		return;
+
+
+	// Ignore call/Update player level state based on what level they are currently on
+	if (IsHost())
+	{
+		// Not loaded into any level anyways
+		if (level == nullptr)
+			return;
+
+		// User is not connect to correct level
+		if (level->GetInstanceID() != levelInstance || level->GetClass()->GetID() != levelClass)
+			return;
+
+		// User has just connected to this level
+		if (source->currentLevelInstance != levelInstance || source->currentLevelClass != levelClass)
+		{
+			source->currentLevelInstance = levelInstance;
+			source->currentLevelClass = levelClass;
+			source->bJustLoadedLevel = true;
+		}
+
+		// User has only just loaded level, so needs to receive input before can do any actor calls
+		if (source->bJustLoadedLevel)
+			return;
+	}
+
+	// Attempt to switch to correct level, if not already
+	else 
+	{
+		if (level == nullptr || level->GetInstanceID() != levelInstance || level->GetClass()->GetID() != levelClass)
+		{
+			// Attempt to switch to level
+			LLevel::s_instanceCounter = 10000 - levelInstance; // Just to make sure we are definately on wrong level, if we switch
+			LLevel* newLevel;
+			if (!GetGame()->HasPendingLevelSwitch())
+			{
+				if (GetGame()->SwitchLevel(levelClass, newLevel))
+					newLevel->m_instanceId = levelInstance;
+				else
+					LOG("Failed to switch to requested level { class:%i instance:%i }", levelClass, levelInstance);
+			}
+			return;
+		}
+	}
+
+
+
+	messageCount = 0;
+	if (!Decode<uint16>(buffer, messageCount)) return;
+
+
+	// Decode actor messages
+	for (uint32 i = 0; i < messageCount; ++i)
+		DecodeNetObject(source, true, buffer, socketType);
 }

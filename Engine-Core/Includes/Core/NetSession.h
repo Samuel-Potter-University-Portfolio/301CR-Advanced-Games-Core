@@ -12,27 +12,9 @@
 
 
 class Game;
+struct NetPlayerConnection;
 
 
-
-/**
-* What is this current message trying to do
-*/
-enum class NetMessage : uint8 
-{
-	Nothing					= 0,
-	/// Net serialized base encoded message
-	NetObjectMessage		= 1,
-};
-
-/**
-* Used to identify what a NetObjectMessage is refering to
-*/
-enum class NetObjectReferenceType : uint8
-{
-	Object		= 0,
-	Actor		= 1
-};
 /**
 * Describes what a NetObjectMessage is describing
 */
@@ -79,10 +61,8 @@ protected:
 	uint16 m_sessionNetId;
 	bool bIsHost = false;
 	bool bIsConnected = false;
-
-	std::vector<OPlayerController*> m_playerControllers;
+	
 	uint16 m_maxPlayerCount = 10;
-
 	std::vector<NetObjectDeletion> m_deletionQueue;
 
 public:
@@ -133,36 +113,36 @@ protected:
 protected:
 	/**
 	* Encode any information to be sent out, for this object
-	* @param target				The player who is the target for this data (or nullptr, if intended for the host)
+	* @param target				The client who is the target for this data (or nullptr, if intended for the host)
 	* @param object				The object to encode
 	* @param buffer				Where to store all information
 	* @param socketType			The socket type this content will be sent over
+	* @param encodeAsNew		Encode this object as if it's new to the client
 	*/
-	void EncodeNetObject(const OPlayerController* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType);
+	void EncodeNetObject(NetPlayerConnection* target, OObject* object, ByteBuffer& buffer, const SocketType& socketType, const bool& encodeAsNew);
 	/**
 	* Decode information received about an object
-	* @param source				The player who is the source of this data (or nullptr, if from the server)
+	* @param source				The player who is the source of this data (or nullptr, if from the host)
 	* @param isActor			Is this message refering to an actor (If false it refers to an object)
-	* @param buffer				Where to store all information
-	* @param socketType			The socket type this content will be sent over
-	* @param justCleanUp		The buffer will be read, however no actors/objects will be updated (Used to skip messages)
+	* @param buffer				Where to read all the data from
+	* @param socketType			The socket type this content was recieved on
 	*/
-	void DecodeNetObject(const OPlayerController* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType, const bool& justCleanUp);
+	void DecodeNetObject(NetPlayerConnection* source, const bool& isActor, ByteBuffer& buffer, const SocketType& socketType);
 
 	/**
 	* Encode any relevant information to be sent out this net update
-	* @param target				The player who is the target for this data (or nullptr, if intended for the host)
+	* @param target				The client who is the target for this data (or nullptr if intended for the host)
 	* @param buffer				Where to store all information
 	* @param socketType			The socket type this content will be sent over
 	*/
-	void NetEncode(const OPlayerController* target, ByteBuffer& buffer, const SocketType& socketType);
+	void EncodeNetUpdate(NetPlayerConnection* target, ByteBuffer& buffer, const SocketType& socketType);
 	/**
 	* Decode any information that was received this net update
-	* @param source				The player who is the source of this data (or nullptr, if from the server)
-	* @param buffer				Where to read all the information
-	* @param socketType			The socket type this content was read over
+	* @param source					The client who is the source of this data (or nullptr, if from the host)
+	* @param buffer					Where to read all the information
+	* @param socketType				The socket type this content was read over
 	*/
-	void NetDecode(const OPlayerController* source, ByteBuffer& buffer, const SocketType& socketType);
+	void DecodeNetUpdate(NetPlayerConnection* source, ByteBuffer& buffer, const SocketType& socketType);
 
 
 	/**

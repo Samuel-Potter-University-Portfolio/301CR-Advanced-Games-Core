@@ -140,9 +140,10 @@ public:
 	/**
 	* Queues a level switch by id (If registered)
 	* @param levelId			The class of the level to switch to
+	* @param outLevel			The level that will be loaded later (Allows net session to set values before load has finished)
 	* @returns True if the level switches
 	*/
-	bool SwitchLevel(const uint16& levelId);
+	bool SwitchLevel(const uint16& levelId, LLevel*& outLevel);
 private:
 	/**
 	* Performs perviously queued level switch
@@ -183,6 +184,7 @@ public:
 
 	inline string GetName() const { return m_name; }
 	inline const Version& GetVersionNo() const { return m_version; }
+	inline bool HasPendingLevelSwitch() const { return m_desiredLevel != nullptr; }
 
 	inline AssetController* GetAssetController() { return &m_assetController; }
 

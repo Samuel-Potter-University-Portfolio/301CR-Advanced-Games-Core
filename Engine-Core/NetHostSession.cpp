@@ -174,7 +174,7 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 			// Player already connected (So just attempt to decode)
 			else if(playerConnection->state == NetPlayerConnection::State::Connected)
 			{
-				NetDecode(playerConnection->controller, packet.buffer, TCP);
+				DecodeNetUpdate(playerConnection, packet.buffer, TCP);
 				playerConnection->inactivityTimer = -deltaTime;
 			}
 		}
@@ -191,7 +191,7 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 			NetPlayerConnection* playerConnection;
 			if (GetPlayerFromIdentity(packet.source, playerConnection) && playerConnection->state == NetPlayerConnection::State::Connected)
 			{
-				NetDecode(playerConnection->controller, packet.buffer, UDP);
+				DecodeNetUpdate(playerConnection, packet.buffer, UDP);
 				playerConnection->inactivityTimer = -deltaTime;
 			}
 		}
@@ -209,12 +209,13 @@ void NetHostSession::NetUpdate(const float& deltaTime)
 	{
 		tcpContent.Clear();
 		udpContent.Clear();
-		NetEncode(it.second->controller, tcpContent, TCP);
-		NetEncode(it.second->controller, udpContent, UDP);
+		EncodeNetUpdate(it.second, tcpContent, TCP);
+		EncodeNetUpdate(it.second, udpContent, UDP);
 
 		const NetIdentity& identity = it.first;
 		m_TcpSocket.SendTo(tcpContent.Data(), tcpContent.Size(), identity); // Will return false in event of disconnect, so could use this?
 		m_UdpSocket.SendTo(udpContent.Data(), udpContent.Size(), identity);
+		it.second->bJustLoadedLevel = false; // Reset flag for next update
 	}
 }
 
@@ -308,21 +309,8 @@ void NetHostSession::EncodeHandshakeResponse(const NetResponseCode& code, ByteBu
 			// Encode new player connection information
 			Encode<uint16>(outBuffer, player->m_networkOwnerId);
 			Encode<uint16>(outBuffer, player->m_networkId);
-
-			// Encode current level info
-			LLevel* level = GetGame()->GetCurrentLevel();
-			if (level != nullptr)
-			{
-				Encode<uint16>(outBuffer, level->GetClass()->GetID());
-				Encode<uint32>(outBuffer, level->GetInstanceID());
-			}
-			else
-			{
-				Encode<uint16>(outBuffer, 0);
-				Encode<uint32>(outBuffer, 0);
-			}
-
 			player->EncodeSyncVarRequests(player->m_networkOwnerId, outBuffer, TCP, true);
+			break;
 		}
 
 
@@ -333,6 +321,7 @@ void NetHostSession::EncodeHandshakeResponse(const NetResponseCode& code, ByteBu
 			Encode<uint16>(outBuffer, m_maxPlayerCount);					// Player limit
 			Encode<string>(outBuffer, "Unnamed Server");					// TODO - Server name
 			Encode<uint32>(outBuffer, m_netLayer->GetConnectionBitFlags());	// Connection Bitflags
+			break;
 		}
 	}
 }

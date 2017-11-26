@@ -22,8 +22,8 @@ class CORE_API LLevel : public ManagedObject
 	friend class NetHostSession;
 	friend class NetRemoteSession;
 private:
-	static uint32 s_instanceCounter;
-	uint32 m_instanceId;
+	static uint16 s_instanceCounter;
+	uint16 m_instanceId;
 	Game* m_game = nullptr;
 
 	bool bIsBuilding = false;
@@ -117,7 +117,7 @@ protected:
 	*/
 public:
 	/** A unique id applied to each instance of a level */
-	inline const uint32& GetInstanceID() const { return m_instanceId; }
+	inline const uint16& GetInstanceID() const { return m_instanceId; }
 
 	inline Game* GetGame() const { return m_game; }
 	inline ALevelController* GetLevelController() const { return m_levelController; }

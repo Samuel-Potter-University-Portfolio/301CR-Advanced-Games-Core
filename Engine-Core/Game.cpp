@@ -152,7 +152,7 @@ bool Game::SwitchLevel(const SubClassOf<LLevel>& levelType)
 	return true;
 }
 
-bool Game::SwitchLevel(const uint16& levelId) 
+bool Game::SwitchLevel(const uint16& levelId, LLevel*& outLevel)
 {
 	// Level not registered
 	if (!IsRegisteredLevel(levelId))
@@ -160,8 +160,12 @@ bool Game::SwitchLevel(const uint16& levelId)
 		LOG_ERROR("Cannot switch to level to id %i, as it is not registered to the game", levelId);
 		return false;
 	}
-	else
-		return SwitchLevel(m_registeredLevels[levelId]);
+	else if (SwitchLevel(m_registeredLevels[levelId]))
+	{
+		outLevel = m_desiredLevel;
+		return true;
+	}
+	return false;
 }
 
 void Game::PerformLevelSwitch() 

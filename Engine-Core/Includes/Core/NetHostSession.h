@@ -10,6 +10,10 @@ struct NetPlayerConnection
 	NetIdentity			identity;
 	OPlayerController*	controller = nullptr;
 	float				inactivityTimer = 0;
+
+	uint16				currentLevelClass = 0;		// The class id of the level that this client is on
+	uint16				currentLevelInstance = 0;	// The instance id of the level that this client is on
+	bool				bJustLoadedLevel = false;	// This client has just loaded this level this update
 	
 	enum State : uint8
 	{
@@ -27,6 +31,7 @@ class NetHostSession : public NetSession
 {
 private:
 	std::map<const NetIdentity, NetPlayerConnection*> m_connectionLookup;
+	std::vector<OPlayerController*> m_playerControllers;
 	const float m_maxInactivityTime = 15.0f;
 
 public:
