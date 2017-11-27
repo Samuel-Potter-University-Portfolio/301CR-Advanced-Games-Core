@@ -63,6 +63,10 @@ void ALobbyHUD::OnBegin()
 	}
 
 
+	// Build the vote menu
+	m_mapVoteMenu.Build(this, defaultFont, defaultScaling, vec2(1, -0.35f));
+
+
 	UChatWidget* chat = AddElement<UChatWidget>();
 	chat->SetFont(defaultFont);
 }
@@ -74,6 +78,9 @@ void ALobbyHUD::OnTick(const float& deltaTime)
 	// Update all cards
 	for (PlayerCard& card : m_playerCards)
 		card.UpdateDisplay(this);
+
+	// Update vote menu
+	m_mapVoteMenu.UpdateDisplay(this);
 }
 
 void ALobbyHUD::OnPlayerConnect(OBPlayerController* player) 
@@ -187,8 +194,10 @@ void PlayerCard::UpdateDisplay(AHUD* hud)
 		m_animation = hud->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim." + code);
 	}
 
-	// TODO - Only animate if ready
-	m_icon->SetTexture(m_animation->GetCurrentFrame());
+	if (m_player->IsReady())
+		m_icon->SetTexture(m_animation->GetCurrentFrame());
+	else
+		m_icon->SetTexture(m_animation->GetFrame(0));
 }
 
 void PlayerCard::SetLockedStyle()

@@ -11,6 +11,8 @@ const std::vector<Colour> OBPlayerController::s_supportedColours(
 	Colour(0,162,255), // Hue 202
 	Colour(221,0,255), // Hue 292
 
+	Colour(255,255,255), // White
+
 	Colour(255,94,0), // Hue 22
 	Colour(0,255,64), // Hue 135
 	Colour(0,64,255), // Hue 225
@@ -25,7 +27,6 @@ const std::vector<Colour> OBPlayerController::s_supportedColours(
 	Colour(128,255,0), // Hue 90
 	Colour(0,255,255), // Hue 180
 	Colour(128,0,255), // Hue 270
-	Colour(255,255,255), // White
 
 	Colour(0,0,0) // Black for out of bounds indicies
 }
@@ -81,7 +82,8 @@ bool OBPlayerController::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
 	RPC_INDEX_HEADER(func, outInfo);
 	RPC_INDEX(TCP, RPCCallingMode::Host, SendMessage);
-	RPC_INDEX(TCP, RPCCallingMode::Broadcast, BroadcastMessage);
+	RPC_INDEX(TCP, RPCCallingMode::Broadcast, BroadcastMessage); 
+	RPC_INDEX(TCP, RPCCallingMode::Host, SetReady_Host);
 	return false;
 }
 bool OBPlayerController::ExecuteRPC(uint16& id, ByteBuffer& params) 
@@ -89,6 +91,7 @@ bool OBPlayerController::ExecuteRPC(uint16& id, ByteBuffer& params)
 	RPC_EXEC_HEADER(id, params);
 	RPC_EXEC_OneParam(SendMessage, string);
 	RPC_EXEC_OneParam(BroadcastMessage, string);
+	RPC_EXEC_OneParam(SetReady_Host, bool);
 	return false;
 }
 
@@ -96,11 +99,13 @@ void OBPlayerController::RegisterSyncVars(SyncVarQueue& outQueue, const SocketTy
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
 	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, uint32, m_colourIndex);
+	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, bool, bIsReady);
 }
 bool OBPlayerController::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
 {
 	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
 	SYNCVAR_EXEC(m_colourIndex);
+	SYNCVAR_EXEC(bIsReady);
 	return false;
 }
 

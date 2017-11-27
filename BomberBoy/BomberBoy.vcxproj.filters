@@ -78,6 +78,9 @@
     <ClCompile Include="LobbyHUD.cpp">
       <Filter>Source\Levels\Lobby</Filter>
     </ClCompile>
+    <ClCompile Include="MapVoteMenu.cpp">
+      <Filter>Source\Levels\Lobby</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -129,6 +132,9 @@
       <Filter>Includes\Levels\Lobby</Filter>
     </ClInclude>
     <ClInclude Include="LobbyHUD.h">
+      <Filter>Includes\Levels\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="MapVoteMenu.h">
       <Filter>Includes\Levels\Lobby</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #pragma once
 #include "Core\Core-Common.h"
 #include "MenuContainer.h"
+#include "MapVoteMenu.h"
 
 
 #include "BPlayerController.h"
@@ -60,7 +61,7 @@ class ALobbyHUD : public AHUD
 	CLASS_BODY()
 private:
 	OBPlayerController* m_localPlayer = nullptr;
-	MenuContainer m_voteMenu;
+	MapVoteMenu m_mapVoteMenu;
 	PlayerCard m_playerCards[16];
 
 public:

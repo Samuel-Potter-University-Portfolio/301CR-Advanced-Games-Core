@@ -121,7 +121,30 @@ string UInputField::GetClampedText(const string& msg, const bool& clampFront, co
 	if (GetFont() == nullptr || msg.empty())
 		return msg;
 
+	// TEMP FIX : Treat every character as having a width of 12
+	const uint32 maxChars = std::round(GetSize().x / 12.0f) + (indicateTrail ? -2 : 0);
 
+	if (msg.size() > maxChars)
+	{
+		if (clampFront)
+		{
+			if (indicateTrail)
+				return msg.substr(0, maxChars) + "..";
+			else
+				return msg.substr(0, maxChars);
+		}
+		else 
+		{
+			if (indicateTrail)
+				return ".." + msg.substr(msg.size() - maxChars);
+			else
+				return msg.substr(msg.size() - maxChars);
+		}
+	}
+	return msg;
+
+	// Can use, but need to fix the implementation
+	/*
 	sf::Text text;
 	text.setFont(*GetFont());
 	text.setCharacterSize(GetFontSize());
@@ -135,6 +158,7 @@ string UInputField::GetClampedText(const string& msg, const bool& clampFront, co
 	text.setString((indicateTrail ? ".." : ""));
 	const float maxWidth = GetSize().x - text.getLocalBounds().width * 2.0f - GetPadding();
 	text.setString(msg);
+
 
 	if (text.getLocalBounds().width > maxWidth)
 	{
@@ -172,4 +196,5 @@ string UInputField::GetClampedText(const string& msg, const bool& clampFront, co
 
 	}
 	return msg;
+	*/
 }

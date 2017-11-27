@@ -188,7 +188,10 @@ bool ABBomb::AttemptToPlace(const ivec2& location)
 		m_damageTimer = m_damageLength;
 		SetActive(true);
 		CallRPC(this, SyncAnimation);
+		return true;
 	}
+
+	return false;
 }
 
 bool ABBomb::Explode() 

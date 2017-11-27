@@ -20,6 +20,7 @@ public:
 
 private:
 	uint32 m_colourIndex = 16;
+	bool bIsReady = false;
 
 public:
 	OBPlayerController();
@@ -43,12 +44,20 @@ public:
 	* Send chat message to the server
 	*/
 	void SendMessage(const string& message);
+
+	/**
+	* Update the player's state to ready
+	*/
+	inline void SetReady(const bool& value) { if (IsNetOwner()) CallRPC_OneParam(this, SetReady_Host, value); }
+
 private:
 
 	/**
 	* Broadcast a chat message to all clients
 	*/
 	void BroadcastMessage(const string& message);
+
+	inline void SetReady_Host(const bool& value) { bIsReady = value; }
 
 
 
@@ -60,9 +69,26 @@ public:
 	* Retrieve a clamped user name that is safe for display
 	*/
 	string GetDisplayName() const;
+	inline const bool& IsReady() const { return bIsReady; }
 
 	inline uint32 GetColourIndex() const { return m_colourIndex; }
 	inline Colour GetColour() const { return s_supportedColours[m_colourIndex]; }
 	inline string GetColourCode() const { Colour c = GetColour(); return std::to_string(c.r) + std::to_string(c.g) + std::to_string(c.b); }
 };
 
+
+typedef OBPlayerController* OBPlayerControllerPtr;
+template<>
+inline void Encode<OBPlayerController*>(ByteBuffer& buffer, const OBPlayerControllerPtr& data)
+{
+	Encode<OObject*>(buffer, data);
+}
+
+template<>
+inline bool Decode<OBPlayerController*>(ByteBuffer& buffer, OBPlayerControllerPtr& out, void* context)
+{
+	OObject* object;
+	if (!Decode<OObject*>(buffer, object, context)) return false;
+	out = dynamic_cast<OBPlayerController*>(object);
+	return true;
+}

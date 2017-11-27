@@ -27,9 +27,9 @@ public:
 	* @param scalingMode	The method of scaling to use
 	* @param size			The size of the menu
 	* @param anchor			The anchor to attach the menu to
-	* @param layer			The layer to put everything on
+	* @param localOrigin	The local origin the menu should use (0,0) for top left corner (1,1) for bottom right
 	*/
-	void SetupDefaultMenu(AHUD* parent, const string& title, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const vec2& size, const vec2& anchor);
+	void SetupDefaultMenu(AHUD* parent, const string& title, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const vec2& size, const vec2& anchor, const vec2& localOrigin = vec2(0.5f, 0));
 
 
 	/**
