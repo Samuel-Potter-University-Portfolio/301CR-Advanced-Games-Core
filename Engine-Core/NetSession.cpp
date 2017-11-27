@@ -60,7 +60,7 @@ void NetSession::PreNetUpdate()
 	// Assign ids to any new objects
 	for (OObject* object : GetGame()->GetActiveObjects())
 	{
-		if (!object->IsNetSynced())
+		if (!object->IsNetSynced() || object->IsDestroyed())
 			continue;
 
 		if (object->HasNetControl())
@@ -82,7 +82,7 @@ void NetSession::PreNetUpdate()
 	if (level != nullptr)
 		for (AActor* actor : level->GetActiveActors())
 		{
-			if (!actor->IsNetSynced())
+			if (!actor->IsNetSynced() || actor->IsDestroyed())
 				continue;
 
 			if (actor->HasNetControl())

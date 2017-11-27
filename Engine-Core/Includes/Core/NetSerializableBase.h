@@ -410,7 +410,6 @@ public:
 					\
 					*(m_varCheckValues.data() + __TEMP_TRACK + STR_MAX_ENCODE_LEN - 1) = '\0'; \
 					vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
-					__TEMP_TRACK += STR_MAX_ENCODE_LEN; \
 				} \
 				else \
 				{ \
@@ -418,7 +417,6 @@ public:
 						m_varCheckValues.resize(__TEMP_TRACK + sizeof(type)); \
 					\
 					vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
-					__TEMP_TRACK += sizeof(type); \
 				} \
 				\
 				if (*vptr != var) \
@@ -433,7 +431,8 @@ public:
 				} \
 			} \
 		} \
-			++__TEMP_INDEX;
+		if (mode == SyncVarMode::OnChange) __TEMP_TRACK += typeid(type) == typeid(string) ? STR_MAX_ENCODE_LEN : sizeof(type); \
+		++__TEMP_INDEX;
 
 
 
