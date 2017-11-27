@@ -32,3 +32,23 @@ void OObject::Destroy(OObject* object)
 		object->bIsDestroyed = true;
 	}
 }
+
+
+template<>
+bool CORE_API Decode<OObjectPtr>(ByteBuffer& buffer, OObjectPtr& out, void* context)
+{
+	out = nullptr;
+	uint16 id;
+	if (!Decode<uint16>(buffer, id))
+		return false;
+
+	Game* game = (Game*)context;
+	if (game == nullptr)
+	{
+		LOG_ERROR("Cannot decode 'OObject*' without Game* as context");
+		return true; // Decode was fine, just invalid context used
+	}
+
+	out = game->GetObjectByNetID(id);
+	return true;
+}

@@ -137,3 +137,13 @@ public:
 	inline const uint8& GetDrawingLayer() const { return m_drawingLayer; }
 };
 
+
+typedef AActor* AActorPtr;
+template<>
+inline void Encode<AActorPtr>(ByteBuffer& buffer, const AActorPtr& data)
+{
+	Encode(buffer, data->GetNetworkID());
+}
+
+template<>
+bool CORE_API Decode<AActorPtr>(ByteBuffer& buffer, AActorPtr& out, void* context);

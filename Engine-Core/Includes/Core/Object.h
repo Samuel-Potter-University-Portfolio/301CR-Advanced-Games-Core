@@ -69,3 +69,13 @@ public:
 	inline const bool& IsDestroyed() const { return bIsDestroyed; }
 };
 
+
+typedef OObject* OObjectPtr;
+template<>
+inline void Encode<OObjectPtr>(ByteBuffer& buffer, const OObjectPtr& data)
+{
+	Encode(buffer, data->GetNetworkID());
+}
+
+template<>
+bool CORE_API Decode<OObjectPtr>(ByteBuffer& buffer, OObjectPtr& out, void* context);

@@ -140,3 +140,29 @@ void AActor::SendLocationToOwner(const vec2& location, const uint8& checkId)
 	m_desiredLocation = location;
 	m_netLocationCheckId = checkId;
 }
+
+template<>
+bool CORE_API Decode<AActorPtr>(ByteBuffer& buffer, AActorPtr& out, void* context)
+{
+	out = nullptr;
+	uint16 id;
+	if (!Decode<uint16>(buffer, id))
+		return false;
+
+	Game* game = (Game*)context;
+	if (game == nullptr)
+	{
+		LOG_ERROR("Cannot decode 'AActor*' without Game* as context");
+		return true; // Decode was fine, just invalid context used
+	}
+
+
+	LLevel* level = game->GetCurrentLevel();
+	if (level == nullptr)
+		return true; // Decode was fine, but there was no level active
+	else
+	{
+		out = level->GetActorByNetID(id);
+		return true;
+	}
+}
