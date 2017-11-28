@@ -49,6 +49,7 @@ void LoginMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode
 
 			m_loginStatus->SetText("Not logged in");
 			m_loginButton->SetText("Login");
+			m_loginButton->SetDisabled(true);
 		}
 
 		// Login user
@@ -73,7 +74,18 @@ void LoginMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode
 				}
 				else
 				{
-					m_loginStatus->SetText("Login failed..");
+					if(response.getStatus() == 403)
+						m_loginStatus->SetText("Invalid login details");
+
+					else if (response.getStatus() == 500)
+						m_loginStatus->SetText("Server error when logging in");
+
+					// SFML code for could not connect
+					else if (response.getStatus() == 1001)
+						m_loginStatus->SetText("Couldn't connect");
+
+					else
+						m_loginStatus->SetText("Login failed..");
 				}
 			});
 		}
