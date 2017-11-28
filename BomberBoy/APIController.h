@@ -79,6 +79,14 @@ public:
 		m_sessionId = "";
 	}
 
+	/**
+	* Attempt to check if this player is who they say they are
+	* @param userId			The userId of the account
+	* @param sessionId		The sessionId to check
+	* @param callback		The callback to call when the user succesfully logs in
+	*/
+	void VerifyUser(const string& userId, const string& sessionId, HttpCallback callback = HttpCallback());
+
 private:
 	/** Loop that will get called from another thread to handle http requests */
 	void HttpLoop();

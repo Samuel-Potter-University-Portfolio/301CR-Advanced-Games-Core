@@ -3,6 +3,7 @@
 #include "Core/Game.h"
 
 #include "APIController.h"
+#include "APINetLayer.h"
 
 #include "MainLevel.h"
 #include "MainMenuLevel.h"
@@ -67,6 +68,7 @@ static inline int entry(std::vector<string>& args)
 
 #ifdef API_SUPPORTED
 	game.RegisterSingleton(OAPIController::StaticClass());
+	game.defaultNetLevel = APINetLayer::StaticClass();
 #endif
 	engine.Launch(&game);
 	return 0;

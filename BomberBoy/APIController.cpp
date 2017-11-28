@@ -1,7 +1,6 @@
 #include "APIController.h"
 #include "picojson.h"
 
-
 namespace json = picojson;
 
 CLASS_SOURCE(OAPIController)
@@ -136,6 +135,10 @@ void OAPIController::LoginUser(const string& account, const string& password, Ht
 				m_sessionId = obj["sessionId"].get<string>();
 				m_displayName = obj["displayName"].get<string>();
 				LOG("Logged in as '%s' (%s)", m_displayName.c_str(), m_userId.c_str());
+
+				OPlayerController* player = GetGame()->GetFirstObject<OPlayerController>(true);
+				if (player != nullptr)
+					player->SetPlayerName(m_displayName);
 			}
 			else
 			{
@@ -148,4 +151,18 @@ void OAPIController::LoginUser(const string& account, const string& password, Ht
 				callback(response);
 		}
 	);
+}
+
+void OAPIController::VerifyUser(const string& userId, const string& sessionId, HttpCallback callback) 
+{
+	json::object payload;
+	payload["userId"] = json::value(userId);
+	payload["sessionId"] = json::value(sessionId);
+
+	Http::Request request;
+	request.setMethod(Http::Request::Post);
+	request.setUri(m_apiBaseUri + "/User/Auth");
+	request.setField("Content-Type", "application/json");
+	request.setBody(((json::value)payload).serialize());
+	m_httpQueue.emplace(request, callback);
 }

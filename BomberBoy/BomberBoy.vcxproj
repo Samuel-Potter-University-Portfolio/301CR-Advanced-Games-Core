@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="APIController.cpp" />
+    <ClCompile Include="APINetLayer.cpp" />
     <ClCompile Include="BBomb.cpp" />
     <ClCompile Include="BLevelArena.cpp" />
     <ClCompile Include="BLevelControllerBase.cpp" />
@@ -58,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="APIController.h" />
+    <ClInclude Include="APINetLayer.h" />
     <ClInclude Include="BBomb.h" />
     <ClInclude Include="BLevelArena.h" />
     <ClInclude Include="BLevelControllerBase.h" />

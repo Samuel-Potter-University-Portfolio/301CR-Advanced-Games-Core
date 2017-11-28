@@ -87,6 +87,7 @@
     <ClCompile Include="LoginMenu.cpp">
       <Filter>Source\UI</Filter>
     </ClCompile>
+    <ClCompile Include="APINetLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -149,5 +150,6 @@
     <ClInclude Include="LoginMenu.h">
       <Filter>Includes\UI</Filter>
     </ClInclude>
+    <ClInclude Include="APINetLayer.h" />
   </ItemGroup>
 </Project>
