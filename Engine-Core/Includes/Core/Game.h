@@ -12,6 +12,7 @@
 #include "PlayerController.h"
 
 #include <vector>
+#include <queue>
 #include <unordered_map>
 
 
@@ -34,6 +35,8 @@ private:
 	AssetController m_assetController;
 	LLevel* m_currentLevel = nullptr;
 	LLevel* m_desiredLevel = nullptr;
+
+	std::queue<SubClassOf<OObject>> m_singletonObjects;
 
 	std::unordered_map<uint16, SubClassOf<LLevel>> m_registeredLevels;
 	std::unordered_map<uint16, SubClassOf<OObject>> m_registeredObjectTypes;
@@ -174,6 +177,21 @@ public:
 	*/
 	template<>
 	OObject* SpawnObject(const SubClassOf<OObject>& objectClass, const OObject* owner);
+
+
+	/**
+	* Registers this object as a singleton and will spawn it in, when ready
+	* @param objectClass			The type of object to spawn in
+	*/
+	inline void RegisterSingleton(const SubClassOf<OObject>& objectClass)
+	{
+		// Hasn't started yet
+		if (m_engine == nullptr)
+			m_singletonObjects.emplace(objectClass);
+		// Already started to just spawn it
+		else
+			SpawnObject(objectClass);
+	}
 
 
 	/**

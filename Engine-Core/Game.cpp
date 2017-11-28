@@ -78,6 +78,13 @@ void Game::OnGameHooked(Engine* engine)
 {
 	m_engine = engine;
 
+	// Spawn singletons
+	while (m_singletonObjects.size() != 0)
+	{
+		SpawnObject(m_singletonObjects.front());
+		m_singletonObjects.pop();
+	}
+
 	// Switch to correct level
 	NetSession* session = GetSession();
 	if(session == nullptr || !session->IsHost())
