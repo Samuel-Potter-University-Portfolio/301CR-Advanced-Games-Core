@@ -2,6 +2,7 @@
 #include "Core/Engine.h"
 #include "Core/Game.h"
 
+#include "APIController.h"
 
 #include "MainLevel.h"
 #include "MainMenuLevel.h"
@@ -34,6 +35,7 @@ static inline int entry(std::vector<string>& args)
 	Game game("Bomber Boy", Version(0,1,0));
 	{
 		// Register misc.
+		game.RegisterClass(OAPIController::StaticClass());
 		game.RegisterClass(OBPlayerController::StaticClass());
 		game.RegisterClass(ABLevelControllerBase::StaticClass());
 		game.RegisterClass(ALobbyController::StaticClass());
@@ -63,6 +65,9 @@ static inline int entry(std::vector<string>& args)
 		game.playerControllerClass = OBPlayerController::StaticClass();
 	}
 
+#ifdef API_SUPPORTED
+	game.RegisterSingleton(OAPIController::StaticClass());
+#endif
 	engine.Launch(&game);
 	return 0;
 }

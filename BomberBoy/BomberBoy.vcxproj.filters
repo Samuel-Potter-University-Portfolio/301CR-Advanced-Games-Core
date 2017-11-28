@@ -81,6 +81,9 @@
     <ClCompile Include="MapVoteMenu.cpp">
       <Filter>Source\Levels\Lobby</Filter>
     </ClCompile>
+    <ClCompile Include="APIController.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -136,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="MapVoteMenu.h">
       <Filter>Includes\Levels\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="APIController.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

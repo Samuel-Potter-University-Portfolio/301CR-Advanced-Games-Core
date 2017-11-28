@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="APIController.cpp" />
     <ClCompile Include="BBomb.cpp" />
     <ClCompile Include="BLevelArena.cpp" />
     <ClCompile Include="BLevelControllerBase.cpp" />
@@ -55,6 +56,7 @@
     <ClCompile Include="MenuContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="APIController.h" />
     <ClInclude Include="BBomb.h" />
     <ClInclude Include="BLevelArena.h" />
     <ClInclude Include="BLevelControllerBase.h" />
@@ -209,8 +211,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_CLIENT;BUILD_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_CLIENT;BUILD_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SFML-32\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -223,8 +225,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_SERVER;BUILD_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_SERVER;BUILD_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SFML-32\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -236,8 +238,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_DEBUG;BUILD_CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_DEBUG;BUILD_CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SFML-64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -250,8 +252,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_DEBUG;BUILD_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_DEBUG;BUILD_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SFML-64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -265,8 +267,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_CLIENT;BUILD_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_CLIENT;BUILD_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -282,8 +284,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_SERVER;BUILD_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_SERVER;BUILD_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-32\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -299,8 +301,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_RELEASE;BUILD_CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_RELEASE;BUILD_CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -316,8 +318,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BUILD_GAME;BUILD_RELEASE;BUILD_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_GAME;API_SUPPORTED;BUILD_RELEASE;BUILD_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\picojson;$(SolutionDir)Dependencies\SFML-64\include;%(AdditionalIncludeDirectories);$(SolutionDir)Engine-Core\Includes</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

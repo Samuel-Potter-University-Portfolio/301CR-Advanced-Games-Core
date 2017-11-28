@@ -28,6 +28,13 @@ Game::~Game()
 		m_currentLevel = nullptr;
 	}
 
+	// Perform object cleanup
+	for (OObject* object : m_activeObjects)
+	{
+		object->OnDestroy();
+		delete object;
+	}
+
 	LOG("Closed game '%s'", m_name.c_str());
 }
 

@@ -1,3 +1,4 @@
 ## Ignore all dependency folders
 SFML-64/
 SFML-32/
+picojson/
