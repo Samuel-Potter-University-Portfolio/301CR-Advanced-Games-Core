@@ -50,6 +50,12 @@ public:
 	*/
 	inline void SetReady(const bool& value) { if (IsNetOwner()) CallRPC_OneParam(this, SetReady_Host, value); }
 
+	/**
+	* Update which map the player has voted for
+	* @param index		The index of the map
+	*/
+	inline void SetMapVote(const uint32& index) { if (IsNetOwner()) CallRPC_OneParam(this, SetMapVote_Host, index); }
+
 private:
 
 	/**
@@ -58,6 +64,7 @@ private:
 	void BroadcastMessage(const string& message);
 
 	inline void SetReady_Host(const bool& value) { bIsReady = value; }
+	void SetMapVote_Host(const uint32& index);
 
 
 

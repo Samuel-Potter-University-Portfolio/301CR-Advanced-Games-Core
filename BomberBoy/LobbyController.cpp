@@ -20,13 +20,11 @@ ALobbyController::ALobbyController()
 bool ALobbyController::RegisterRPCs(const char* func, RPCInfo& outInfo) const 
 {
 	RPC_INDEX_HEADER(func, outInfo);
-	RPC_INDEX(TCP, RPCCallingMode::Host, UpdateMapVote_Host)
 	return false;
 }
 bool ALobbyController::ExecuteRPC(uint16& id, ByteBuffer& params) 
 {
 	RPC_EXEC_HEADER(id, params);
-	RPC_EXEC_TwoParam(UpdateMapVote_Host, OBPlayerController*, uint32);
 	return false;
 }
 
@@ -181,13 +179,14 @@ void ALobbyController::OnPlayerDisconnect(OPlayerController* player)
 	if (bplayer == nullptr)
 		return;
 	m_players.erase(std::remove(m_players.begin(), m_players.end(), bplayer), m_players.end());
-	m_mapVotes.erase(bplayer);
+	m_mapVotes.erase(bplayer->GetNetworkID());
 
 	// Update lobby HUD
 	ALobbyHUD* hud = dynamic_cast<ALobbyHUD*>(GetLevel()->GetHUD());
 	if (hud != nullptr)
 		hud->OnPlayerDisconnect(bplayer);
 }
+
 
 uint32 ALobbyController::GetMapVotes(const uint32& mapIndex) const
 {

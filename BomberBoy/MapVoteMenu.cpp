@@ -54,7 +54,7 @@ void MapVoteMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMo
 		button->SetSize(vec2(150, 150));
 
 		const uint32 index = i;
-		button->SetCallback([this, index]() { m_levelController->UpdateMapVote(m_playerController, index); });
+		button->SetCallback([this, index]() { m_playerController->SetMapVote(index); });
 
 
 		// Vote counter
@@ -124,6 +124,11 @@ void MapVoteMenu::UpdateDisplay(AHUD* hud)
 
 		const string timeStamp = std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds);
 		m_timerText->SetText(timeStamp + " remaining to vote..");
+
+		if (time < 10)
+			m_timerText->SetTextColour(Colour::Red);
+		else
+			m_timerText->SetTextColour(Colour::Black);
 	}
 
 	// Update vote counts

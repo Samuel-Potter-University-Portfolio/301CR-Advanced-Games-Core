@@ -1,5 +1,6 @@
 #include "BPlayerController.h"
 #include "ChatWidget.h"
+#include "LobbyController.h"
 
 
 CLASS_SOURCE(OBPlayerController)
@@ -82,8 +83,9 @@ bool OBPlayerController::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
 	RPC_INDEX_HEADER(func, outInfo);
 	RPC_INDEX(TCP, RPCCallingMode::Host, SendMessage);
-	RPC_INDEX(TCP, RPCCallingMode::Broadcast, BroadcastMessage); 
+	RPC_INDEX(TCP, RPCCallingMode::Broadcast, BroadcastMessage);
 	RPC_INDEX(TCP, RPCCallingMode::Host, SetReady_Host);
+	RPC_INDEX(TCP, RPCCallingMode::Host, SetMapVote_Host);
 	return false;
 }
 bool OBPlayerController::ExecuteRPC(uint16& id, ByteBuffer& params) 
@@ -92,6 +94,7 @@ bool OBPlayerController::ExecuteRPC(uint16& id, ByteBuffer& params)
 	RPC_EXEC_OneParam(SendMessage, string);
 	RPC_EXEC_OneParam(BroadcastMessage, string);
 	RPC_EXEC_OneParam(SetReady_Host, bool);
+	RPC_EXEC_OneParam(SetMapVote_Host, uint32);
 	return false;
 }
 
@@ -133,4 +136,11 @@ string OBPlayerController::GetDisplayName() const
 		return playerName.substr(0, maxNameSize - 2) + "..";
 	else
 		return playerName;
+}
+
+void OBPlayerController::SetMapVote_Host(const uint32& index)
+{
+	LLevel* level = GetGame()->GetCurrentLevel();
+	ALobbyController* controller = level != nullptr ? dynamic_cast<ALobbyController*>(level->GetLevelController()) : nullptr;
+	if (controller != nullptr) controller->UpdateMapVote(this, index);
 }
