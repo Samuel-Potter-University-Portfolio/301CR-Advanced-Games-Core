@@ -84,6 +84,9 @@
     <ClCompile Include="APIController.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="LoginMenu.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLevel.h">
@@ -142,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="APIController.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="LoginMenu.h">
+      <Filter>Includes\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

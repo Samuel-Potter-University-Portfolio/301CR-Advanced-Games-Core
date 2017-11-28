@@ -8,6 +8,8 @@ CLASS_SOURCE(AMainMenuHUD)
 void AMainMenuHUD::OnBegin()
 {
 	Super::OnBegin();
+	bIsTickable = true;
+
 	const sf::Font* defaultFont = GetAssetController()->GetFont("Resources\\UI\\coolvetica.ttf");
 	const ULabel::ScalingMode& defaultScaling = ULabel::ScalingMode::Expand;
 
@@ -60,9 +62,9 @@ void AMainMenuHUD::OnBegin()
 		};
 
 
-		UButton* login = makeButton();
-		login->SetText("Login");
-		login->SetCallback([this]() 
+		m_loginButton = makeButton();
+		m_loginButton->SetText("Login");
+		m_loginButton->SetCallback([this]()
 		{
 			m_loginMenu.SetActive(true);
 			m_hostMenu.SetActive(false);
@@ -70,12 +72,11 @@ void AMainMenuHUD::OnBegin()
 			m_serverMenu.SetActive(false);
 			m_settingsMenu.SetActive(false);
 		});
-		login->SetDisabled(true);
 
 
-		UButton* connect = makeButton();
-		connect->SetText("Connect");
-		connect->SetCallback([this]()
+		m_connectButton = makeButton();
+		m_connectButton->SetText("Connect");
+		m_connectButton->SetCallback([this]()
 		{
 			m_loginMenu.SetActive(false);
 			m_hostMenu.SetActive(false);
@@ -85,9 +86,9 @@ void AMainMenuHUD::OnBegin()
 		});
 
 
-		UButton* host = makeButton();
-		host->SetText("Host");
-		host->SetCallback([this]()
+		m_hostButton = makeButton();
+		m_hostButton->SetText("Host");
+		m_hostButton->SetCallback([this]()
 		{
 			m_loginMenu.SetActive(false);
 			m_hostMenu.SetActive(true);
@@ -97,9 +98,9 @@ void AMainMenuHUD::OnBegin()
 		});
 
 
-		UButton* server = makeButton();
-		server->SetText("Server List");
-		server->SetCallback([this]()
+		m_serverButton = makeButton();
+		m_serverButton->SetText("Server List");
+		m_serverButton->SetCallback([this]()
 		{
 			m_loginMenu.SetActive(false);
 			m_hostMenu.SetActive(false);
@@ -107,12 +108,11 @@ void AMainMenuHUD::OnBegin()
 			m_serverMenu.SetActive(true);
 			m_settingsMenu.SetActive(false);
 		});
-		server->SetDisabled(true);
 
 
-		UButton* settings = makeButton();
-		settings->SetText("Settings");
-		settings->SetCallback([this]()
+		m_settingsButton = makeButton();
+		m_settingsButton->SetText("Settings");
+		m_settingsButton->SetCallback([this]()
 		{
 			m_loginMenu.SetActive(false);
 			m_hostMenu.SetActive(false);
@@ -120,12 +120,11 @@ void AMainMenuHUD::OnBegin()
 			m_serverMenu.SetActive(false);
 			m_settingsMenu.SetActive(true);
 		});
-		settings->SetDisabled(true);
 
 
-		UButton* exit = makeButton();
-		exit->SetText("Exit");
-		exit->SetCallback([this]() { GetGame()->GetEngine()->Close(); });
+		m_exitButton = makeButton();
+		m_exitButton->SetText("Exit");
+		m_exitButton->SetCallback([this]() { GetGame()->GetEngine()->Close(); });
 	}
 
 	// Menus
@@ -134,6 +133,7 @@ void AMainMenuHUD::OnBegin()
 
 		// Login menu
 		m_loginMenu.SetActive(false);
+		m_loginMenu.Build(this, defaultFont, defaultScaling, anchor);
 
 
 		// Host menu
@@ -149,5 +149,45 @@ void AMainMenuHUD::OnBegin()
 		m_serverMenu.SetActive(false);
 		m_settingsMenu.SetActive(false);
 	}
+
+
+	// Setup which buttons should be disabled
+#ifdef API_SUPPORTED
+	//m_loginButton->SetDisabled(true);
+	m_connectButton->SetDisabled(true);
+	m_hostButton->SetDisabled(true);
+	m_serverButton->SetDisabled(true);
+	m_settingsButton->SetDisabled(true);
+	//m_exitButton->SetDisabled(true);
+#else
+	m_loginButton->SetDisabled(true);
+	//m_connectButton->SetDisabled(true);
+	//m_hostButton->SetDisabled(true);
+	m_serverButton->SetDisabled(true);
+	m_settingsButton->SetDisabled(true);
+	//m_exitButton->SetDisabled(true);
+#endif
 }
 
+void AMainMenuHUD::OnTick(const float& deltaTime)
+{
+	Super::OnTick(deltaTime);
+
+	// Setup which buttons should be disabled
+#ifdef API_SUPPORTED
+	OAPIController* controller = GetGame()->GetFirstObject<OAPIController>();
+
+	if (controller != nullptr && controller->IsUserLoggedIn())
+	{
+		m_connectButton->SetDisabled(false);
+		m_hostButton->SetDisabled(false);
+		m_serverButton->SetDisabled(false);
+	}
+	else
+	{
+		m_connectButton->SetDisabled(true);
+		m_hostButton->SetDisabled(true);
+		m_serverButton->SetDisabled(true);
+	}
+#endif
+}

@@ -48,6 +48,7 @@
     <ClCompile Include="LobbyController.cpp" />
     <ClCompile Include="LobbyHUD.cpp" />
     <ClCompile Include="LobbyLevel.cpp" />
+    <ClCompile Include="LoginMenu.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainLevel.cpp" />
     <ClCompile Include="MainMenuHUD.cpp" />
@@ -69,6 +70,7 @@
     <ClInclude Include="LobbyController.h" />
     <ClInclude Include="LobbyHUD.h" />
     <ClInclude Include="LobbyLevel.h" />
+    <ClInclude Include="LoginMenu.h" />
     <ClInclude Include="MainLevel.h" />
     <ClInclude Include="MainMenuHUD.h" />
     <ClInclude Include="MainMenuLevel.h" />

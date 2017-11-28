@@ -68,6 +68,17 @@ public:
 	*/
 	void LoginUser(const string& account, const string& password, HttpCallback callback = HttpCallback());
 
+	/**
+	* Logout the currently connected user
+	*/
+	inline void LogoutUser()
+	{
+		bLoggedIn = false;
+		m_displayName = "";
+		m_userId = "";
+		m_sessionId = "";
+	}
+
 private:
 	/** Loop that will get called from another thread to handle http requests */
 	void HttpLoop();
@@ -77,5 +88,18 @@ private:
 	* @returns Was load succesful
 	*/
 	bool TryLoadConfig();
+
+
+	/**
+	* Getters & Setters
+	*/
+public:
+	inline const string& GetDomain() const { return m_apiDomain; }
+	inline const string& GetBaseURI() const { return m_apiBaseUri; }
+
+	inline const bool& IsUserLoggedIn() const { return bLoggedIn; }
+	inline const string& GetUserDisplayName() const { return m_displayName; }
+	inline const string& GetUserID() const { return m_userId; }
+	inline const string& GetUserSessionID() const { return m_sessionId; }
 };
 
