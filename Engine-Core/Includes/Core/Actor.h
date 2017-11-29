@@ -142,7 +142,7 @@ typedef AActor* AActorPtr;
 template<>
 inline void Encode<AActorPtr>(ByteBuffer& buffer, const AActorPtr& data)
 {
-	Encode(buffer, data->GetNetworkID());
+	Encode(buffer, data == nullptr ? 0 : data->GetNetworkID());
 }
 
 template<>

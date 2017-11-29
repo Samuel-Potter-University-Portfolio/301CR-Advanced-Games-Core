@@ -13,12 +13,13 @@
 class OBPlayerController : public OPlayerController
 {
 	CLASS_BODY()
-	friend class ABLevelControllerBase;
+	friend class ABMatchController;
 public:
 	static const std::vector<Colour> s_supportedColours;
 	static std::queue<uint32> s_colourQueue; // Currently avaliable colour indices
 
 private:
+	ABCharacter* m_character = nullptr;
 	uint32 m_colourIndex = 16;
 	bool bIsReady = false;
 

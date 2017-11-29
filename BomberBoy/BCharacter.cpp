@@ -38,12 +38,26 @@ bool ABCharacter::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 {
 	RPC_INDEX_HEADER(func, outInfo);
 	RPC_INDEX(UDP, RPCCallingMode::Host, PlaceBomb);
+	RPC_INDEX(TCP, RPCCallingMode::Broadcast, OnSpawn);
 	return false;
 }
 bool ABCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
 {
 	RPC_EXEC_HEADER(id, params);
 	RPC_EXEC_OneParam(PlaceBomb, ivec2);
+	RPC_EXEC_OneParam(OnSpawn, ivec2);
+	return false;
+}
+
+void ABCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
+{
+	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
+	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, uint32, m_colourIndex);
+}
+bool ABCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
+{
+	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
+	SYNCVAR_EXEC_Callback(m_colourIndex, OnChange_ColourIndex);
 	return false;
 }
 
@@ -126,7 +140,7 @@ void ABCharacter::OnBegin()
 {
 	Super::OnBegin();
 
-	if (IsNetHost()) 
+	if (IsNetHost())
 	{
 		// Setup bombs
 		for (uint32 i = 0; i < s_maxBombCount; ++i)
@@ -137,27 +151,15 @@ void ABCharacter::OnBegin()
 		}
 	}
 
-#ifdef BUILD_CLIENT
-	// Load default animations
-	//m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim");
-	//m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim");
-	//m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim");
-	//m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim");
+	// Force correct colour to be used
+	UpdateColour();
 
+
+#ifdef BUILD_CLIENT
+	// Cache camera
 	if (IsNetOwner())
 	{
-		// Load default animations
-		m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim.green");
-		m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim.green");
-		m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim.green");
-		m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim.green");
-	}
-	else
-	{
-		m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim.red");
-		m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim.red");
-		m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim.red");
-		m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim.red");
+		m_camera = GetGame()->GetCurrentLevel()->GetFirstActor<ACamera>();
 	}
 #endif
 }
@@ -189,6 +191,14 @@ void ABCharacter::OnTick(const float& deltaTime)
 
 		if (m_bombKey.IsHeld())
 			CallRPC_OneParam(this, PlaceBomb, GetClosestTileLocation());
+
+
+		// Move camera
+		const vec2 diff = m_camera->GetLocation() - GetLocation();
+		const float sqrdDist = diff.x*diff.x + diff.y*diff.y;
+
+		if (sqrdDist >= 100.0f * 100.0f)
+			m_camera->SetLocation(m_camera->GetLocation() * 0.99f + GetLocation() * 0.01f);
 	}
 }
 
@@ -221,4 +231,27 @@ void ABCharacter::PlaceBomb(const ivec2& tile)
 	ABBomb* bomb = GetNewBomb();
 	if (bomb != nullptr)
 		bomb->AttemptToPlace(tile);
+}
+
+void ABCharacter::UpdateColour()
+{
+#ifdef BUILD_CLIENT
+	const Colour colour = OBPlayerController::s_supportedColours[m_colourIndex];
+	const string colourName = std::to_string(colour.r) + std::to_string(colour.g) + std::to_string(colour.b);
+
+	// Load default animations
+	m_animUp = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Up.anim." + colourName);
+	m_animDown = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Down.anim." + colourName);
+	m_animLeft = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Left.anim." + colourName);
+	m_animRight = GetGame()->GetAssetController()->GetAnimation("Resources\\Character\\Right.anim." + colourName);
+#endif
+}
+
+void ABCharacter::SpawnAtTile(const ivec2& tile) 
+{
+	if (IsNetHost())
+	{
+		OnSpawn(tile);
+		CallRPC_OneParam(this, OnSpawn, tile);
+	}
 }

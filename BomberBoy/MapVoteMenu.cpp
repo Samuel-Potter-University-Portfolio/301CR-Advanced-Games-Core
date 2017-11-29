@@ -42,7 +42,7 @@ void MapVoteMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMo
 		UButton* button = AddElement<UButton>(hud);
 		button->SetScalingMode(scalingMode);
 		button->SetFont(font);
-		button->SetText(lockedTile ? "" : ALobbyController::s_supportedLevels[i]->GetName());
+		button->SetText(lockedTile ? "" : ALobbyController::s_supportedLevels[i]->GetName().substr(2));
 		button->SetVerticalAlignment(ULabel::VerticalAlignment::Bottom);
 		button->SetHorizontalAlignment(ULabel::HorizontalAlignment::Right);
 		button->SetDisabled(lockedTile);

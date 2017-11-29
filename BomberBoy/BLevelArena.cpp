@@ -25,19 +25,6 @@ ABLevelArena::ABLevelArena() :
 
 	m_tiles.resize(m_arenaSize.x * m_arenaSize.y, TileType::Floor);
 	m_explosionParents.resize(m_arenaSize.x * m_arenaSize.y, nullptr);
-
-	m_tiles[GetTileIndex(7, 8)] = TileType::Box;
-	m_tiles[GetTileIndex(8, 8)] = TileType::Box;
-	m_tiles[GetTileIndex(7, 6)] = TileType::LootBox;
-	m_tiles[GetTileIndex(0, 0)] = TileType::LootBox;
-
-
-	m_tiles[GetTileIndex(4, 2)] = TileType::Wall;
-	m_tiles[GetTileIndex(5, 3)] = TileType::Wall;
-	m_tiles[GetTileIndex(5, 2)] = TileType::Wall;
-	m_tiles[GetTileIndex(3, 2)] = TileType::Wall;
-	m_tiles[GetTileIndex(4, 3)] = TileType::Wall;
-	m_tiles[GetTileIndex(4, 1)] = TileType::Wall;
 }
 
 
@@ -109,13 +96,26 @@ void ABLevelArena::OnBegin()
 #ifdef BUILD_CLIENT
 void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime) 
 {
+	const vec2 viewCentre = window->getView().getCenter();
+	const vec2 viewHalfSize = window->getView().getSize() * 0.5f;
+
+	const vec2 min = viewCentre - viewHalfSize;
+	const vec2 max = viewCentre + viewHalfSize;
+
+
 	for (int x = 0; x < m_arenaSize.x; ++x)
 		for (int y = 0; y < m_arenaSize.y; ++y)
 		{
 			const TileType& tile = GetTile(x, y);
+			const vec2 location = GetLocation() + vec2((x)* m_tileSize.x, (y)* m_tileSize.y);
+			const vec2 halfSize = m_tileSize * 0.5f;
+
+			// Cull shapes off screen
+			if (location.x + halfSize.x < min.x || location.y + halfSize.y < min.y || location.x - halfSize.x > max.x || location.y - halfSize.y > max.y)
+				continue;
 
 			sf::RectangleShape tileRect;
-			tileRect.setPosition(GetLocation() + vec2((x) * m_tileSize.x, (y) * m_tileSize.y)); // Draw from centre of tile
+			tileRect.setPosition(location); // Draw from centre of tile
 			tileRect.setSize(m_tileSize);
 			
 
@@ -175,6 +175,30 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 		}
 }
 #endif
+
+void ABLevelArena::ResetArena(uvec2 size)
+{
+	m_arenaSize = size;
+
+	m_tiles.clear();
+	m_tiles.resize(m_arenaSize.x * m_arenaSize.y, TileType::Floor);
+	m_explosionParents.clear();
+	m_explosionParents.resize(m_arenaSize.x * m_arenaSize.y, nullptr);
+
+	for (uint32 x = 0; x < size.x; ++x)
+		for (uint32 y = 0; y < size.y; ++y)
+			if (x == 0 || y == 0 || x == size.x - 1 || y == size.y - 1)
+				SetTile(x, y, TileType::Wall);
+
+
+	const uint32 stride = (m_arenaSize.x - 2 - 1) / 3;
+	m_spawnPoints.clear();
+	for (uint32 i = 0; i < 4; ++i)
+	{
+		m_spawnPoints.emplace_back(1 + i * stride, 1);
+		m_spawnPoints.emplace_back(1 + i * stride, m_arenaSize.x - 3);
+	}
+}
 
 void ABLevelArena::SetTileset(const TileSet& set)
 {

@@ -74,7 +74,7 @@ typedef OObject* OObjectPtr;
 template<>
 inline void Encode<OObjectPtr>(ByteBuffer& buffer, const OObjectPtr& data)
 {
-	Encode(buffer, data->GetNetworkID());
+	Encode(buffer, data == nullptr ? 0 : data->GetNetworkID());
 }
 
 template<>

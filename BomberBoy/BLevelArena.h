@@ -38,7 +38,9 @@ private:
 	const vec2 m_tileSize;
 
 	/// What tiles are placed where
-	TileGrid m_tiles;
+	TileGrid m_tiles;	
+	/// The areas which are safe to spawn in
+	std::vector<ivec2> m_spawnPoints;
 	/// What bombs are currently affecting which tiles
 	std::vector<class ABBomb*> m_explosionParents;
 	
@@ -81,6 +83,12 @@ protected:
 
 public:
 	/**
+	* Reset the arena so that all of the tiles are floor tiles (And walls around the edges)
+	* @param size			The desired size (In tiles) for the arena to be
+	*/
+	void ResetArena(uvec2 size);
+
+	/**
 	* Set the current tile set for the arena to use
 	* @param set		The desired set
 	*/
@@ -108,6 +116,8 @@ public:
 	*/
 protected:
 	inline uint32 GetTileIndex(const uint32& x, const uint32& y) const { return y * m_arenaSize.x + x; }
+public:
+	inline TileType GetTile(const uint32& x, const uint32& y) { if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y) return TileType::Unknown; else return m_tiles[GetTileIndex(x, y)]; }
 	inline bool SetTile(const uint32& x, const uint32& y, const TileType& tile)
 	{
 		if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y)
@@ -116,14 +126,15 @@ protected:
 			m_tiles[GetTileIndex(x, y)] = tile;
 		return true;
 	}
-public:
-	inline TileType GetTile(const uint32& x, const uint32& y) { if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y) return TileType::Unknown; else return m_tiles[GetTileIndex(x, y)]; }
 	
 
 
 	/** Get the extents of this arena */
 	inline sf::FloatRect GetArenaExtents() const { const vec2& loc = GetLocation(); return sf::FloatRect(loc.x, loc.y, m_arenaSize.x * m_tileSize.x, m_arenaSize.y * m_tileSize.y); }
 	inline const vec2& GetTileSize() const { return m_tileSize; }
+
+	inline const uvec2& GetArenaSize() const { return m_arenaSize; }
+	inline const std::vector<ivec2> GetSpawnPoints() const { return m_spawnPoints; }
 
 	/** Convert a world position to a tile position	*/
 	inline ivec2 WorldToTile(const vec2& worldPosition) const { return ivec2((worldPosition.x - GetLocation().x) / m_tileSize.x, (worldPosition.y - GetLocation().y) / m_tileSize.y); }

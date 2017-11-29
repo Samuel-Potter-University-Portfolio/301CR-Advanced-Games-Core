@@ -103,12 +103,14 @@ void OBPlayerController::RegisterSyncVars(SyncVarQueue& outQueue, const SocketTy
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
 	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, uint32, m_colourIndex);
 	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, bool, bIsReady);
+	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, ABCharacter*, m_character);
 }
 bool OBPlayerController::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
 {
 	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
 	SYNCVAR_EXEC(m_colourIndex);
 	SYNCVAR_EXEC(bIsReady);
+	SYNCVAR_EXEC(m_character);
 	return false;
 }
 

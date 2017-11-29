@@ -13,10 +13,13 @@
 class ABCharacter : public ABTileableActor
 {
 	CLASS_BODY()
+	friend class ABMatchController;
 public:
 	static const uint32 s_maxBombCount;
 
 private:
+	uint32 m_colourIndex = 16;
+
 	const AnimationSheet* m_animUp = nullptr;
 	const AnimationSheet* m_animDown = nullptr;
 	const AnimationSheet* m_animLeft = nullptr;
@@ -70,16 +73,30 @@ public:
 	void PlaceBomb(const ivec2& tile);
 
 	/**
+	* Update the character's animations to make sure the colours are correct
+	*/
+	void UpdateColour();
+
+	/**
+	* Lets the level controller spawn this character in at this tile
+	* (Only callable by host)
+	* @param tile			The tile to spawn on
+	*/
+	void SpawnAtTile(const ivec2& tile);
+
+	/**
 	* Net overrides
 	*/
 protected:
 	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
 	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
 
-	//virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
-	//virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
+	virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
+	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
 
-
+private:
+	inline void OnChange_ColourIndex() { UpdateColour(); }
+	inline void OnSpawn(const ivec2& tile) { SetTileLocation(tile); }
 };
 
 

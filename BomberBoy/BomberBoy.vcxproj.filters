@@ -25,30 +25,24 @@
     <Filter Include="Source\Levels\Lobby">
       <UniqueIdentifier>{acca6524-68a5-4aef-9da1-d2d680c3335c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Includes\Levels\Modes">
+      <UniqueIdentifier>{74d8b753-a2a2-4a3d-9592-75d9a9690dc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes\Levels\Modes\FFA">
+      <UniqueIdentifier>{85828e2b-3288-47c2-9dfe-317db34dd06f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Levels\Modes">
+      <UniqueIdentifier>{de44a02d-34ab-47dc-ad26-b5e3fd3c5ae9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Levels\Modes\FFA">
+      <UniqueIdentifier>{945b3e4f-70eb-49f0-ac3e-0b7486f9dea6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BBomb.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="BCharacter.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="BLevelArena.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="BLevelControllerBase.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="BPlayerController.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="BTileableActor.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="MainLevel.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="MenuContainer.cpp">
@@ -87,28 +81,33 @@
     <ClCompile Include="LoginMenu.cpp">
       <Filter>Source\UI</Filter>
     </ClCompile>
-    <ClCompile Include="APINetLayer.cpp" />
+    <ClCompile Include="APINetLayer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BGameLevelBase.cpp">
+      <Filter>Source\Levels\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="BCharacter.cpp">
+      <Filter>Source\Levels\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="BLevelArena.cpp">
+      <Filter>Source\Levels\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="BBomb.cpp">
+      <Filter>Source\Levels\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="BStoneLevel.cpp">
+      <Filter>Source\Levels\Modes\FFA</Filter>
+    </ClCompile>
+    <ClCompile Include="BTileableActor.cpp">
+      <Filter>Source\Levels\Modes</Filter>
+    </ClCompile>
+    <ClCompile Include="BLevelController.cpp">
+      <Filter>Source\Levels\Modes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MainLevel.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="BLevelControllerBase.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="BPlayerController.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="BCharacter.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="BLevelArena.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="BTileableActor.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="BBomb.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
@@ -150,6 +149,29 @@
     <ClInclude Include="LoginMenu.h">
       <Filter>Includes\UI</Filter>
     </ClInclude>
-    <ClInclude Include="APINetLayer.h" />
+    <ClInclude Include="APINetLayer.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="BGameLevelBase.h">
+      <Filter>Includes\Levels\Modes</Filter>
+    </ClInclude>
+    <ClInclude Include="BCharacter.h">
+      <Filter>Includes\Levels\Modes</Filter>
+    </ClInclude>
+    <ClInclude Include="BLevelArena.h">
+      <Filter>Includes\Levels\Modes</Filter>
+    </ClInclude>
+    <ClInclude Include="BTileableActor.h">
+      <Filter>Includes\Levels\Modes</Filter>
+    </ClInclude>
+    <ClInclude Include="BBomb.h">
+      <Filter>Includes\Levels\Modes</Filter>
+    </ClInclude>
+    <ClInclude Include="BStoneLevel.h">
+      <Filter>Includes\Levels\Modes\FFA</Filter>
+    </ClInclude>
+    <ClInclude Include="BLevelController.h">
+      <Filter>Includes\Levels\Modes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

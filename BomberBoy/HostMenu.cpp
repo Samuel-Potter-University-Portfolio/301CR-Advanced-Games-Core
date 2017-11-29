@@ -1,6 +1,5 @@
 #include "HostMenu.h"
 
-#include "MainLevel.h"
 
 
 void HostMenu::Build(AHUD* hud, const sf::Font* font, const ULabel::ScalingMode& scalingMode, const vec2 anchor)

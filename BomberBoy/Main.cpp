@@ -5,14 +5,15 @@
 #include "APIController.h"
 #include "APINetLayer.h"
 
-#include "MainLevel.h"
 #include "MainMenuLevel.h"
 #include "LobbyLevel.h"
+#include "BGameLevelBase.h"
+#include "BStoneLevel.h"
 
 #include "MainMenuHUD.h"
 #include "LobbyHUD.h"
 
-#include "BLevelControllerBase.h"
+#include "BLevelController.h"
 #include "LobbyController.h"
 
 #include "BCharacter.h"
@@ -38,14 +39,15 @@ static inline int entry(std::vector<string>& args)
 		// Register misc.
 		game.RegisterClass(OAPIController::StaticClass());
 		game.RegisterClass(OBPlayerController::StaticClass());
-		game.RegisterClass(ABLevelControllerBase::StaticClass());
+		game.RegisterClass(ABMatchController::StaticClass());
 		game.RegisterClass(ALobbyController::StaticClass());
 
 
 		// Add levels
-		game.RegisterClass(LMainLevel::StaticClass());
 		game.RegisterClass(LMainMenuLevel::StaticClass());
 		game.RegisterClass(LLobbyLevel::StaticClass());
+		game.RegisterClass(LBGameLevelBase::StaticClass());
+		game.RegisterClass(LBStoneLevel::StaticClass());
 
 		game.defaultLevel = LMainMenuLevel::StaticClass();
 		game.defaultNetLevel = LLobbyLevel::StaticClass();

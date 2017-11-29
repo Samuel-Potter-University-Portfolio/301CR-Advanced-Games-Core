@@ -1,6 +1,6 @@
 #include "LobbyController.h"
 
-#include "MainLevel.h"
+#include "BStoneLevel.h"
 
 #include "LobbyHUD.h"
 
@@ -8,7 +8,9 @@
 CLASS_SOURCE(ALobbyController)
 const std::vector<SubClassOf<LLevel>> ALobbyController::s_supportedLevels(
 {
-	LMainLevel::StaticClass()
+	LBStoneLevel::StaticClass(),
+	LBGameLevelBase::StaticClass(),
+	//LBGameLevelBase::StaticClass(),
 });
 
 
@@ -60,7 +62,6 @@ void ALobbyController::OnTick(const float& deltaTime)
 	Super::OnTick(deltaTime);
 
 
-
 	// Only tick past here, if host
 	if (!IsNetHost())
 		return;
@@ -78,7 +79,7 @@ void ALobbyController::OnTick(const float& deltaTime)
 			m_logicTimer = 0.0f;
 	}
 
-
+	
 	// Don't start timer until have at least 2 players
 	if (m_players.size() < 2)
 	{
@@ -100,25 +101,25 @@ void ALobbyController::OnTick(const float& deltaTime)
 			bIsTimerActive = true;
 		}
 	}
+	
 
 
-
-	// If a third of players are ready, start final start count down
-	const uint32 requiredReadies = std::max(m_players.size() / 3, 2U);
+	// If half of players are ready, start final start count down
+	const uint32 requiredReadies = std::max(m_players.size() / 2, 2U);
 	uint32 readyCount = 0;
 	for (auto player : m_players)
 		if (player->IsReady())
 			++readyCount;
 
-
-	// 1/3 of players are ready
+	
+	// 1/2 of players are ready
 	if (readyCount >= requiredReadies)
 	{
 		if (!bIsLaunching)
 		{
-			// Clamp logic timer to under 25 seconds (Speed match start)
+			// Clamp logic timer to under 15 seconds (Speed match start)
 			bIsLaunching = true;
-			m_logicTimer = m_logicTimer > 25.0f ? 25.0f : m_logicTimer;
+			m_logicTimer = m_logicTimer > 15.0f ? 15.0f : m_logicTimer;
 		}
 	}
 	// Not enough players ready
@@ -131,7 +132,7 @@ void ALobbyController::OnTick(const float& deltaTime)
 			m_logicTimer = m_totalTimer;
 		}
 	}
-
+	
 
 	// Load the map with the most votes
 	if (m_logicTimer == 0.0f)
