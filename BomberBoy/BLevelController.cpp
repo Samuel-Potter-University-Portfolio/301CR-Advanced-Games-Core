@@ -31,10 +31,10 @@ void ABMatchController::OnPlayerConnect(OPlayerController* player, const bool& n
 	// Spawn in character for this controller
 	if (IsNetHost())
 	{
+		bomberPlayer->AssignColour();
 		ABCharacter* character = GetLevel()->SpawnActor<ABCharacter>(ABCharacter::StaticClass(), player);
 		character->SetActive(false);
-		character->m_colourIndex = bomberPlayer->m_colourIndex;
-		character->UpdateColour();
+		character->SetColour(bomberPlayer->m_colourIndex);
 		bomberPlayer->m_character = character;
 	}
 }

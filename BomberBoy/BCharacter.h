@@ -18,8 +18,8 @@ public:
 	static const uint32 s_maxBombCount;
 
 private:
-	uint32 m_colourIndex = 16;
-
+	uint16 m_displayColour = 16;
+	uint16 m_colourIndex = 16;
 	const AnimationSheet* m_animUp = nullptr;
 	const AnimationSheet* m_animDown = nullptr;
 	const AnimationSheet* m_animLeft = nullptr;
@@ -74,8 +74,9 @@ public:
 
 	/**
 	* Update the character's animations to make sure the colours are correct
+	* @param colourIndex			The index to use as a colour
 	*/
-	void UpdateColour();
+	void SetColour(const uint16& colourIndex);
 
 	/**
 	* Lets the level controller spawn this character in at this tile
@@ -95,7 +96,7 @@ protected:
 	virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
 
 private:
-	inline void OnChange_ColourIndex() { UpdateColour(); }
+	inline void OnChange_ColourIndex();
 	inline void OnSpawn(const ivec2& tile) { SetTileLocation(tile); }
 };
 

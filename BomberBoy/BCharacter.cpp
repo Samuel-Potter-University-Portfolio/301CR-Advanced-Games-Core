@@ -52,7 +52,7 @@ bool ABCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
 void ABCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, uint32, m_colourIndex);
+	SYNCVAR_INDEX(UDP, SyncVarMode::Interval, uint16, m_colourIndex);
 }
 bool ABCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
 {
@@ -150,10 +150,7 @@ void ABCharacter::OnBegin()
 			m_bombs.emplace_back(bomb);
 		}
 	}
-
-	// Force correct colour to be used
-	UpdateColour();
-
+	
 
 #ifdef BUILD_CLIENT
 	// Cache camera
@@ -161,6 +158,8 @@ void ABCharacter::OnBegin()
 	{
 		m_camera = GetGame()->GetCurrentLevel()->GetFirstActor<ACamera>();
 	}
+	// Just to force set
+	OnChange_ColourIndex();
 #endif
 }
 
@@ -233,9 +232,24 @@ void ABCharacter::PlaceBomb(const ivec2& tile)
 		bomb->AttemptToPlace(tile);
 }
 
-void ABCharacter::UpdateColour()
+void ABCharacter::SetColour(const uint16& colourIndex)
+{
+	if (m_colourIndex != colourIndex)
+	{
+		m_colourIndex = colourIndex;
+		OnChange_ColourIndex();
+	}
+}
+
+void ABCharacter::OnChange_ColourIndex()
 {
 #ifdef BUILD_CLIENT
+	// Only update if colour has changed
+	if (m_displayColour != m_colourIndex)
+		m_displayColour = m_colourIndex;
+	else
+		return;
+
 	const Colour colour = OBPlayerController::s_supportedColours[m_colourIndex];
 	const string colourName = std::to_string(colour.r) + std::to_string(colour.g) + std::to_string(colour.b);
 

@@ -45,17 +45,9 @@ void OBPlayerController::OnBegin()
 	Super::OnBegin();
 
 
-	// Assign a colour
-	if (IsNetHost() || GetNetRole() == NetRole::None)
-	{
-		if (s_colourQueue.size() == 0)
-			m_colourIndex = 16;
-		else
-		{
-			m_colourIndex = s_colourQueue.front();
-			s_colourQueue.pop();
-		}
-	}
+	// Assign a colour if haven't yet
+	if ((IsNetHost() || GetNetRole() == NetRole::None) && m_colourIndex == 16)
+		AssignColour();
 
 
 	if (UChatWidget::s_main != nullptr)
@@ -125,6 +117,21 @@ void OBPlayerController::BroadcastMessage(const string& message)
 {
 	if (UChatWidget::s_main != nullptr)
 		UChatWidget::s_main->LogMessage(this, message);
+}
+
+void OBPlayerController::AssignColour()
+{
+	// Already assigned colour, so don't repeat
+	if (m_colourIndex != 16)
+		return;
+
+	if (s_colourQueue.size() == 0)
+		m_colourIndex = 16;
+	else
+	{
+		m_colourIndex = s_colourQueue.front();
+		s_colourQueue.pop();
+	}
 }
 
 

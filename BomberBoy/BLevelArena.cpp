@@ -108,10 +108,9 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 		{
 			const TileType& tile = GetTile(x, y);
 			const vec2 location = GetLocation() + vec2((x)* m_tileSize.x, (y)* m_tileSize.y);
-			const vec2 halfSize = m_tileSize * 0.5f;
 
 			// Cull shapes off screen
-			if (location.x + halfSize.x < min.x || location.y + halfSize.y < min.y || location.x - halfSize.x > max.x || location.y - halfSize.y > max.y)
+			if (location.x + m_tileSize.x < min.x || location.y + m_tileSize.y < min.y || location.x - m_tileSize.x > max.x || location.y - m_tileSize.y > max.y)
 				continue;
 
 			sf::RectangleShape tileRect;

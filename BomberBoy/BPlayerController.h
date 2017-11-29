@@ -46,6 +46,7 @@ public:
 	*/
 	void SendMessage(const string& message);
 
+
 	/**
 	* Update the player's state to ready
 	*/
@@ -57,6 +58,11 @@ public:
 	*/
 	inline void SetMapVote(const uint32& index) { if (IsNetOwner()) CallRPC_OneParam(this, SetMapVote_Host, index); }
 
+	/**
+	* Randomlly assign a colour to this player
+	*/
+	void AssignColour();
+
 private:
 
 	/**
@@ -66,7 +72,6 @@ private:
 
 	inline void SetReady_Host(const bool& value) { bIsReady = value; }
 	void SetMapVote_Host(const uint32& index);
-
 
 
 	/**
