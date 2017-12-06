@@ -93,9 +93,9 @@ bool OBPlayerController::ExecuteRPC(uint16& id, ByteBuffer& params)
 void OBPlayerController::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, uint32, m_colourIndex);
-	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, bool, bIsReady);
-	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, ABCharacter*, m_character);
+	SYNCVAR_INDEX(TCP, uint32, m_colourIndex);
+	SYNCVAR_INDEX(TCP, bool, bIsReady);
+	SYNCVAR_INDEX(TCP, ABCharacter*, m_character);
 }
 bool OBPlayerController::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
 {

@@ -28,7 +28,7 @@ bool OPlayerController::ExecuteRPC(uint16& id, ByteBuffer& params)
 void OPlayerController::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, string, m_playerName);
+	SYNCVAR_INDEX(TCP, string, m_playerName);
 }
 
 bool OPlayerController::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)

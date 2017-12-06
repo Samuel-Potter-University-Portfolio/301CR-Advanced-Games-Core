@@ -33,9 +33,9 @@ bool ALobbyController::ExecuteRPC(uint16& id, ByteBuffer& params)
 void ALobbyController::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(UDP, SyncVarMode::Always, float, m_logicTimer);
-	SYNCVAR_INDEX(TCP, SyncVarMode::OnChange, bool, bIsTimerActive);	
-	SYNCVAR_INDEX(UDP, SyncVarMode::Always, PlayerVoteMap, m_mapVotes);
+	SYNCVAR_INDEX_AlwaysEncode(UDP, float, m_logicTimer);
+	SYNCVAR_INDEX(TCP, bool, bIsTimerActive);	
+	SYNCVAR_INDEX(UDP, PlayerVoteMap, m_mapVotes);
 }
 bool ALobbyController::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
 {

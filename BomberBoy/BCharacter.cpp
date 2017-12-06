@@ -52,12 +52,18 @@ bool ABCharacter::ExecuteRPC(uint16& id, ByteBuffer& params)
 void ABCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(UDP, SyncVarMode::Interval, uint16, m_colourIndex);
+	SYNCVAR_INDEX(UDP, uint16, m_colourIndex);
+	SYNCVAR_INDEX(TCP, uint32, m_kills);
+	SYNCVAR_INDEX(TCP, uint32, m_deaths);
+	SYNCVAR_INDEX(TCP, uint32, m_roundWins);
 }
 bool ABCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
 {
 	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
 	SYNCVAR_EXEC_Callback(m_colourIndex, OnChange_ColourIndex);
+	SYNCVAR_EXEC(m_kills);
+	SYNCVAR_EXEC(m_deaths);
+	SYNCVAR_EXEC(m_roundWins);
 	return false;
 }
 
@@ -177,8 +183,13 @@ void ABCharacter::OnTick(const float& deltaTime)
 {
 	Super::OnTick(deltaTime);
 
+	// Interaction
 	if (IsNetOwner())
 	{
+		LOG("Ded %i", bIsDead);
+		if (bIsDead)
+			return;
+
 		if (m_upKey.IsHeld())
 			AttemptMove(Direction::Up);
 		if (m_downKey.IsHeld())
@@ -198,6 +209,17 @@ void ABCharacter::OnTick(const float& deltaTime)
 
 		if (sqrdDist >= 100.0f * 100.0f)
 			m_camera->SetLocation(m_camera->GetLocation() * 0.99f + GetLocation() * 0.01f);
+	}
+
+	// Check to see if dead or not
+	if (IsNetOwner())
+	{
+		ABLevelArena::TileType tile = GetArena()->GetTile(GetTileLocation().x, GetTileLocation().y);
+		if (tile == ABLevelArena::TileType::Explosion)
+		{
+			bIsDead = true;
+			SetActive(false);
+		}
 	}
 }
 
@@ -228,8 +250,8 @@ void ABCharacter::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 void ABCharacter::PlaceBomb(const ivec2& tile)
 {
 	ABBomb* bomb = GetNewBomb();
-	if (bomb != nullptr)
-		bomb->AttemptToPlace(tile);
+	if (!bIsDead && bomb != nullptr && bomb->AttemptToPlace(tile))
+		++m_bombsPlaced;
 }
 
 void ABCharacter::SetColour(const uint16& colourIndex)
@@ -266,6 +288,7 @@ void ABCharacter::SpawnAtTile(const ivec2& tile)
 	if (IsNetHost())
 	{
 		OnSpawn(tile);
+		bIsDead = false;
 		CallRPC_OneParam(this, OnSpawn, tile);
 	}
 }

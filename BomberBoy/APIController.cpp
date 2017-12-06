@@ -4,6 +4,7 @@
 namespace json = picojson;
 
 CLASS_SOURCE(OAPIController)
+#define API_TOKEN "5c81377e82d3c32ff464fb3cbcf0ef77"
 
 
 OAPIController::OAPIController()

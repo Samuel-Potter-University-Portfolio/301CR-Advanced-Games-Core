@@ -31,7 +31,7 @@ ABLevelArena::ABLevelArena() :
 void ABLevelArena::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(UDP, SyncVarMode::Always, TileGrid, m_tiles);
+	SYNCVAR_INDEX(UDP, TileGrid, m_tiles);
 }
 
 bool ABLevelArena::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 

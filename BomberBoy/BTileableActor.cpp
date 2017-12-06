@@ -26,8 +26,8 @@ bool ABTileableActor::ExecuteRPC(uint16& id, ByteBuffer& params)
 void ABTileableActor::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode)
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, Direction, m_netDirection);
-	SYNCVAR_INDEX(UDP, SyncVarMode::OnChange, bool, bNetIsMoving);
+	SYNCVAR_INDEX(UDP, Direction, m_netDirection);
+	SYNCVAR_INDEX(UDP, bool, bNetIsMoving);
 }
 bool ABTileableActor::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks)
 {

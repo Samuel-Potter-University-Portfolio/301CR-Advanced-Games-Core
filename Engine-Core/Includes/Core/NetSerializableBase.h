@@ -69,23 +69,11 @@ inline bool Decode<RPCRequest>(ByteBuffer& buffer, RPCRequest& out, void* contex
 
 
 /**
-* The different calling modes avaliable when calling an RPC
-*/
-enum class SyncVarMode : uint8
-{
-	Unknown		= 0,
-	OnChange	= 1,	// Sync whenever the value changes
-	Interval	= 2,	// Sync at regular intervals
-	Always		= 3,	// Sync every net update
-};
-
-/**
 * Describes a registered sync var and how to sync it it
 */
 struct SyncVarInfo 
 {
 	uint16			index;			// Registered index of this variable
-	SyncVarMode		syncMode;		// Synchronisation mode of this variable
 	SocketType		socket;			// What socket the variable should be synced over
 };
 
@@ -364,74 +352,32 @@ public:
 /**
 * Placed after SYNCVAR_INDEX_HEADER in ExecuteSyncVar to create an entry for a variable
 */
-#define SYNCVAR_INDEX(socketType, mode, type, var) \
+#define SYNCVAR_INDEX(socketType, type, var) \
 	if (__TEMP_SOCKET == socketType || __TEMP_FORCE_ENCODE) \
 		{ \
-			if (__TEMP_FORCE_ENCODE || mode == SyncVarMode::Always || (mode == SyncVarMode::Interval && ShouldEncodeVar(__TEMP_INDEX))) \
+			if (__TEMP_FORCE_ENCODE || ShouldEncodeVar(__TEMP_INDEX)) \
 			{ \
 				SyncVarRequest request; \
 				request.variable.index = __TEMP_INDEX; \
 				request.variable.socket = socketType; \
-				request.variable.syncMode = mode; \
 				Encode(request.value, var); \
 				__TEMP_QUEUE.emplace_back(request); \
-				\
-				if(__TEMP_FORCE_ENCODE && mode == SyncVarMode::OnChange) \
-				{ \
-					type* vptr; \
-					if (typeid(type) == typeid(string)) \
-					{ \
-						if (m_varCheckValues.size() < __TEMP_TRACK + STR_MAX_ENCODE_LEN) \
-							m_varCheckValues.resize(__TEMP_TRACK + STR_MAX_ENCODE_LEN); \
-						\
-						*(m_varCheckValues.data() + __TEMP_TRACK + STR_MAX_ENCODE_LEN - 1) = '\0'; \
-						vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
-						__TEMP_TRACK += STR_MAX_ENCODE_LEN; \
-					} \
-					else \
-					{ \
-						if (m_varCheckValues.size() < __TEMP_TRACK + sizeof(type)) \
-							m_varCheckValues.resize(__TEMP_TRACK + sizeof(type)); \
-						\
-						vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
-						__TEMP_TRACK += sizeof(type); \
-					} \
-					*vptr = var; \
-					\
-				} \
-			} \
-			else if (mode == SyncVarMode::OnChange) \
-			{ \
-				type* vptr; \
-				if (typeid(type) == typeid(string)) \
-				{ \
-					if (m_varCheckValues.size() < __TEMP_TRACK + STR_MAX_ENCODE_LEN) \
-						m_varCheckValues.resize(__TEMP_TRACK + STR_MAX_ENCODE_LEN); \
-					\
-					*(m_varCheckValues.data() + __TEMP_TRACK + STR_MAX_ENCODE_LEN - 1) = '\0'; \
-					vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
-				} \
-				else \
-				{ \
-					if (m_varCheckValues.size() < __TEMP_TRACK + sizeof(type)) \
-						m_varCheckValues.resize(__TEMP_TRACK + sizeof(type)); \
-					\
-					vptr = (type*)(m_varCheckValues.data() + __TEMP_TRACK); \
-				} \
-				\
-				if (*vptr != var) \
-				{ \
-					*vptr = var; \
-					SyncVarRequest request; \
-					request.variable.index = __TEMP_INDEX; \
-					request.variable.socket = socketType; \
-					request.variable.syncMode = mode; \
-					Encode(request.value, var); \
-					__TEMP_QUEUE.emplace_back(request); \
-				} \
 			} \
 		} \
-		if (mode == SyncVarMode::OnChange) __TEMP_TRACK += typeid(type) == typeid(string) ? STR_MAX_ENCODE_LEN : sizeof(type); \
+		++__TEMP_INDEX;
+
+/**
+* Placed after SYNCVAR_INDEX_HEADER in ExecuteSyncVar to create an entry for a variable
+*/
+#define SYNCVAR_INDEX_AlwaysEncode(socketType, type, var) \
+	if (__TEMP_SOCKET == socketType || __TEMP_FORCE_ENCODE) \
+		{ \
+			SyncVarRequest request; \
+			request.variable.index = __TEMP_INDEX; \
+			request.variable.socket = socketType; \
+			Encode(request.value, var); \
+			__TEMP_QUEUE.emplace_back(request); \
+		} \
 		++__TEMP_INDEX;
 
 
@@ -581,8 +527,9 @@ public:
 #define SYNCVAR_EXEC_Callback(var, callback) \
 	if (__TEMP_ID == 0) \
 	{ \
+		auto before = var; \
 		if(!Decode(__TEMP_BUFFER, var, GetDecodingContext())) return false; \
-		if(!__TEMP_SKIP_CALLBACKS) callback(); \
+		if(!__TEMP_SKIP_CALLBACKS && before != var) callback(); \
 		return true; \
 	} \
 	else \

@@ -248,6 +248,7 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 		m_sessionNetId = netOwnerId;
 		outPlayer->m_networkOwnerId = netOwnerId;
 		outPlayer->m_networkId = netControllerId;
+		outPlayer->m_decodingContext = GetGame();
 		outPlayer->bFirstNetUpdate = true;
 		outPlayer->UpdateRole(this);
 		outPlayer->DecodeSyncVarRequests(0, inBuffer, TCP, true);

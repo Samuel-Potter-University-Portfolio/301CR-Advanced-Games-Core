@@ -18,8 +18,21 @@ public:
 	static const uint32 s_maxBombCount;
 
 private:
-	uint16 m_displayColour = 16;
-	uint16 m_colourIndex = 16;
+	///
+	/// Score vars
+	///
+	bool bIsDead = true;
+	uint32 m_kills = 0;
+	uint32 m_deaths = 0;
+	uint32 m_bombsPlaced = 0;
+	uint32 m_roundWins = 0;
+
+
+	///
+	/// Visual vars
+	///
+	uint16 m_displayColour = 17;
+	uint16 m_colourIndex = 17;
 	const AnimationSheet* m_animUp = nullptr;
 	const AnimationSheet* m_animDown = nullptr;
 	const AnimationSheet* m_animLeft = nullptr;
@@ -30,6 +43,9 @@ private:
 	const vec2 m_drawOffset;
 
 
+	///
+	/// Control bindings
+	///
 	KeyBinding m_upKey;
 	KeyBinding m_downKey;
 	KeyBinding m_leftKey;
