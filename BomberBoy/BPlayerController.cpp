@@ -2,6 +2,8 @@
 #include "ChatWidget.h"
 #include "LobbyController.h"
 
+#include "APIController.h"
+
 
 CLASS_SOURCE(OBPlayerController)
 const std::vector<Colour> OBPlayerController::s_supportedColours(

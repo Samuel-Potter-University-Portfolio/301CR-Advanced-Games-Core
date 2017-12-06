@@ -1,4 +1,6 @@
 #include "APIController.h"
+
+#define PICOJSON_USE_INT64
 #include "picojson.h"
 
 namespace json = picojson;
@@ -137,9 +139,13 @@ void OAPIController::LoginUser(const string& account, const string& password, Ht
 				m_displayName = obj["displayName"].get<string>();
 				LOG("Logged in as '%s' (%s)", m_displayName.c_str(), m_userId.c_str());
 
-				OPlayerController* player = GetGame()->GetFirstObject<OPlayerController>(true);
+				// Update local controllers
+				OBPlayerController* player = GetGame()->GetFirstObject<OBPlayerController>(true);
 				if (player != nullptr)
+				{
 					player->SetPlayerName(m_displayName);
+					player->m_userId = m_userId;
+				}
 			}
 			else
 			{
@@ -166,4 +172,50 @@ void OAPIController::VerifyUser(const string& userId, const string& sessionId, H
 	request.setField("Content-Type", "application/json");
 	request.setBody(((json::value)payload).serialize());
 	m_httpQueue.emplace(request, callback);
+}
+
+void OAPIController::ReportMatchResults(const int64& startEpoch, const std::vector<OBPlayerController*>& players, HttpCallback callback)
+{
+	json::object payload;
+	payload["startTime"] = json::value(startEpoch);
+
+	json::array playerStats;
+	for (OBPlayerController* player : players)
+	{
+		json::object stats;
+		stats["userId"] = json::value(player->GetUserID());
+		stats["kills"] = json::value((int64)player->GetCharacter()->GetKills());
+		stats["deaths"] = json::value((int64)player->GetCharacter()->GetDeaths());
+		stats["roundsWon"] = json::value((int64)player->GetCharacter()->GetRoundsWon());
+		stats["bombsPlaced"] = json::value((int64)player->GetCharacter()->GetBombsPlaced());
+		playerStats.push_back(json::value(stats));
+	}
+	payload["playerStats"] = json::value(playerStats);
+
+
+	Http::Request request;
+	request.setMethod(Http::Request::Post);
+	request.setUri(m_apiBaseUri + "/Match/Result");
+	request.setField("Content-Type", "application/json");
+	request.setField("api-token", API_TOKEN);
+	request.setBody(((json::value)payload).serialize());
+
+	m_httpQueue.emplace(request,
+		[this, callback](Http::Response response)
+		{
+			// If login succesful, store that information
+			if (response.getStatus() == 200)
+			{
+				LOG("Match results sent sucessfully!");
+			}
+			else
+			{
+				LOG_WARNING("Failed to send match results: \n%s", response.getBody().c_str());
+			}
+
+
+			if (callback)
+				callback(response);
+		}
+	);
 }

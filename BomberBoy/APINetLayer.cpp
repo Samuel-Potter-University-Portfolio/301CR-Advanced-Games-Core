@@ -71,7 +71,7 @@ NetResponseCode APINetLayer::OnDecodeHandshake(const NetIdentity& connection, By
 		// Issue http request to check the user is who they say they are
 		m_loginChecks[connection] = UserCheckState::Pending;
 		m_controller->VerifyUser(userId, sessionId,
-		[this, connection, outPlayer](Http::Response& response)
+		[this, connection, userId, outPlayer](Http::Response& response)
 		{
 			if (response.getStatus() == 200)
 			{
@@ -82,6 +82,9 @@ NetResponseCode APINetLayer::OnDecodeHandshake(const NetIdentity& connection, By
 					string displayName = raw.get<json::object>()["displayName"].get<string>();
 					outPlayer->SetPlayerName(displayName);
 				}
+				OBPlayerController* bplayer = dynamic_cast<OBPlayerController*>(outPlayer);
+				bplayer->m_userId = userId;
+
 				m_loginChecks[connection] = UserCheckState::Confirmed;
 			}
 			else

@@ -1,11 +1,16 @@
 #pragma once
 #include "Core\Core-Common.h"
 
+#include "BPlayerController.h"
+
 #include <thread>
 #include <fstream>
 #include <functional>
 #include <queue>
 #include <SFML\Network.hpp>
+
+
+#define API_SUPPORTED
 
 
 // Makes writting just a little bit shorter
@@ -83,9 +88,18 @@ public:
 	* Attempt to check if this player is who they say they are
 	* @param userId			The userId of the account
 	* @param sessionId		The sessionId to check
-	* @param callback		The callback to call when the user succesfully logs in
+	* @param callback		The callback to call when the user is succesfully verified
 	*/
 	void VerifyUser(const string& userId, const string& sessionId, HttpCallback callback = HttpCallback());
+
+
+	/**
+	* Attempt to check if this player is who they say they ares
+	* @param startEpoch		The start time of the match
+	* @param players		All the players in the match
+	* @param callback		The callback to call when the match is reported successfully
+	*/
+	void ReportMatchResults(const int64& startEpoch, const std::vector<OBPlayerController*>& players, HttpCallback callback = HttpCallback());
 
 private:
 	/** Loop that will get called from another thread to handle http requests */

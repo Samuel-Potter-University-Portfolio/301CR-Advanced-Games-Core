@@ -14,11 +14,14 @@ class OBPlayerController : public OPlayerController
 {
 	CLASS_BODY()
 	friend class ABMatchController;
+	friend class APINetLayer;
+	friend class OAPIController;
 public:
 	static const std::vector<Colour> s_supportedColours;
 	static std::queue<uint32> s_colourQueue; // Currently avaliable colour indices
 
 private:
+	string m_userId;
 	ABCharacter* m_character = nullptr;
 	uint32 m_colourIndex = 16;
 	bool bIsReady = false;
@@ -83,10 +86,13 @@ public:
 	*/
 	string GetDisplayName() const;
 	inline const bool& IsReady() const { return bIsReady; }
+	inline string GetUserID() const { return m_userId; }
 
 	inline uint32 GetColourIndex() const { return m_colourIndex; }
 	inline Colour GetColour() const { return s_supportedColours[m_colourIndex]; }
 	inline string GetColourCode() const { Colour c = GetColour(); return std::to_string(c.r) + std::to_string(c.g) + std::to_string(c.b); }
+
+	inline ABCharacter* GetCharacter() const { return m_character; }
 };
 
 

@@ -1,7 +1,10 @@
 #include "BLevelController.h"
 #include "BCharacter.h"
 
+#include <ctime>
+
 #include "LobbyLevel.h"
+#include "APIController.h"
 
 
 CLASS_SOURCE(ABMatchController)
@@ -88,6 +91,7 @@ void ABMatchController::OnTick(const float& deltaTime)
 			// If enough players are currently connected, start countdown
 			if (m_activePlayers.size() != 0)
 			{
+				m_matchStartEpoch = std::time(nullptr);
 				m_currentState = MatchState::StartingRound;
 				m_stateTimer = 5.0f;
 				return;
@@ -183,6 +187,14 @@ void ABMatchController::OnTick(const float& deltaTime)
 					LOG("Player '%s' has won the match!", player->GetPlayerName().c_str());
 					m_currentState = MatchState::EndOfMatch;
 					m_stateTimer = 5.0f;
+
+					// Send match data to API
+				#ifdef API_SUPPORTED
+					OAPIController* apiController = GetGame()->GetFirstObject<OAPIController>();
+					if (apiController != nullptr)
+						apiController->ReportMatchResults(m_matchStartEpoch, m_activePlayers);
+				#endif
+
 					// TODO - Broadcast to clients
 					return;
 				}

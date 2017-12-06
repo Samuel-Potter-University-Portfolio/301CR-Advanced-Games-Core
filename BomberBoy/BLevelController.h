@@ -24,6 +24,7 @@ private:
 	float m_stateTimer;
 	MatchState m_currentState;
 
+	int64 m_matchStartEpoch;
 	uint32 m_roundCounter = 0;
 	const uint32 m_roundWinAmount = 1;
 

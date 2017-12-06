@@ -23,6 +23,7 @@ ABLevelArena::ABLevelArena() :
 	m_currentBoxTile = nullptr;
 	m_currentLootTile = nullptr;
 
+	m_tiles.reserve(2000);
 	m_tiles.resize(m_arenaSize.x * m_arenaSize.y, TileType::Floor);
 	m_explosionParents.resize(m_arenaSize.x * m_arenaSize.y, nullptr);
 }
