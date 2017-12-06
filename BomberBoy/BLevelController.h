@@ -25,6 +25,7 @@ private:
 	MatchState m_currentState;
 
 	uint32 m_roundCounter = 0;
+	const uint32 m_roundWinAmount = 1;
 
 	std::vector<OBPlayerController*> m_activePlayers;
 

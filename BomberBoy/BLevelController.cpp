@@ -32,6 +32,7 @@ void ABMatchController::OnPlayerConnect(OPlayerController* player, const bool& n
 	if (IsNetHost())
 	{
 		bomberPlayer->AssignColour();
+		bomberPlayer->SetReady(false); // Reset ready status
 		ABCharacter* character = GetLevel()->SpawnActor<ABCharacter>(ABCharacter::StaticClass(), player);
 		character->SetActive(false);
 		character->SetColour(bomberPlayer->m_colourIndex);
@@ -167,13 +168,26 @@ void ABMatchController::OnTick(const float& deltaTime)
 				LOG("This round has no winner..");
 				m_currentState = MatchState::EndOfRound;
 			}
+			// TODO - Broadcast to clients
 
 			break;
 		}
 
 		case MatchState::EndOfRound:
 		{
-			// TODO - Check if a player has more than 5 round wins
+			// Check if a player has wons
+			for (OBPlayerController* player : m_activePlayers)
+			{
+				if (player->m_character->GetRoundsWon() >= m_roundWinAmount)
+				{
+					LOG("Player '%s' has won the match!", player->GetPlayerName().c_str());
+					m_currentState = MatchState::EndOfMatch;
+					m_stateTimer = 5.0f;
+					// TODO - Broadcast to clients
+					return;
+				}
+			}
+
 
 			// Wait a bit until starting the round
 			m_stateTimer -= deltaTime;
@@ -201,6 +215,10 @@ void ABMatchController::OnTick(const float& deltaTime)
 
 		case MatchState::EndOfMatch:
 		{
+			// Once timer is over, switch back to lobby
+			m_stateTimer -= deltaTime;
+			if (m_stateTimer < 0.0f)
+				GetGame()->SwitchLevel(GetGame()->defaultNetLevel);
 			break;
 		}
 	}

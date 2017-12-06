@@ -117,6 +117,17 @@ protected:
 private:
 	inline void OnChange_ColourIndex();
 	inline void OnSpawn(const ivec2& tile) { SetTileLocation(tile); }
+
+
+	///
+	/// Getters & Setters
+	///
+public:
+	inline bool IsDead() const { return bIsDead; }
+	inline int32 GetKills() const { return m_kills; }
+	inline int32 GetDeaths() const { return m_deaths; }
+	inline int32 GetBombsPlaced() const { return m_bombsPlaced; }
+	inline int32 GetRoundsWon() const { return m_roundWins; }
 };
 
 
