@@ -31,7 +31,7 @@ ABLevelArena::ABLevelArena() :
 void ABLevelArena::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) 
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
-	SYNCVAR_INDEX(UDP, TileGrid, m_tiles);
+	SYNCVAR_INDEX_AlwaysSync(UDP, TileGrid, m_tiles);
 }
 
 bool ABLevelArena::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
@@ -177,10 +177,9 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 
 void ABLevelArena::ResetArena(uvec2 size)
 {
-	m_arenaSize = size;
-
 	m_tiles.clear();
-	m_tiles.resize(m_arenaSize.x * m_arenaSize.y, TileType::Floor);
+	m_tiles.resize(size.x * size.y, TileType::Floor);
+	m_arenaSize = size;
 	m_explosionParents.clear();
 	m_explosionParents.resize(m_arenaSize.x * m_arenaSize.y, nullptr);
 
@@ -307,4 +306,13 @@ void ABLevelArena::HandleExplosion(ABBomb* bomb)
 	for (uint32 i = 1; i <= size; ++i)
 		if (!handleExplodeTile(centre.x, centre.y + i))
 			break;
+}
+
+ABCharacter* ABLevelArena::GetExplosionOwner(const ivec2& tile) const
+{
+	ABBomb* bomb = m_explosionParents[GetTileIndex(tile.x, tile.y)];
+	if (bomb == nullptr)
+		return nullptr;
+	else
+		return bomb->m_parent;
 }

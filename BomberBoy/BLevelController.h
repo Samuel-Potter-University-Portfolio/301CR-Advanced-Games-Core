@@ -24,6 +24,8 @@ private:
 	float m_stateTimer;
 	MatchState m_currentState;
 
+	uint32 m_roundCounter = 0;
+
 	std::vector<OBPlayerController*> m_activePlayers;
 
 public:
@@ -35,6 +37,13 @@ public:
 	virtual void OnPlayerConnect(OPlayerController* player, const bool& newConnection) override;
 	virtual void OnPlayerDisconnect(OPlayerController* player) override;
 
+
+	/**
+	* Callback to decide what to do when a player gets exploded by someone
+	* @param victim				The person who is in the explosion
+	* @param killer				The person who owned the explosion
+	*/
+	void OnPlayerExploded(ABCharacter* victim, ABCharacter* killer);
 
 	/**
 	* Getters & Setters

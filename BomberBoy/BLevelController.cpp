@@ -35,7 +35,9 @@ void ABMatchController::OnPlayerConnect(OPlayerController* player, const bool& n
 		ABCharacter* character = GetLevel()->SpawnActor<ABCharacter>(ABCharacter::StaticClass(), player);
 		character->SetActive(false);
 		character->SetColour(bomberPlayer->m_colourIndex);
+
 		bomberPlayer->m_character = character;
+		character->m_playerController = bomberPlayer;
 	}
 }
 
@@ -117,6 +119,7 @@ void ABMatchController::OnTick(const float& deltaTime)
 				}
 
 				m_currentState = MatchState::InRound;
+				LOG("Starting round %i", m_roundCounter);
 			}
 			break;
 		}
@@ -124,11 +127,47 @@ void ABMatchController::OnTick(const float& deltaTime)
 		case MatchState::InRound:
 		{
 			// Check to see how many players alive there are
+			OBPlayerController* winner = nullptr;
+			uint32 liveCount = 0;
+			for (OBPlayerController* player : m_activePlayers)
+			{
+				if (!player->m_character->bIsDead)
+				{
+					// Found more than one winner...
+					if (++liveCount == 2)
+						break;
+					winner = player;
+				}
+			}
+
+			// Last person alive is the winner
+			if (liveCount == 1)
+			{
+				LOG("'%s' won the round!", winner->GetPlayerName().c_str());
+				++winner->m_character->m_roundWins;
+
+				m_currentState = MatchState::EndOfRound;
+			}
+			// No-one alive (Must have killed each other or suicide pact)??
+			else if (liveCount == 0)
+			{
+				LOG("This round has no winner..");
+				m_currentState = MatchState::EndOfRound;
+			}
+
 			break;
 		}
 
 		case MatchState::EndOfRound:
 		{
+			// TODO - Check if a player has more than 5 round wins
+
+			// Reset arena
+			m_roundCounter++;
+			m_currentState = MatchState::StartingRound;
+			m_stateTimer = 5.0f;
+
+
 			break;
 		}
 
@@ -137,4 +176,24 @@ void ABMatchController::OnTick(const float& deltaTime)
 			break;
 		}
 	}
+}
+
+void ABMatchController::OnPlayerExploded(ABCharacter* victim, ABCharacter* killer) 
+{
+	// Don't care about being in explosion if round is not in progress
+	if (m_currentState != MatchState::InRound)
+		return;
+
+	victim->bIsDead = true;
+	victim->SetActive(false);
+	LOG("'%s' was killed by '%s'", victim->m_playerController->GetDisplayName().c_str(), (killer == nullptr ? "<Unknown>" : killer->m_playerController->GetDisplayName().c_str()));
+
+	// TODO - Broadcast to all players
+
+	// Update stats
+		++victim->m_deaths;
+	if (victim == killer) // Lose a kill because suicide
+		--victim->m_kills;
+	else if(killer != nullptr)
+		++killer->m_kills;
 }

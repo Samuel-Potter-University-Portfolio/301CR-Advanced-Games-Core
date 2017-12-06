@@ -22,22 +22,25 @@ private:
 	/// Score vars
 	///
 	bool bIsDead = true;
-	uint32 m_kills = 0;
-	uint32 m_deaths = 0;
-	uint32 m_bombsPlaced = 0;
-	uint32 m_roundWins = 0;
+	int32 m_kills = 0;
+	int32 m_deaths = 0;
+	int32 m_bombsPlaced = 0;
+	int32 m_roundWins = 0;
 
 
 	///
 	/// Visual vars
 	///
-	uint16 m_displayColour = 17;
-	uint16 m_colourIndex = 17;
+	uint16 m_colourIndex = 16;
 	const AnimationSheet* m_animUp = nullptr;
 	const AnimationSheet* m_animDown = nullptr;
 	const AnimationSheet* m_animLeft = nullptr;
 	const AnimationSheet* m_animRight = nullptr;
 
+	///
+	/// Control vars
+	///
+	class OBPlayerController* m_playerController = nullptr;
 	ACamera* m_camera;
 	const vec2 m_drawSize;
 	const vec2 m_drawOffset;

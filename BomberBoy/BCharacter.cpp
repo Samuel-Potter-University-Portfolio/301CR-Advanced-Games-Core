@@ -3,6 +3,7 @@
 #include "Utils.h"
 
 #include "BPlayerController.h"
+#include "BLevelController.h"
 
 
 CLASS_SOURCE(ABCharacter)
@@ -53,17 +54,21 @@ void ABCharacter::RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& soc
 {
 	SYNCVAR_INDEX_HEADER(outQueue, socketType, index, trackIndex, forceEncode);
 	SYNCVAR_INDEX(UDP, uint16, m_colourIndex);
-	SYNCVAR_INDEX(TCP, uint32, m_kills);
-	SYNCVAR_INDEX(TCP, uint32, m_deaths);
-	SYNCVAR_INDEX(TCP, uint32, m_roundWins);
+	SYNCVAR_INDEX(UDP, int32, m_kills);
+	SYNCVAR_INDEX(UDP, int32, m_deaths);
+	SYNCVAR_INDEX(UDP, int32, m_roundWins);
+	SYNCVAR_INDEX(UDP, bool, bIsDead);
+	SYNCVAR_INDEX(TCP, OBPlayerController*, m_playerController);
 }
 bool ABCharacter::ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) 
 {
 	SYNCVAR_EXEC_HEADER(id, value, skipCallbacks);
-	SYNCVAR_EXEC_Callback(m_colourIndex, OnChange_ColourIndex);
+	SYNCVAR_EXEC_AlwaysCallback(m_colourIndex, OnChange_ColourIndex);
 	SYNCVAR_EXEC(m_kills);
 	SYNCVAR_EXEC(m_deaths);
 	SYNCVAR_EXEC(m_roundWins);
+	SYNCVAR_EXEC(bIsDead);
+	SYNCVAR_EXEC(m_playerController);
 	return false;
 }
 
@@ -183,13 +188,13 @@ void ABCharacter::OnTick(const float& deltaTime)
 {
 	Super::OnTick(deltaTime);
 
+	// Ignore calls if dead
+	if (bIsDead)
+		return;
+
 	// Interaction
 	if (IsNetOwner())
 	{
-		LOG("Ded %i", bIsDead);
-		if (bIsDead)
-			return;
-
 		if (m_upKey.IsHeld())
 			AttemptMove(Direction::Up);
 		if (m_downKey.IsHeld())
@@ -212,13 +217,15 @@ void ABCharacter::OnTick(const float& deltaTime)
 	}
 
 	// Check to see if dead or not
-	if (IsNetOwner())
+	if (IsNetHost())
 	{
-		ABLevelArena::TileType tile = GetArena()->GetTile(GetTileLocation().x, GetTileLocation().y);
+		const ivec2 tileLocation = GetTileLocation();
+		ABLevelArena::TileType tile = GetArena()->GetTile(tileLocation.x, tileLocation.y);
 		if (tile == ABLevelArena::TileType::Explosion)
 		{
-			bIsDead = true;
-			SetActive(false);
+			ABMatchController* controller = dynamic_cast<ABMatchController*>(GetLevel()->GetLevelController());
+			if (controller != nullptr)
+				controller->OnPlayerExploded(this, GetArena()->GetExplosionOwner(tileLocation));
 		}
 	}
 }
@@ -266,12 +273,6 @@ void ABCharacter::SetColour(const uint16& colourIndex)
 void ABCharacter::OnChange_ColourIndex()
 {
 #ifdef BUILD_CLIENT
-	// Only update if colour has changed
-	if (m_displayColour != m_colourIndex)
-		m_displayColour = m_colourIndex;
-	else
-		return;
-
 	const Colour colour = OBPlayerController::s_supportedColours[m_colourIndex];
 	const string colourName = std::to_string(colour.r) + std::to_string(colour.g) + std::to_string(colour.b);
 

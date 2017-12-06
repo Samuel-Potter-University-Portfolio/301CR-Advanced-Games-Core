@@ -136,6 +136,9 @@ public:
 	inline const uvec2& GetArenaSize() const { return m_arenaSize; }
 	inline const std::vector<ivec2> GetSpawnPoints() const { return m_spawnPoints; }
 
+	/** Get the character who caused this explosion */
+	class ABCharacter* GetExplosionOwner(const ivec2& tile) const;
+
 	/** Convert a world position to a tile position	*/
 	inline ivec2 WorldToTile(const vec2& worldPosition) const { return ivec2((worldPosition.x - GetLocation().x) / m_tileSize.x, (worldPosition.y - GetLocation().y) / m_tileSize.y); }
 	/** Convert a tile position to a world position	*/

@@ -369,7 +369,7 @@ public:
 /**
 * Placed after SYNCVAR_INDEX_HEADER in ExecuteSyncVar to create an entry for a variable
 */
-#define SYNCVAR_INDEX_AlwaysEncode(socketType, type, var) \
+#define SYNCVAR_INDEX_AlwaysSync(socketType, type, var) \
 	if (__TEMP_SOCKET == socketType || __TEMP_FORCE_ENCODE) \
 		{ \
 			SyncVarRequest request; \
@@ -527,9 +527,25 @@ public:
 #define SYNCVAR_EXEC_Callback(var, callback) \
 	if (__TEMP_ID == 0) \
 	{ \
-		auto before = var; \
+		const auto __BEFORE_VAR = var; \
 		if(!Decode(__TEMP_BUFFER, var, GetDecodingContext())) return false; \
-		if(!__TEMP_SKIP_CALLBACKS && before != var) callback(); \
+		if(!__TEMP_SKIP_CALLBACKS && __BEFORE_VAR != var) callback(); \
+		return true; \
+	} \
+	else \
+		--__TEMP_ID;
+
+/**
+* Execution for a variable at the placed index
+* Calls the callback function when the value is changed (Over the net)
+* (Ignores skipCallback requests)
+*/
+#define SYNCVAR_EXEC_AlwaysCallback(var, callback) \
+	if (__TEMP_ID == 0) \
+	{ \
+		const auto __BEFORE_VAR = var; \
+		if(!Decode(__TEMP_BUFFER, var, GetDecodingContext())) return false; \
+		if(__BEFORE_VAR != var) callback(); \
 		return true; \
 	} \
 	else \
