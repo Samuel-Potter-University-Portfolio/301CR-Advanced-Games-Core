@@ -38,7 +38,10 @@ private:
 	const vec2 m_tileSize;
 
 	/// What tiles are placed where
-	TileGrid m_tiles;	
+	TileGrid m_tiles;
+	/// The default state for this arena
+	TileGrid m_defaultTiles;
+
 	/// The areas which are safe to spawn in
 	std::vector<ivec2> m_spawnPoints;
 	/// What bombs are currently affecting which tiles
@@ -111,6 +114,7 @@ public:
 	*/
 	void HandleExplosion(class ABBomb* bomb);
 
+
 	/**
 	* Getters & Setters
 	*/
@@ -136,8 +140,13 @@ public:
 	inline const uvec2& GetArenaSize() const { return m_arenaSize; }
 	inline const std::vector<ivec2> GetSpawnPoints() const { return m_spawnPoints; }
 
+
 	/** Get the character who caused this explosion */
 	class ABCharacter* GetExplosionOwner(const ivec2& tile) const;
+
+	inline void ResetArenaState() { m_tiles = m_defaultTiles; }
+	inline void SetDefaultArenaState() { m_defaultTiles = m_tiles; }
+
 
 	/** Convert a world position to a tile position	*/
 	inline ivec2 WorldToTile(const vec2& worldPosition) const { return ivec2((worldPosition.x - GetLocation().x) / m_tileSize.x, (worldPosition.y - GetLocation().y) / m_tileSize.y); }

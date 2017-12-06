@@ -117,6 +117,7 @@ void ABMatchController::OnTick(const float& deltaTime)
 					player->m_character->SpawnAtTile(spawns[rand() % spawns.size()]);
 					player->m_character->SetActive(true);
 				}
+				arena->ResetArenaState();
 
 				m_currentState = MatchState::InRound;
 				LOG("Starting round %i", m_roundCounter);
@@ -126,6 +127,17 @@ void ABMatchController::OnTick(const float& deltaTime)
 
 		case MatchState::InRound:
 		{
+			// Go inactive if players aren't connected
+			if (m_activePlayers.size() == 0)
+			{
+				m_currentState = MatchState::InActive;
+				return;
+			}
+			// Don't run gamemode, if not enough players are connected
+			else if (m_activePlayers.size() == 1)
+				return;
+
+
 			// Check to see how many players alive there are
 			OBPlayerController* winner = nullptr;
 			uint32 liveCount = 0;
@@ -147,6 +159,7 @@ void ABMatchController::OnTick(const float& deltaTime)
 				++winner->m_character->m_roundWins;
 
 				m_currentState = MatchState::EndOfRound;
+				m_stateTimer = 3.0f;
 			}
 			// No-one alive (Must have killed each other or suicide pact)??
 			else if (liveCount == 0)
@@ -162,10 +175,25 @@ void ABMatchController::OnTick(const float& deltaTime)
 		{
 			// TODO - Check if a player has more than 5 round wins
 
-			// Reset arena
-			m_roundCounter++;
-			m_currentState = MatchState::StartingRound;
-			m_stateTimer = 5.0f;
+			// Wait a bit until starting the round
+			m_stateTimer -= deltaTime;
+			if (m_stateTimer < 0.0f)
+			{
+				// Reset arena
+				m_roundCounter++;
+				m_currentState = MatchState::StartingRound;
+				m_stateTimer = 3.0f;
+
+				// Make sure all characters are dead
+				for (OBPlayerController* player : m_activePlayers)
+				{
+					if (!player->m_character->bIsDead)
+					{
+						player->m_character->bIsDead = true;
+						player->m_character->SetActive(false);
+					}
+				}
+			}
 
 
 			break;

@@ -26,4 +26,6 @@ void LBGameLevelBase::OnBuildLevel()
 		arena->SetTile(spawn.x + 1, spawn.y + 0, ABLevelArena::TileType::Floor);
 		arena->SetTile(spawn.x + 1, spawn.y + 1, ABLevelArena::TileType::Floor);
 	}
+
+	arena->SetDefaultArenaState();
 }
