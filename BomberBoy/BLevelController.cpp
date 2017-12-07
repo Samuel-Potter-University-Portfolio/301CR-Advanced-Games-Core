@@ -230,7 +230,10 @@ void ABMatchController::OnTick(const float& deltaTime)
 			// Once timer is over, switch back to lobby
 			m_stateTimer -= deltaTime;
 			if (m_stateTimer < 0.0f)
+			{
 				GetGame()->SwitchLevel(GetGame()->defaultNetLevel);
+				m_stateTimer = 30.0f; // Stop from sending multiple level change requests
+			}
 			break;
 		}
 	}

@@ -41,6 +41,8 @@ private:
 	TileGrid m_tiles;
 	/// The default state for this arena
 	TileGrid m_defaultTiles;
+	/// Is it currently safe to draw
+	bool bIsDrawSafe = false;
 
 	/// The areas which are safe to spawn in
 	std::vector<ivec2> m_spawnPoints;
@@ -121,7 +123,7 @@ public:
 protected:
 	inline uint32 GetTileIndex(const uint32& x, const uint32& y) const { return y * m_arenaSize.x + x; }
 public:
-	inline TileType GetTile(const uint32& x, const uint32& y) { if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y) return TileType::Unknown; else return m_tiles[GetTileIndex(x, y)]; }
+	inline TileType GetTile(const uint32& x, const uint32& y) { if (x >= m_arenaSize.x || y >= m_arenaSize.y) return TileType::Unknown; else return m_tiles[GetTileIndex(x, y)]; }
 	inline bool SetTile(const uint32& x, const uint32& y, const TileType& tile)
 	{
 		if (x < 0 || y < 0 || x >= m_arenaSize.x || y >= m_arenaSize.y)

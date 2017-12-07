@@ -529,15 +529,19 @@ void NetSession::DecodeNetUpdate(NetPlayerConnection* source, ByteBuffer& buffer
 	{
 		if (level == nullptr || level->GetInstanceID() != levelInstance || level->GetClass()->GetID() != levelClass)
 		{
-			// Attempt to switch to level
-			LLevel::s_instanceCounter = 10000 - levelInstance; // Just to make sure we are definately on wrong level, if we switch
-			LLevel* newLevel;
-			if (!GetGame()->HasPendingLevelSwitch())
+			// Only change if instance is lower 
+			if (level->GetInstanceID() < levelInstance)
 			{
-				if (GetGame()->SwitchLevel(levelClass, newLevel))
-					newLevel->m_instanceId = levelInstance;
-				else
-					LOG("Failed to switch to requested level { class:%i instance:%i }", levelClass, levelInstance);
+				// Attempt to switch to level
+				LLevel::s_instanceCounter = 10000 - levelInstance; // Just to make sure we are definately on wrong level, if we switch
+				LLevel* newLevel;
+				if (!GetGame()->HasPendingLevelSwitch())
+				{
+					if (GetGame()->SwitchLevel(levelClass, newLevel))
+						newLevel->m_instanceId = levelInstance;
+					else
+						LOG("Failed to switch to requested level { class:%i instance:%i }", levelClass, levelInstance);
+				}
 			}
 			return;
 		}

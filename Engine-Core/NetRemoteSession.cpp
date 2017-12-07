@@ -254,6 +254,11 @@ NetResponseCode NetRemoteSession::DecodeHandshakeResponse(ByteBuffer& inBuffer, 
 		outPlayer->DecodeSyncVarRequests(0, inBuffer, TCP, true);
 		GetGame()->AddObject(outPlayer);
 
+		// Reset level instance id so sever may sync
+		LLevel::s_instanceCounter = 0;
+		LLevel* level = GetGame()->GetCurrentLevel();
+		level->m_instanceId = 0;
+
 
 		outPlayer->OnPostNetInitialize();
 	}

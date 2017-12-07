@@ -107,7 +107,10 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 	for (int x = 0; x < m_arenaSize.x; ++x)
 		for (int y = 0; y < m_arenaSize.y; ++y)
 		{
-			const TileType& tile = GetTile(x, y);
+			if (!bIsDrawSafe)
+				return;
+
+			const TileType tile = GetTile(x, y);
 			const vec2 location = GetLocation() + vec2((x)* m_tileSize.x, (y)* m_tileSize.y);
 
 			// Cull shapes off screen
@@ -178,6 +181,7 @@ void ABLevelArena::OnDraw(sf::RenderWindow* window, const float& deltaTime)
 
 void ABLevelArena::ResetArena(uvec2 size)
 {
+	bIsDrawSafe = false;
 	m_tiles.clear();
 	m_tiles.resize(size.x * size.y, TileType::Floor);
 	m_arenaSize = size;
@@ -197,6 +201,7 @@ void ABLevelArena::ResetArena(uvec2 size)
 		m_spawnPoints.emplace_back(1 + i * stride, 1);
 		m_spawnPoints.emplace_back(1 + i * stride, m_arenaSize.x - 3);
 	}
+	bIsDrawSafe = true;
 }
 
 void ABLevelArena::SetTileset(const TileSet& set)
