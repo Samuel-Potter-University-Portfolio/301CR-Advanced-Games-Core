@@ -162,6 +162,7 @@ void ALobbyController::OnPlayerConnect(OPlayerController* player, const bool& ne
 	OBPlayerController* bplayer = dynamic_cast<OBPlayerController*>(player);
 	if (bplayer == nullptr)
 		return;
+	bplayer->SetReady(false);
 	m_players.emplace_back(bplayer);
 
 

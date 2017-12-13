@@ -26,7 +26,7 @@ private:
 
 	int64 m_matchStartEpoch;
 	uint32 m_roundCounter = 0;
-	const uint32 m_roundWinAmount = 1;
+	const uint32 m_roundWinAmount = 5;
 
 	std::vector<OBPlayerController*> m_activePlayers;
 
@@ -46,6 +46,24 @@ public:
 	* @param killer				The person who owned the explosion
 	*/
 	void OnPlayerExploded(ABCharacter* victim, ABCharacter* killer);
+
+	/**
+	* Send a message to all clients
+	* @param message			The message to send
+	*/
+	void SendChatMessage(const string& message);
+
+
+	/**
+	* Net overrides
+	*/
+protected:
+	virtual bool RegisterRPCs(const char* func, RPCInfo& outInfo) const override;
+	virtual bool ExecuteRPC(uint16& id, ByteBuffer& params) override;
+
+	//virtual void RegisterSyncVars(SyncVarQueue& outQueue, const SocketType& socketType, uint16& index, uint32& trackIndex, const bool& forceEncode) override;
+	//virtual bool ExecuteSyncVar(uint16& id, ByteBuffer& value, const bool& skipCallbacks) override;
+
 
 	/**
 	* Getters & Setters

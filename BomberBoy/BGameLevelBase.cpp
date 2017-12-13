@@ -2,6 +2,7 @@
 
 #include "Core\Camera.h"
 #include "BLevelController.h"
+#include "GamemodeHUD.h"
 
 CLASS_SOURCE(LBGameLevelBase)
 
@@ -9,6 +10,7 @@ CLASS_SOURCE(LBGameLevelBase)
 LBGameLevelBase::LBGameLevelBase()
 {
 	levelControllerClass = ABMatchController::StaticClass();
+	hudClass = AGamemodeHUD::StaticClass();
 }
 
 void LBGameLevelBase::OnBuildLevel() 

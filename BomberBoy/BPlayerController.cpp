@@ -78,8 +78,8 @@ bool OBPlayerController::RegisterRPCs(const char* func, RPCInfo& outInfo) const
 	RPC_INDEX_HEADER(func, outInfo);
 	RPC_INDEX(TCP, RPCCallingMode::Host, SendMessage);
 	RPC_INDEX(TCP, RPCCallingMode::Broadcast, BroadcastMessage);
-	RPC_INDEX(TCP, RPCCallingMode::Host, SetReady_Host);
-	RPC_INDEX(TCP, RPCCallingMode::Host, SetMapVote_Host);
+	RPC_INDEX(UDP, RPCCallingMode::Host, SetReady_Host);
+	RPC_INDEX(UDP, RPCCallingMode::Host, SetMapVote_Host);
 	return false;
 }
 bool OBPlayerController::ExecuteRPC(uint16& id, ByteBuffer& params) 

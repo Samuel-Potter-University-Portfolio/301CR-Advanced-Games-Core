@@ -10,8 +10,6 @@
 #include <SFML\Network.hpp>
 
 
-#define API_SUPPORTED
-
 
 // Makes writting just a little bit shorter
 typedef sf::Http Http;

@@ -2,9 +2,12 @@
 #include "BCharacter.h"
 
 #include <ctime>
+#include <sstream>
 
 #include "LobbyLevel.h"
 #include "APIController.h"
+
+#include "ChatWidget.h"
 
 
 CLASS_SOURCE(ABMatchController)
@@ -13,6 +16,19 @@ CLASS_SOURCE(ABMatchController)
 ABMatchController::ABMatchController()
 {
 	bIsTickable = true;
+}
+
+bool ABMatchController::RegisterRPCs(const char* func, RPCInfo& outInfo) const 
+{
+	RPC_INDEX_HEADER(func, outInfo);
+	RPC_INDEX(TCP, RPCCallingMode::Broadcast, SendChatMessage);
+	return false;
+}
+bool ABMatchController::ExecuteRPC(uint16& id, ByteBuffer& params) 
+{
+	RPC_EXEC_HEADER(id, params);
+	RPC_EXEC_OneParam(SendChatMessage, string);
+	return false;
 }
 
 
@@ -126,6 +142,33 @@ void ABMatchController::OnTick(const float& deltaTime)
 
 				m_currentState = MatchState::InRound;
 				LOG("Starting round %i", m_roundCounter);
+
+
+				// Send out message to all players
+				std::stringstream ss;
+				ss << "Starting round " << m_roundCounter;
+				CallRPC_OneParam(this, SendChatMessage, ss.str());
+
+				// Tell them who is in lead
+				{
+					int32 maxWon = 0;
+					OBPlayerController* lead = nullptr;
+					for (OBPlayerController* player : m_activePlayers)
+					{
+						if (player->m_character->GetRoundsWon() >= maxWon)
+						{
+							maxWon = player->m_character->GetRoundsWon();
+							lead = player;
+						}
+					}
+
+					if (maxWon != 0 && lead != nullptr)
+					{
+						std::stringstream ss;
+						ss << lead->GetPlayerName() << " needs " << (m_roundWinAmount - maxWon) << " more rounds to win";
+						CallRPC_OneParam(this, SendChatMessage, ss.str());
+					}
+				}
 			}
 			break;
 		}
@@ -165,12 +208,22 @@ void ABMatchController::OnTick(const float& deltaTime)
 
 				m_currentState = MatchState::EndOfRound;
 				m_stateTimer = 3.0f;
+
+
+				// Send out message to all players
+				std::stringstream ss;
+				ss << winner->GetPlayerName() << " has won the round!";
+				CallRPC_OneParam(this, SendChatMessage, ss.str());
 			}
 			// No-one alive (Must have killed each other or suicide pact)??
 			else if (liveCount == 0)
 			{
 				LOG("This round has no winner..");
 				m_currentState = MatchState::EndOfRound;
+
+
+				// Send out message to all players
+				CallRPC_OneParam(this, SendChatMessage, string("The round has no winner"));
 			}
 			// TODO - Broadcast to clients
 
@@ -195,7 +248,10 @@ void ABMatchController::OnTick(const float& deltaTime)
 						apiController->ReportMatchResults(m_matchStartEpoch, m_activePlayers);
 				#endif
 
-					// TODO - Broadcast to clients
+					// Send out message to all players
+					std::stringstream ss;
+					ss << player->GetPlayerName() << " has won the match!";
+					CallRPC_OneParam(this, SendChatMessage, ss.str());
 					return;
 				}
 			}
@@ -257,4 +313,10 @@ void ABMatchController::OnPlayerExploded(ABCharacter* victim, ABCharacter* kille
 		--victim->m_kills;
 	else if(killer != nullptr)
 		++killer->m_kills;
+}
+
+void ABMatchController::SendChatMessage(const string& message)
+{
+	if (UChatWidget::s_main != nullptr)
+		UChatWidget::s_main->LogMessage(nullptr, message);
 }

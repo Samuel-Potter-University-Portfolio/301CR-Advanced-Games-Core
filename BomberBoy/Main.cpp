@@ -12,6 +12,7 @@
 
 #include "MainMenuHUD.h"
 #include "LobbyHUD.h"
+#include "GamemodeHUD.h"
 
 #include "BLevelController.h"
 #include "LobbyController.h"
@@ -63,6 +64,7 @@ static inline int entry(std::vector<string>& args)
 		game.RegisterClass(ACamera::StaticClass());
 		game.RegisterClass(AMainMenuHUD::StaticClass());
 		game.RegisterClass(ALobbyHUD::StaticClass());
+		game.RegisterClass(AGamemodeHUD::StaticClass());
 
 
 		game.playerControllerClass = OBPlayerController::StaticClass();

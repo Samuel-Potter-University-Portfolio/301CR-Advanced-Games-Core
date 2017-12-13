@@ -105,6 +105,9 @@
     <ClCompile Include="BLevelController.cpp">
       <Filter>Source\Levels\Modes</Filter>
     </ClCompile>
+    <ClCompile Include="GamemodeHUD.cpp">
+      <Filter>Source\Levels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BPlayerController.h">
@@ -172,6 +175,9 @@
     </ClInclude>
     <ClInclude Include="BLevelController.h">
       <Filter>Includes\Levels\Modes</Filter>
+    </ClInclude>
+    <ClInclude Include="GamemodeHUD.h">
+      <Filter>Includes\Levels</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
