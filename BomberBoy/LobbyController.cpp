@@ -9,7 +9,10 @@ CLASS_SOURCE(ALobbyController)
 const std::vector<SubClassOf<LLevel>> ALobbyController::s_supportedLevels(
 {
 	LBStoneLevel::StaticClass(),
-	LBGameLevelBase::StaticClass(),
+	LBStoneLevel::StaticClass(),
+	LBStoneLevel::StaticClass(),
+	LBStoneLevel::StaticClass(),
+	LBStoneLevel::StaticClass(),
 	//LBGameLevelBase::StaticClass(),
 });
 
